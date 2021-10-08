@@ -1,8 +1,9 @@
 import pygame
 pygame.init()
 
-dispWidth = 500
-dispHeight = 500
+dispWidth = 1920
+dispHeight = 1080
+
 #sets the screen size
 
 window = pygame.display.set_mode((dispWidth, dispHeight))
@@ -20,6 +21,11 @@ boxColour = (150,150,150)
 #defines box colour
 box = pygame.Rect(boxCoords, (boxWidth, boxHeight))
 #defines box in format of a pygame.rect()
+text = ''
+#sets text string to empty so it can be added to later
+font = pygame.font.Font(None, 32)
+#sets the font to the default with size 32
+textColour = (204, 186, 198)
 
 #experimental bits
 pygame.key.start_text_input()
@@ -45,11 +51,19 @@ while GAMELOOP:
                 typing = False
 
         elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_a:
-                boxColour = (255,0,0)
+            if event.key == pygame.K_RETURN:
+                print(text)
+                text = ''
+            elif event.key == pygame.K_BACKSPACE:
+                text = text[:-1]
+            else:
+                text += event.unicode
 
+    window.fill((0,0,0))
+    textRender = font.render(text, True, textColour)
     pygame.draw.rect(window, boxColour, box)
     #draws a rectangle with colour boxColour
+    window.blit(textRender, (boxX+5, boxY+5))
 
     pygame.display.update()
     #draws the new frame
