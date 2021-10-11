@@ -1,10 +1,19 @@
 import pygame
 pygame.init()
 
+#sets the screen size
 dispWidth = 1920
 dispHeight = 1080
-
-#sets the screen size
+#defines box colour
+boxColourActive = (204, 221, 226)
+#defines colour while the box is unselected
+boxColourDormant = (147, 163, 188)
+#defines background colour
+backColour = (56, 104, 106)
+#text colour
+textColour = (24, 119, 149)
+#font size
+fontSize = 62
 
 window = pygame.display.set_mode((dispWidth, dispHeight))
 pygame.display.set_caption("Typeracer")
@@ -17,18 +26,17 @@ boxWidth = int(dispWidth - (dispWidth * 2/5))
 boxHeight = 50
 #defines the box size
 boxX = dispWidth / 5
-boxY = dispHeight / 5
+boxY = 6 * dispHeight / 20
 #defines the box position
 boxCoords = (boxX, boxY)
-boxColour = (150,150,150)
+boxColour = boxColourDormant
 #defines box colour
 box = pygame.Rect(boxCoords, (boxWidth, boxHeight))
 #defines box in format of a pygame.rect()
 text = ''
 #sets text string to empty so it can be added to later
-font = pygame.font.Font(None, 32)
+font = pygame.font.Font(None, fontSize)
 #sets the font to the default with size 32
-textColour = (204, 186, 198)
 #time between backspaces
 timeBetweenBackspaces = 50
 #time since last backspace
@@ -54,11 +62,11 @@ while GAMELOOP:
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if box.collidepoint(pygame.mouse.get_pos()):
                 #checks if mouse is on the box at time of click
-                boxColour = (255,255,255)
+                boxColour = boxColourActive
                 typing = True
 
             else:
-                boxColour = (150,150,150)
+                boxColour = boxColourDormant
                 typing = False
 
         #handles keypress events
@@ -81,9 +89,9 @@ while GAMELOOP:
         text = text[:-1]
         timeSinceLastBackspace = 0
 
-    timeSinceLastBackspace += gameClock.get_time()
+    timeSinceLastBackspace += gameClock.get_time() 
 
-    window.fill((0,0,0))
+    window.fill(backColour)
     textRender = font.render(text, True, textColour)
     pygame.draw.rect(window, boxColour, box)
     #draws a rectangle with colour boxColour
