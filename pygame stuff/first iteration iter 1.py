@@ -48,9 +48,10 @@ while GAMELOOP:
                 typing = True
 
             else:
+                boxColour = (150,150,150)
                 typing = False
 
-        elif event.type == pygame.KEYDOWN:
+        elif event.type == pygame.KEYDOWN and typing:
             if event.key == pygame.K_RETURN:
                 print(text)
                 text = ''
