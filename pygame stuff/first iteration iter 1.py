@@ -1,4 +1,5 @@
 import pygame
+from pygame.constants import K_BACKSPACE
 pygame.init()
 
 dispWidth = 1920
@@ -9,6 +10,9 @@ dispHeight = 1080
 window = pygame.display.set_mode((dispWidth, dispHeight))
 pygame.display.set_caption("Typeracer")
 #makes a new window and captions it typeracer
+
+#makes a clock object
+gameClock = pygame.time.Clock()
 
 boxWidth = int(dispWidth - (dispWidth * 2/5))
 boxHeight = 50
@@ -26,6 +30,12 @@ text = ''
 font = pygame.font.Font(None, 32)
 #sets the font to the default with size 32
 textColour = (204, 186, 198)
+#time between backspaces
+timeBetweenBackspaces = 50
+#time since last backspace
+timeSinceLastBackspace = 0
+#boolean for whether or not the current text is being deleted
+deleting = False
 
 #experimental bits
 pygame.key.start_text_input()
@@ -34,6 +44,7 @@ pygame.key.set_text_input_rect(box)
 
 GAMELOOP = True
 while GAMELOOP:
+    gameClock.tick()
     pygame.time.delay(30)
     #determines fps of the game
     for event in pygame.event.get():
@@ -51,18 +62,27 @@ while GAMELOOP:
                 boxColour = (150,150,150)
                 typing = False
 
-<<<<<<< HEAD
+        #handles keypress events
         elif event.type == pygame.KEYDOWN and typing:
-=======
-        elif event.type == pygame.KEYDOWN:
->>>>>>> fea80d5ad6acd637cdeb1e3f1dd2a33e822af314
             if event.key == pygame.K_RETURN:
-                print(text)
-                text = ''
+                print(text) #does stuff with the text that was written
+                text = ''   #resets the text to empty string
+            #detects backspace being pressed down
             elif event.key == pygame.K_BACKSPACE:
-                text = text[:-1]
+                text = text[:-1] #removes 1 letter from the end of the text
+                deleting = True  #enables deleting through holding down the key
+                timeSinceLastBackspace = 0
             else:
                 text += event.unicode
+        elif event.type == pygame.KEYUP:
+            if event.key == pygame.K_BACKSPACE:
+                deleting = False
+    #deletes text while the key is held down        
+    if deleting and timeSinceLastBackspace > timeBetweenBackspaces and typing:                    
+        text = text[:-1]
+        timeSinceLastBackspace = 0
+
+    timeSinceLastBackspace += gameClock.get_time()
 
     window.fill((0,0,0))
     textRender = font.render(text, True, textColour)
