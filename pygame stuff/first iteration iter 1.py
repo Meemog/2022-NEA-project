@@ -1,5 +1,4 @@
 import pygame
-from pygame.constants import K_BACKSPACE
 pygame.init()
 
 dispWidth = 1920
