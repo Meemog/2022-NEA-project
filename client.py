@@ -1,8 +1,9 @@
 import socket
+import threading
 
 HEADER = 8
 PORT = 5000
-SERVER = "192.168.1.125"
+SERVER = socket.gethostbyname(socket.gethostname()) #temporary // sets ip of host to client ip, which is same as host ip
 FORMAT = 'utf-8'
 ADDRESS = (SERVER, PORT)
 
@@ -18,4 +19,22 @@ def SendMsg(msg):
     client.send(msgLen)
     client.send(encMessage)
 
-SendMsg("TestMsg 1")
+def GetMsgs():
+    while True:
+        msgLen = client.recv(HEADER).decode(FORMAT) #Waits for message with length 8 bytes to be received from the client and then decodes it 
+        if msgLen:  #First message will always be empty
+            msgLen = int(msgLen)
+            msg = client.recv(msgLen).decode(FORMAT) #Waits for a message with length msgLen to be received
+            print(str(msg))
+
+receiveThread = threading.Thread(target=GetMsgs)
+receiveThread.start()
+
+newMsg = "hello"
+while True:
+    SendMsg(newMsg)
+    newMsg = ''
+    
+
+#this almost works, the problem is that the server and the client are both waiting for the other to have a message ready. 
+#this could be fixed by sending empty messages(?). 
