@@ -25,7 +25,8 @@ def GetMsgs():
         if msgLen:  #First message will always be empty
             msgLen = int(msgLen)
             msg = client.recv(msgLen).decode(FORMAT) #Waits for a message with length msgLen to be received
-            print(str(msg))
+            if msg != "":
+                print(f"\nMessage from server: {str(msg)}")
 
 receiveThread = threading.Thread(target=GetMsgs)
 receiveThread.start()
@@ -33,8 +34,4 @@ receiveThread.start()
 newMsg = "hello"
 while True:
     SendMsg(newMsg)
-    newMsg = ''
-    
-
-#this almost works, the problem is that the server and the client are both waiting for the other to have a message ready. 
-#this could be fixed by sending empty messages(?). 
+    newMsg = input("Client message to server:")

@@ -19,8 +19,9 @@ def GetMsgs(conn,addr):
         
         if msg.upper() == "!DISCONNECT":
             conn.close()
-
-        print(str(addr) +  ":", str(msg)) #Prints the message
+        
+        if msg != "":
+            print(str(addr) +  ":", str(msg)) #Prints the message
 
 def SendMsg(newMsg, conn):
     encMessage = newMsg.encode(FORMAT) #encodes msg with utf-8
@@ -30,18 +31,19 @@ def SendMsg(newMsg, conn):
     #b' ' means the byte representation of a space
     conn.send(msgLen)
     conn.send(encMessage)
-    newMsg = ''
+    newMsg = ""
+    return newMsg
 
 def HandleClient(conn, addr):
-    print("New client:", addr)  #Outputs the new client's local address
-    newMsg = f"Hello {addr}"
+    print(f"New Client: {addr}")  #Outputs the new client's local address
+    newMsg = "Connection established"
     #create new thread for getting messages
     while True: 
         GetMsgs(conn, addr)
         #sending messages
         if newMsg:
-            SendMsg(newMsg, conn)
-        newMsg = input("Enter the next message to send")
+            newMsg = SendMsg(newMsg, conn)
+        #put stuff here for server to do to change newMsg
 
 def GetClient():
     server.listen() #Looks for connections

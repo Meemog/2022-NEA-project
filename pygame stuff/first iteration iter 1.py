@@ -2,8 +2,8 @@ import pygame
 pygame.init()
 
 #sets the screen size
-dispWidth = 1920
-dispHeight = 1080
+dispWidth = 500
+dispHeight = 500
 #defines box colour
 boxColourActive = (204, 221, 226)
 #defines colour while the box is unselected
@@ -13,21 +13,22 @@ backColour = (56, 104, 106)
 #text colour
 textColour = (24, 119, 149)
 #font size
-fontSize = 62
+fontSize = int(dispHeight*62/1080)
 
 window = pygame.display.set_mode((dispWidth, dispHeight))
-pygame.display.set_caption("Typeracer")
-#makes a new window and captions it typeracer
+pygame.display.set_caption("Test for game")
+#makes a new window and captions it test for game
 
 #makes a clock object
 gameClock = pygame.time.Clock()
 
-boxWidth = int(dispWidth - (dispWidth * 2/5))
-boxHeight = 50
 #defines the box size
-boxX = dispWidth / 5
-boxY = 6 * dispHeight / 20
+boxWidth = int(dispWidth - (dispWidth * 2/5))
+boxHeight = int(50 * dispHeight / 1080)
 #defines the box position
+boxX = int(dispWidth / 5)
+boxY = int(6 * dispHeight / 20)
+#defines box co-ordinates
 boxCoords = (boxX, boxY)
 #defines box colour
 boxColour = boxColourDormant
@@ -48,10 +49,8 @@ deleting = False
 #typing boolean to determine if the textbox is focused
 typing = False
 
-#experimental bits
 pygame.key.start_text_input()
 pygame.key.set_text_input_rect(box)
-#experimental bits end
 
 GAMELOOP = True
 while GAMELOOP:
