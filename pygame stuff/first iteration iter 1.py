@@ -2,18 +2,18 @@ import pygame
 pygame.init()
 
 #sets the screen size
-dispWidth = 500
-dispHeight = 500
+dispWidth = 1920 
+dispHeight = 1080
 #defines box colour
-boxColourActive = (204, 221, 226)
+boxColourActive = (40,40,40)
 #defines colour while the box is unselected
-boxColourDormant = (147, 163, 188)
+boxColourDormant = (30,30,30)
 #defines background colour
-backColour = (56, 104, 106)
+backColour = (10,10,10)
 #text colour
-textColour = (24, 119, 149)
+textColour = (255,144,8)
 #font size
-fontSize = int(dispHeight*62/1080)
+fontSize = int(dispHeight*42/1080)
 
 window = pygame.display.set_mode((dispWidth, dispHeight))
 pygame.display.set_caption("Test for game")
@@ -39,7 +39,7 @@ text = ''
 #removedText will be a list that is treated as a stack, removing from the end and adding to the end
 removedText = []
 #sets the font to the default with size 32
-font = pygame.font.Font(None, fontSize)
+font = pygame.font.SysFont("consolas", fontSize)
 #time between backspaces
 timeBetweenBackspaces = 50
 #time since last backspace
