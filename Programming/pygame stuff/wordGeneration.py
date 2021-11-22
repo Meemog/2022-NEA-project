@@ -22,7 +22,6 @@ class wordGenerator:
         #gets a random track_id
         tracks = response["message"]["body"]["track_list"]
         randomTrack = tracks[random.randint(0, len(tracks))]["track"]["track_id"]
-        print(randomTrack)
         return randomTrack
 
     #function to get lyrics of a specific track
@@ -72,6 +71,3 @@ class wordGenerator:
         #public as it is effectively the main() of this class
         #returns string with numberOfWords words
         return self.__CutLyrics(self.__GetLyrics(self.__GetSong()), numberOfWords)
-
-wordGen = wordGenerator()
-print(wordGen.GetWordsForProgram(50))
