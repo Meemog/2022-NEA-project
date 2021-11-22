@@ -55,6 +55,12 @@ class wordGenerator:
 
         #counts spaces
         while length >= spaces:
+
+            #loops to the front of the string if lyrics runs out of words
+            if x == len(lyrics):
+                x = 0
+
+            #appends word from lyrics to newLyrics 
             newLyrics += lyrics[x]
             if lyrics[x] == " ":
                 spaces += 1
