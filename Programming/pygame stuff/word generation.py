@@ -17,15 +17,13 @@ class wordGenerator:
         #uses response library to make request to the correct domain
         response = requests.get("https://api.musixmatch.com/ws/1.1/" + payload)
         #converts list of songs to json format
-        response.json()
-        tracknames = []
-        #makes list of all tracks, this is in json format so other necessary information is also passed with it 
-        for track in words['message']['body']['track_list']:
-            tracknames.append(track['track'])
-        #gets a random track
-        randomTrack = tracknames[random.randint(0, len(tracknames)) - 1]
+        response = response.json()
 
-        return randomTrack['track_id']).json())['message']['body']['lyrics']['lyrics_body']
+        #gets a random track_id
+        tracks = response["message"]["body"]["track_list"]
+        randomTrack = tracks[random.randint(0, len(tracks))]["track"]["track_id"]
+        print(randomTrack)
+        return randomTrack
 
     #function to get lyrics of a specific track
     def __GetLyrics(self, trackID):
@@ -33,9 +31,10 @@ class wordGenerator:
         #string with API request to retrieve lyrics for given trackID
         payload = f"track.lyrics.get?apikey={self.__API_KEY}&track_id={trackID}"
         str(payload).encode()
-        response = requests.get("https://api.musixmatch.com/ws/1.1/" + payload)
+        response = requests.get("https://api.musixmatch.com/ws/1.1/" + payload).json()
+        response = response["message"]["body"]["lyrics"]["lyrics_body"]
         return response
-
+    
     #cuts lyrics down to certain length and removes newlines
     def __CutLyrics(self, lyrics, length):
         #private as it does not need to be accessed outside the object
@@ -54,6 +53,7 @@ class wordGenerator:
         x = 0
         spaces = 0
 
+        #counts spaces
         while length >= spaces:
             newLyrics += lyrics[x]
             if lyrics[x] == " ":
@@ -65,7 +65,7 @@ class wordGenerator:
     def GetWordsForProgram(self, numberOfWords):
         #public as it is effectively the main() of this class
         #returns string with numberOfWords words
-        return (self.__CutLyrics((self.__GetLyrics(self.__GetSong()), numberOfWords)))
+        return self.__CutLyrics(self.__GetLyrics(self.__GetSong()), numberOfWords)
 
 wordGen = wordGenerator()
 print(wordGen.GetWordsForProgram(50))
