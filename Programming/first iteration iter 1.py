@@ -1,4 +1,9 @@
 import pygame
+from wordGeneration import wordGenerator
+
+wordGen = wordGenerator()
+words = wordGen.GetWordsForProgram(50)
+
 pygame.init()
 
 #sets the screen size
@@ -111,7 +116,6 @@ while GAMELOOP:
 
     textRender = font.render(text, True, textColour)
     #draws rectangle (textbox)
-
     window.fill(backColour)
     pygame.draw.rect(window, boxColour, box)
     #draws the text over the rectangle

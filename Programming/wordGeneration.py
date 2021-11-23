@@ -71,6 +71,3 @@ class wordGenerator:
         #public as it is effectively the main() of this class
         #returns string with numberOfWords words
         return self.__CutLyrics(self.__GetLyrics(self.__GetSong()), numberOfWords)
-
-wordGen = wordGenerator()
-print(wordGen.GetWordsForProgram(500))
