@@ -14,7 +14,7 @@ class Game:
         self.__renderer = Renderer()
         wordGen = wordGenerator()
         self.__backText = wordGen.GetWordsForProgram(500)
-        self.__textBox = TextBox(int(dispWidth - (dispWidth * 2/5)), int(50 * dispHeight / 1080), (int(dispWidth / 5), int(6 * dispHeight / 20)), (40,40,40), (30,30,30), (255,144,8), int(dispHeight*42/1080), self.__backText, (20,20,20))
+        self.__textBox = TextBox(int(dispWidth - (dispWidth * 2/5)), int(50 * dispHeight / 1080), (int(dispWidth / 5), int(6 * dispHeight / 20)), (40,40,40), (30,30,30), (255,144,8), int(dispHeight*42/1080), self.__backText, (160,160,160))
 
     def main(self, window):
         GAMELOOP = True

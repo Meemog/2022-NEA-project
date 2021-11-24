@@ -47,9 +47,12 @@ class wordGenerator:
         while x <= len(lyrics) - 1:
             if lyrics[x] == '\n':
                 lyrics[x] = " "
-            if x > 0:
-                while lyrics[x] == " " and lyrics[x - 1] == " ":
+
+            try:
+                while lyrics[x] == " " and lyrics[x + 1] == " ":
                     lyrics.pop(x)
+
+            except: pass
 
             x += 1
 
