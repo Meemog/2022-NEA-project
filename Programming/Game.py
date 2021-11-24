@@ -2,16 +2,19 @@ import pygame
 from TextBox import TextBox
 from InputHandler import InputHandler
 from Renderer import Renderer
+from wordGeneration import wordGenerator
 
 class Game:
     def __init__(self, dispWidth, dispHeight):
         self.__gameClock = pygame.time.Clock() #makes a clock object
-        self.__textBox = TextBox(int(dispWidth - (dispWidth * 2/5)), int(50 * dispHeight / 1080), (int(dispWidth / 5), int(6 * dispHeight / 20)), (40,40,40), (30,30,30), (255,144,8), int(dispHeight*42/1080))
         self.__inputHandler = InputHandler()
         self.__timeBetweenBacspaces = 50
         self.__timeSinceLastBackspace = 0
         self.__deleting = False
         self.__renderer = Renderer()
+        wordGen = wordGenerator()
+        self.__backText = wordGen.GetWordsForProgram(500)
+        self.__textBox = TextBox(int(dispWidth - (dispWidth * 2/5)), int(50 * dispHeight / 1080), (int(dispWidth / 5), int(6 * dispHeight / 20)), (40,40,40), (30,30,30), (255,144,8), int(dispHeight*42/1080), self.__backText, (20,20,20))
 
     def main(self, window):
         GAMELOOP = True
@@ -37,6 +40,7 @@ class Game:
                 elif command == "BACKSPACE DOWN":
                     self.__textBox.DeleteLetter()
                     self.__deleting = True
+                    self.__timeSinceLastBackspace = -200
 
                 elif command == "BACKSPACE UP":
                     self.__deleting = False

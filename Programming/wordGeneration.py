@@ -5,7 +5,8 @@ import random
 class wordGenerator:
     def __init__(self):
         #private so API key cant be accessed outside this object
-        self.__API_KEY = "redacted"
+        file = open("APIKEY.txt", "r")
+        self.__API_KEY = file.readline()  
 
     #function to get a response object with 100 songs
     def __GetSong(self):
@@ -54,7 +55,6 @@ class wordGenerator:
 
         #counts spaces
         while length >= spaces:
-
             #loops to the front of the string if lyrics runs out of words
             if x == len(lyrics):
                 x = 0
