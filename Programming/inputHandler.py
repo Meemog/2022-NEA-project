@@ -3,7 +3,7 @@ import pygame
 #Converts input from event objects to commands recognised by rest of program
 class InputHandler:
     def __init__(self):
-        pass
+        self.typing = False
 
     def HandleInput(self, box):
         commands = []       #Command list that is added to
