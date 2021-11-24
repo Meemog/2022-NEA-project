@@ -41,9 +41,6 @@ class wordGenerator:
         #cuts out watermark at the end of string so that if the length required is longer than the actual lyrics it will loop
         lyrics = lyrics.split("...")[0]
         lyrics = lyrics.lower()
-
-        lyrics = "jdoaijda  oaijdoijdoia  oaidjoajdoijawdoiajwd   oajdioajd         diadhaiudhauwidhaiu"
-
         lyrics = list(lyrics)
 
         x = 0
