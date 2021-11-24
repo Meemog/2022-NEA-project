@@ -22,7 +22,7 @@ class wordGenerator:
 
         #gets a random track_id
         tracks = response["message"]["body"]["track_list"]
-        randomTrack = tracks[random.randint(0, len(tracks))]["track"]["track_id"]
+        randomTrack = tracks[random.randint(0, len(tracks) - 1)]["track"]["track_id"]
         return randomTrack
 
     #function to get lyrics of a specific track
@@ -56,7 +56,7 @@ class wordGenerator:
         #counts spaces
         while length >= spaces:
             #loops to the front of the string if lyrics runs out of words
-            if x == len(lyrics):
+            if x == len(lyrics) - 1:
                 x = 0
 
             #appends word from lyrics to newLyrics 

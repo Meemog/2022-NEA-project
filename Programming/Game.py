@@ -23,7 +23,6 @@ class Game:
             pygame.time.delay(30)   #determines max fps of game
             commands = self.__inputHandler.HandleInput(self.__textBox.box)
             for command in commands:
-                print(command)
                 if command == "QUIT":
                     GAMELOOP = False
 
