@@ -16,11 +16,9 @@ class wordGenerator:
         #encoded using UTF-8 (default for encode())
         str(payload).encode()
         #uses response library to make request to the correct domain
-        response = requests.get("https://api.musixmatch.com/ws/1.1/" + payload)
-        #converts list of songs to json format
-        response = response.json()
+        response = requests.get("https://api.musixmatch.com/ws/1.1/" + payload).json()  #converts list of songs to json format
         #gets a random track_id
-        tracks = response["message"]["body"]["track_list"]
+        tracks = response[0][1][1]
         randomTrack = tracks[random.randint(0, len(tracks) - 1)]["track"]["track_id"]
         return randomTrack
 
@@ -30,8 +28,8 @@ class wordGenerator:
         #string with API request to retrieve lyrics for given trackID
         payload = f"track.lyrics.get?apikey={self.__API_KEY}&track_id={trackID}"
         str(payload).encode()
-        response = requests.get("https://api.musixmatch.com/ws/1.1/" + payload).json()
-        response = response["message"]["body"]["lyrics"]["lyrics_body"]
+        response = (requests.get("https://api.musixmatch.com/ws/1.1/" + payload).json())
+        response = response[0][1][0][3]
         return response
     
     #cuts lyrics down to certain length and removes newlines
