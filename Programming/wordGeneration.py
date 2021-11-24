@@ -5,7 +5,7 @@ import random
 class wordGenerator:
     def __init__(self):
         #private so API key cant be accessed outside this object
-        self.__API_KEY = "031542d08a5d97e13560b759e3094416"
+        self.__API_KEY = "redacted"
 
     #function to get a response object with 100 songs
     def __GetSong(self):
