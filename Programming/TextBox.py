@@ -45,17 +45,7 @@ class TextBox:
         self.__text += letter
         
     #Draws the textbox
-    def DrawBox(self, window):         
-        self.__FormatText()   
-        #Blits (draws) the preview text
-        textRender = self.__font.render(self.__previewText, True, self.__previewTextColour)
-        window.blit(textRender, (self.__boxCoords[0] + 5, self.__boxCoords[1] + 5))
-
-        #Blits the typed
-        textRender = self.__font.render(self.__text, True, self.__textColour)
-        window.blit(textRender, (self.__boxCoords[0] + 5, self.__boxCoords[1] + 5))
-
-    def __FormatText(self):
+    def DrawBox(self, window):
         #Removes text when letter is typed and the cursor has reached the middle of the screen
         while self.__font.size(self.__text)[0] > self.__boxSize[0] / 2:
             self.__removedText.append(self.__text[0])   #Adds front letter to the removed text list when the typed letters get to the middle of the box 
@@ -67,3 +57,11 @@ class TextBox:
         while self.__font.size(self.__previewText + self.__missingPreviewText[-1])[0] <= self.__boxSize[0] - 10:
             self.__previewText += self.__missingPreviewText[-1]
             self.__missingPreviewText = self.__missingPreviewText[:-1]
+            
+        #Blits (draws) the preview text
+        textRender = self.__font.render(self.__previewText, True, self.__previewTextColour)
+        window.blit(textRender, (self.__boxCoords[0] + 5, self.__boxCoords[1] + 5))
+
+        #Blits the typed text
+        textRender = self.__font.render(self.__text, True, self.__textColour)
+        window.blit(textRender, (self.__boxCoords[0] + 5, self.__boxCoords[1] + 5))
