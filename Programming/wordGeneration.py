@@ -19,7 +19,6 @@ class wordGenerator:
         response = requests.get("https://api.musixmatch.com/ws/1.1/" + payload)
         #converts list of songs to json format
         response = response.json()
-
         #gets a random track_id
         tracks = response["message"]["body"]["track_list"]
         randomTrack = tracks[random.randint(0, len(tracks) - 1)]["track"]["track_id"]
@@ -43,6 +42,8 @@ class wordGenerator:
         lyrics = lyrics.lower()
         lyrics = list(lyrics)
 
+        #Replaces newline characters with spaces 
+        #Removes duplicate spaces
         x = 0
         while x <= len(lyrics) - 1:
             if lyrics[x] == '\n':
