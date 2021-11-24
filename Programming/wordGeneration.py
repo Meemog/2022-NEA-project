@@ -41,11 +41,20 @@ class wordGenerator:
         #cuts out watermark at the end of string so that if the length required is longer than the actual lyrics it will loop
         lyrics = lyrics.split("...")[0]
         lyrics = lyrics.lower()
+
+        lyrics = "jdoaijda  oaijdoijdoia  oaidjoajdoijawdoiajwd   oajdioajd         diadhaiudhauwidhaiu"
+
         lyrics = list(lyrics)
 
-        for i in range(len(lyrics)):
-            if lyrics[i] == '\n':
-                lyrics[i] = " "
+        x = 0
+        while x <= len(lyrics) - 1:
+            if lyrics[x] == '\n':
+                lyrics[x] = " "
+            if x > 0:
+                while lyrics[x] == " " and lyrics[x - 1] == " ":
+                    lyrics.pop(x)
+
+            x += 1
 
         newLyrics = ""
         #adds length number of words to a string
@@ -64,6 +73,7 @@ class wordGenerator:
             if lyrics[x] == " ":
                 spaces += 1
             x += 1
+
         return newLyrics
 
     #main function that is to generate a number of words to be displayed in the game
