@@ -30,6 +30,9 @@ class InputHandler:
                 elif event.key == pygame.K_RETURN:
                     pass
 
+                elif event.key == pygame.K_LCTRL:
+                    commands.append("CONTROL DOWN")
+
                 else:
                     commands.append(f"K{event.unicode}")        #Appends whatever wasn't detected
         
@@ -37,6 +40,9 @@ class InputHandler:
             elif event.type == pygame.KEYUP:
                 if event.key == pygame.K_BACKSPACE:
                     commands.append("BACKSPACE UP")
+                
+                elif event.key == pygame.K_LCTRL:
+                    commands.append("CONTROL UP")
 
         #Determines if box is active or not (in case of multiple clicks in a single frame)
         if self.typing and clicked:

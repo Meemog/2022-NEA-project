@@ -41,13 +41,33 @@ class TextBox:
         self.isActive = False
 
     #Removes a letter from text and potentially brings back a letter that was previously taken off the screen
-    def DeleteLetter(self):
-        self.__text = self.__text[:-1]
-        if self.__removedText != []:
-            self.__text = self.__removedText.pop() + self.__text
+    def DeleteLetter(self, control):
+        #Removes a word if the control key is held down
+        deleted = False
+        print(control)
+        if control:
+            while len(self.__text) > 0 and (self.__text[-1] != " " or not deleted): 
+                self.__missingPreviewText += self.__previewText[len(self.__previewText) - 1]
+                self.__previewText = self.__previewText[:-1]
+                self.__text = self.__text[:-1]
+                deleted = True
+                if self.__removedText != []:
+                    self.__text = self.__removedText.pop() + self.__text
 
-        if self.__removedPreviewText != []:
-            self.__previewText = self.__removedPreviewText.pop() + self.__previewText
+                if self.__removedPreviewText != []:
+                    self.__previewText = self.__removedPreviewText.pop() + self.__previewText
+
+        else:
+            self.__text = self.__text[:-1]
+            self.__missingPreviewText += self.__previewText[len(self.__previewText) - 1]
+            self.__previewText = self.__previewText[:-1]
+            if self.__removedText != []:
+                self.__text = self.__removedText.pop() + self.__text
+
+            if self.__removedPreviewText != []:
+                self.__previewText = self.__removedPreviewText.pop() + self.__previewText
+
+        
         
     #Adds a letter form text
     def AddLetter(self, letter):

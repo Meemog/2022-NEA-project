@@ -50,15 +50,21 @@ class Game:
                 self.__textBox.SetDormant()
 
             elif command == "BACKSPACE DOWN":       
-                self.__textBox.DeleteLetter()       #Removes letter form textbox
+                self.__textBox.DeleteLetter(self.__ctrl)       #Removes letter form textbox
                 self.__deleting = True              #True until BACKSPACE UP
                 self.__timeSinceLastBackspace = -200    #Gives 0.2 second delay until deleting starts
 
             elif command == "BACKSPACE UP":
                 self.__deleting = False
 
-def CheckForBackspace(self):
-    #Deletes text while backspace being held down
-    if self.__deleting and self.__timeSinceLastBackspace > self.__timeBetweenBacspaces and self.__inputHandler.typing:
-        self.__textBox.DeleteLetter()
-        self.__timeSinceLastBackspace = 0
+            elif command == "CONTROL DOWN":
+                self.__ctrl = True
+            
+            elif command == "CONTROL UP":
+                self.__ctrl = False
+
+    def CheckForBackspace(self):
+        #Deletes text while backspace being held down
+        if self.__deleting and self.__timeSinceLastBackspace > self.__timeBetweenBacspaces and self.__inputHandler.typing:
+            self.__textBox.DeleteLetter(self.__ctrl)
+            self.__timeSinceLastBackspace = 0
