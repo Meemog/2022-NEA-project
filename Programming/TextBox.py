@@ -21,7 +21,7 @@ class TextBox:
         self.__removedText = [] #List to add removed letters to, so they can be added back when a letter is deleted
         self.__missingPreviewText = ""  #Text that is hidden
         self.__removedPreviewText = []
-        self.__font = pygame.font.SysFont("consolas", self.__fontSize)  #sets font to consolas
+        self.__font = pygame.font.SysFont("Courier New", self.__fontSize)  #sets font to consolas
 
         self.box = pygame.Rect(self.__boxCoords, self.__boxSize) #Defines rectangle object (pygame)
 
@@ -51,7 +51,10 @@ class TextBox:
         
     #Adds a letter form text
     def AddLetter(self, letter):
-        self.__text += letter
+        if letter == self.__previewText[len(self.__text)]:
+            self.__text += " "
+        else:
+            self.__text += self.__previewText[len(self.__text)]
         
     #Draws the textbox
     def DrawBox(self, window):
@@ -73,6 +76,11 @@ class TextBox:
         textRender = self.__font.render(self.__previewText, True, self.__previewTextColour)
         window.blit(textRender, (self.__boxCoords[0] + 5, self.__boxCoords[1] + 5))
 
-        #Blits the typed text
-        textRender = self.__font.render(self.__text, True, self.__textColour)
+        #Blits the preview text in the right colour
+        cutPreviewText = self.__previewText[:len(self.__text)]
+        textRender = self.__font.render(cutPreviewText, True, self.__textColour)
+        window.blit(textRender, (self.__boxCoords[0] + 5, self.__boxCoords[1] + 5))
+
+        #Blits the incorrect letters
+        textRender = self.__font.render(self.__text, True, self.__textColourWrong)
         window.blit(textRender, (self.__boxCoords[0] + 5, self.__boxCoords[1] + 5))
