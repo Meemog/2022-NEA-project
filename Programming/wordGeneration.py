@@ -20,7 +20,6 @@ class wordGenerator:
         #converts list of songs to json format
         response = response.json()
         #gets a random track_id
-        print(response)
         tracks = response["message"]["body"]["track_list"]
         randomTrack = tracks[random.randint(0, len(tracks) - 1)]["track"]["track_id"]
         return randomTrack
@@ -32,7 +31,6 @@ class wordGenerator:
         payload = f"track.lyrics.get?apikey={self.__API_KEY}&track_id={trackID}"
         str(payload).encode()
         response = requests.get("https://api.musixmatch.com/ws/1.1/" + payload).json()
-        print(response)
         response = response["message"]["body"]["lyrics"]["lyrics_body"]
         return response
     
@@ -84,6 +82,3 @@ class wordGenerator:
         #public as it is effectively the main() of this class
         #returns string with numberOfWords words
         return self.__CutLyrics(self.__GetLyrics(self.__GetSong()), numberOfWords)
-
-wordGen = wordGenerator()
-print(wordGen.GetWordsForProgram(50))
