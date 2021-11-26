@@ -2,7 +2,7 @@ import requests
 import json
 import random
 
-class wordGenerator:
+class WordGenerator:
     def __init__(self):
         #private so API key cant be accessed outside this object
         file = open("APIKEY.txt", "r")
