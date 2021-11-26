@@ -33,12 +33,6 @@ class TextBox:
         self.boxColour = self.__boxColourDormant
         self.isActive = False
 
-<<<<<<< HEAD
-    def DeleteLetter(self):
-        self.__text = self.__text[:-1]
-        if self.__removedText != []:
-            self.__text = self.__removedText.pop() + self.__text
-=======
     #Removes a letter from text and potentially brings back a letter that was previously taken off the screen
     def DeleteLetter(self, control):
         #Removes a word if the control key is held down
@@ -52,7 +46,6 @@ class TextBox:
                 deleted = True
                 if self.__removedText != []:
                     self.__text = self.__removedText.pop() + self.__text
->>>>>>> tmp
 
                 if self.__removedPreviewText != []:
                     self.__previewText = self.__removedPreviewText.pop() + self.__previewText
@@ -93,11 +86,6 @@ class TextBox:
         textRender = self.__font.render(self.__previewText, True, self.__previewTextColour)
         window.blit(textRender, (self.__boxCoords[0] + 5, self.__boxCoords[1] + 5))
 
-<<<<<<< HEAD
-        #Blits the typed text
-        textRender = self.__font.render(self.__text, True, self.__textColour)
-        window.blit(textRender, (self.__boxCoords[0] + 5, self.__boxCoords[1] + 5))
-=======
         #Blits the preview text in the right colour
         cutPreviewText = self.__previewText[:len(self.__text)]
         textRender = self.__font.render(cutPreviewText, True, self.__textColour)
@@ -106,4 +94,3 @@ class TextBox:
         #Blits the incorrect letters
         textRender = self.__font.render(self.__text, True, self.__textColourWrong)
         window.blit(textRender, (self.__boxCoords[0] + 5, self.__boxCoords[1] + 5))
->>>>>>> tmp
