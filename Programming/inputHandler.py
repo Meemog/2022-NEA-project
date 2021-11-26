@@ -27,12 +27,18 @@ class InputHandler:
                 elif event.key == pygame.K_RETURN:
                     pass
 
+                elif event.key == pygame.K_LCTRL:
+                    commands.append("CONTROL DOWN")
+
                 else:
                     commands.append(f"K{event.unicode}")
         
             elif event.type == pygame.KEYUP:
                 if event.key == pygame.K_BACKSPACE:
                     commands.append("BACKSPACE UP")
+                
+                elif event.key == pygame.K_LCTRL:
+                    commands.append("CONTROL UP")
 
         if self.typing and clicked:
             commands.append("CLICKED ON BOX")

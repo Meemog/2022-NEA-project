@@ -17,7 +17,7 @@ class TextBox:
         self.__removedText = [] #List to add removed letters to, so they can be added back when a letter is deleted
         self.__missingPreviewText = ""  #Text that is hidden
         self.__removedPreviewText = []
-        self.__font = pygame.font.SysFont("consolas", self.__fontSize)  #sets font to consolas
+        self.__font = pygame.font.SysFont("Courier New", self.__fontSize)  #sets font to consolas
 
         self.box = pygame.Rect(self.__boxCoords, self.__boxSize) #Defines rectangle object (pygame)
 
@@ -33,16 +33,47 @@ class TextBox:
         self.boxColour = self.__boxColourDormant
         self.isActive = False
 
+<<<<<<< HEAD
     def DeleteLetter(self):
         self.__text = self.__text[:-1]
         if self.__removedText != []:
             self.__text = self.__removedText.pop() + self.__text
+=======
+    #Removes a letter from text and potentially brings back a letter that was previously taken off the screen
+    def DeleteLetter(self, control):
+        #Removes a word if the control key is held down
+        deleted = False
+        print(control)
+        if control:
+            while len(self.__text) > 0 and (self.__text[-1] != " " or not deleted): 
+                self.__missingPreviewText += self.__previewText[len(self.__previewText) - 1]
+                self.__previewText = self.__previewText[:-1]
+                self.__text = self.__text[:-1]
+                deleted = True
+                if self.__removedText != []:
+                    self.__text = self.__removedText.pop() + self.__text
+>>>>>>> tmp
 
-        if self.__removedPreviewText != []:
-            self.__previewText = self.__removedPreviewText.pop() + self.__previewText
+                if self.__removedPreviewText != []:
+                    self.__previewText = self.__removedPreviewText.pop() + self.__previewText
+
+        else:
+            self.__text = self.__text[:-1]
+            self.__missingPreviewText += self.__previewText[len(self.__previewText) - 1]
+            self.__previewText = self.__previewText[:-1]
+            if self.__removedText != []:
+                self.__text = self.__removedText.pop() + self.__text
+
+            if self.__removedPreviewText != []:
+                self.__previewText = self.__removedPreviewText.pop() + self.__previewText
+
+        
         
     def AddLetter(self, letter):
-        self.__text += letter
+        if letter == self.__previewText[len(self.__text)]:
+            self.__text += " "
+        else:
+            self.__text += self.__previewText[len(self.__text)]
         
     #Draws the textbox
     def DrawBox(self, window):
@@ -62,6 +93,17 @@ class TextBox:
         textRender = self.__font.render(self.__previewText, True, self.__previewTextColour)
         window.blit(textRender, (self.__boxCoords[0] + 5, self.__boxCoords[1] + 5))
 
+<<<<<<< HEAD
         #Blits the typed text
         textRender = self.__font.render(self.__text, True, self.__textColour)
         window.blit(textRender, (self.__boxCoords[0] + 5, self.__boxCoords[1] + 5))
+=======
+        #Blits the preview text in the right colour
+        cutPreviewText = self.__previewText[:len(self.__text)]
+        textRender = self.__font.render(cutPreviewText, True, self.__textColour)
+        window.blit(textRender, (self.__boxCoords[0] + 5, self.__boxCoords[1] + 5))
+
+        #Blits the incorrect letters
+        textRender = self.__font.render(self.__text, True, self.__textColourWrong)
+        window.blit(textRender, (self.__boxCoords[0] + 5, self.__boxCoords[1] + 5))
+>>>>>>> tmp
