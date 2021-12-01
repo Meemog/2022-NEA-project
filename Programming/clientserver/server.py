@@ -12,16 +12,18 @@ server.bind(ADDRESS)
 
 def GetMsgs(conn,addr):
     #receiving messages
-    msgLen = conn.recv(HEADER).decode(FORMAT) #Waits for message with length 8 bytes to be received from the client and then decodes it 
+    conn.setblocking(False)
+    try:
+        msgLen = conn.recv(HEADER).decode(FORMAT) #Waits for message with length 8 bytes to be received from the client and then decodes it 
+    except socket.error:
+        return " "
     if msgLen:  #First message will always be empty
         msgLen = int(msgLen)
+
+        conn.setblocking(True)
         msg = conn.recv(msgLen).decode(FORMAT) #Waits for a message with length msgLen to be received
         
-        if msg.upper() == "!DISCONNECT":
-            conn.close()
-        
-        if msg != "":
-            print(str(addr) +  ":", str(msg)) #Prints the message
+        return msg
 
 def SendMsg(newMsg, conn):
     encMessage = newMsg.encode(FORMAT) #encodes msg with utf-8
