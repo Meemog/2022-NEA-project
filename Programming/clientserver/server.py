@@ -1,61 +1,77 @@
 import socket
 import threading
 
-HEADER = 8
-PORT = 5000
-SERVER = socket.gethostbyname(socket.gethostname()) #Gets the local IP address
-ADDRESS = (SERVER, PORT) #Makes a tuple for the address
-FORMAT = 'utf-8'
+class Server:
+    def __init__(self):
+        self.__HEADER = 8
+        self.__PORT = 5000
+        self.__SERVER = socket.gethostbyname(socket.gethostname()) #Gets the local IP address
+        self.__ADDRESS = (self.__SERVER, self.__PORT) #Makes a tuple for the address
+        self.__FORMAT = 'utf-8'
 
-server = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #AF_INET is for ipv4. SOCK_STREAM is for TCP, SOCK_DGRAM is UDP
-server.bind(ADDRESS)
+        self.__server = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #AF_INET is for ipv4. SOCK_STREAM is for TCP, SOCK_DGRAM is UDP
+        self.__server.bind(self.__ADDRESS)
 
-def GetMsgs(conn,addr):
-    #receiving messages
-    conn.setblocking(False)
-    try:
-        msgLen = conn.recv(HEADER).decode(FORMAT) #Waits for message with length 8 bytes to be received from the client and then decodes it 
-    except socket.error:
-        return " "
-    if msgLen:  #First message will always be empty
-        msgLen = int(msgLen)
+        print("[SERVER STARTED]")
+        self.__server.setblocking(False)
 
-        conn.setblocking(True)
-        msg = conn.recv(msgLen).decode(FORMAT) #Waits for a message with length msgLen to be received
-        
-        return msg
+    def __GetMsgs(self, conn,addr):
+        #receiving messages
+        conn.setblocking(False)
+        try:
+            msgLen = conn.recv(self.__HEADER).decode(self.__FORMAT) #Waits for message with length 8 bytes to be received from the client and then decodes it 
+        except socket.error:
+            return " "
 
-def SendMsg(newMsg, conn):
-    encMessage = newMsg.encode(FORMAT) #encodes msg with utf-8
-    msgLen = len(encMessage)
-    msgLen = str(msgLen).encode(FORMAT) 
-    msgLen += b' ' * (HEADER - len(msgLen)) #makes the message length be 8 bytes long so the server recognises it
-    #b' ' means the byte representation of a space
-    conn.send(msgLen)
-    conn.send(encMessage)
-    newMsg = ""
-    return newMsg
+        if msgLen:  #First message will always be empty
+            msgLen = int(msgLen)
+            conn.setblocking(True)
+            msg = conn.recv(msgLen).decode(self.__FORMAT) #Waits for a message with length msgLen to be received
+            
+            return msg
+        else:
+            conn.setblocking(True)
 
-def HandleClient(conn, addr):
-    print(f"New Client: {addr}")  #Outputs the new client's local address
-    newMsg = "Connection established"
-    #create new thread for getting messages
-    while True: 
-        GetMsgs(conn, addr)
-        #sending messages
-        if newMsg:
-            newMsg = SendMsg(newMsg, conn)
-        #put stuff here for server to do to change newMsg
+    def __SendMsg(self, newMsg, conn):
+        encMessage = newMsg.encode(self.__FORMAT) #encodes msg with utf-8
+        msgLen = len(encMessage)
+        msgLen = str(msgLen).encode(self.__FORMAT) 
+        msgLen += b' ' * (self.__HEADER - len(msgLen)) #makes the message length be 8 bytes long so the server recognises it
+        #b' ' means the byte representation of a space
+        conn.send(msgLen)
+        conn.send(encMessage)
+        newMsg = ""
+        return newMsg
 
-def GetClient():
-    server.listen() #Looks for connections
-    threads = []
-    while True:
-        conn, addr = server.accept() #When connection occurs
-        thread = threading.Thread(target=HandleClient, args=(conn, addr)) #Makes a new thread for the client handling so when it listens it doesn't stop the whole program
-        thread.start()  #Starts the thread
-        threads.append(thread)
+    def Run(self):
+        self.__server.listen() #Looks for connections
+        clients = []    #Empty list for client objects
+        while True:     
+            #Checks if client is trying to connect
+            try:
+                conn, addr = self.__server.accept() #When connection occurs
+                clients.append({"address": addr, "connection": conn})   #Appends dictionary to clients list
+            except socket.error:
+                pass        
 
-#server starts here
-print("Starting server")
-GetClient()
+            #Empty list for closed sockets
+            closedSockets = []
+            #Iterates through clients to checks for messages
+            for i in range(len(clients)):
+                msg = self.__GetMsgs(clients[i]["connection"], clients[i]["address"])   #Gets message, even if " "
+                #Closes connection if command given
+                if msg == "!DISCONNECT":
+                    closedSockets.append(clients[i])
+                    clients[i]["connection"].close()   
+                
+                #Prints message if it isnt " "
+                if msg != " ":
+                    print(f"Message:{msg}")
+                    
+            #Removes closed sockets from client list
+            for client in closedSockets:
+                while i <= len(clients) - 1:
+                    if clients[i]["address"] == client["address"]:
+                        clients.pop(i)
+                    else:
+                        i += 1

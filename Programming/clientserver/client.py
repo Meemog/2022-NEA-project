@@ -34,6 +34,9 @@ receiveThread = threading.Thread(target=client.GetMsgs)
 receiveThread.start()
 
 newMsg = "hello"
+client.SendMsg(newMsg)
 while True:
-    client.SendMsg(newMsg)
     newMsg = input("Client message to server:")
+    client.SendMsg(newMsg)
+    if newMsg == "!DISCONNECT":
+        break
