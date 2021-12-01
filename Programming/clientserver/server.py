@@ -47,10 +47,12 @@ def HandleClient(conn, addr):
 
 def GetClient():
     server.listen() #Looks for connections
+    threads = []
     while True:
         conn, addr = server.accept() #When connection occurs
         thread = threading.Thread(target=HandleClient, args=(conn, addr)) #Makes a new thread for the client handling so when it listens it doesn't stop the whole program
         thread.start()  #Starts the thread
+        threads.append(thread)
 
 #server starts here
 print("Starting server")
