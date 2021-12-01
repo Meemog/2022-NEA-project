@@ -66,7 +66,7 @@ class Server:
                 
                 #Prints message if it isnt " "
                 if msg != " ":
-                    print(f"Message:{msg}")
+                    print(f"[Message]{msg}")
                     
             #Removes closed sockets from client list
             for client in closedSockets:
