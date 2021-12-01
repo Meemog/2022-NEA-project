@@ -42,18 +42,21 @@ class WordGenerator:
         lyrics = lyrics.lower()
         lyrics = list(lyrics)
 
+        #Replaces newlines with spaces
         x = 0
         while x <= len(lyrics) - 1:
             if lyrics[x] == '\n':
                 lyrics[x] = " "
 
-            try:
-                while lyrics[x] == " " and lyrics[x + 1] == " ":
-                    lyrics.pop(x)
-
-            except: pass
-
             x += 1
+
+        #Removes duplicate spaces
+        x = 0
+        while x < len(lyrics) - 1:
+            if lyrics[x] ==  " " and lyrics[x+1] == " ":
+                lyrics.pop(x)
+            else:
+                x += 1
 
         newLyrics = ""
         #adds length number of words to a string
