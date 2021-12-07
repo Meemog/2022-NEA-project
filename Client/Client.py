@@ -1,11 +1,13 @@
 import pygame
+import threading
 from TextBox import TextBox
 from InputHandler import InputHandler
 from Renderer import Renderer
-from WordGeneration import WordGenerator
+from Backend.client import ClientSocket
 
-class Game:
-    def __init__(self, dispWidth, dispHeight):
+class Client:
+    def __init__(self):
+        self.__clientSocket = ClientSocket()
         self.__gameClock = pygame.time.Clock()  #Makes a clock object
         self.__inputHandler = InputHandler()    #Creates an InputHandler object
         self.__timeBetweenBacspaces = 50        #Delay between backspaces when backspace is held down
@@ -13,19 +15,34 @@ class Game:
         self.__deleting = False    
         self.__ctrl = False             #Boolean that is true for the duration of the backspace key being held down
         self.__renderer = Renderer()            #Creates Renderer object
-        wordGen = WordGenerator()               #Creates WordGenerator object
-        self.__backText = wordGen.GetWordsForProgram(500)   #Generates 500 words
-        #Creates a textbox object and passes arguments through it // refer to TextBox.py
-        self.__textBox = TextBox(int(dispWidth - (dispWidth * 2/5)), int(50 * dispHeight / 1080), (int(dispWidth / 5), int(6 * dispHeight / 20)), (40,40,40), (30,30,30), (255,144,8), int(dispHeight*42/1080), self.__backText, (160,160,160))
-        self.__GAMELOOP = True
+        self.__backText = " "
+        self.__GAMELOOP = False
 
-    def main(self, window):
+    def main(self, window,  dispWidth, dispHeight):
+        #Waits for game to start
+        waiting = True
+        self.__clientSocket.SendMsg("ConnectionEstablished")
+        while waiting:  
+            self.__backText = self.__GetBackText()
+            if self.__backText != " ":
+                #Creates a textbox object and passes arguments through it // refer to TextBox.py
+                self.__textBox = TextBox(int(dispWidth - (dispWidth * 2/5)), int(50 * dispHeight / 1080), (int(dispWidth / 5), int(6 * dispHeight / 20)), (40,40,40), (30,30,30), (255,144,8), int(dispHeight*42/1080), self.__backText, (160,160,160))
+                waiting = False
+                self.__GAMELOOP = True
+                waiting = False
+            #Checks for player closing the application
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.__clientSocket.EndConnection()
+                    waiting = False
+
+        #Happens after game has started
         while self.__GAMELOOP:
             self.__gameClock.tick()                  
             pygame.time.delay(30)                       #Determines max fps of game
             commands = self.__inputHandler.HandleInput(self.__textBox.box) #Gets list of input events
             self.TranslateInput(commands)   #Converts keyboard inputs into changes in attributes    
-            self.CheckForBackspace()        #Function for checking if backspace is held down
+            self.__CheckForBackspace()        #Function for checking if backspace is held down
                         
             self.__timeSinceLastBackspace += self.__gameClock.get_time()    #Adds time since last frame to time since last backspace
             self.__renderer.Render(window, self.__textBox)  #Draws everything
@@ -60,8 +77,22 @@ class Game:
             elif command == "CONTROL UP":
                 self.__ctrl = False
 
-    def CheckForBackspace(self):
+    def __CheckForBackspace(self):
         #Deletes text while backspace being held down
         if self.__deleting and self.__timeSinceLastBackspace > self.__timeBetweenBacspaces and self.__inputHandler.typing:
             self.__textBox.DeleteLetter(self.__ctrl)
             self.__timeSinceLastBackspace = 0
+
+    # def __CheckForMessageFromServer(self):
+    #     msg = self.__clientSocket.GetMsgs()
+    #     if msg == "":
+    #         return " "
+
+    #Gets text that should be used in the background
+    def __GetBackText(self):
+        msg = self.__clientSocket.GetMsgs()
+        if msg[:9] == "BACKTEXT:":
+            return msg[9:]
+
+        else: 
+            return " "

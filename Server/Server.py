@@ -1,5 +1,7 @@
 import socket
 import threading
+from Game import Game
+from Player import Player
 
 class Server:
     def __init__(self):
@@ -15,7 +17,7 @@ class Server:
         print("[SERVER STARTED]")
         self.__server.setblocking(False)
 
-    def __GetMsgs(self, conn,addr):
+    def GetMsgs(self, conn, addr):
         #receiving messages
         conn.setblocking(False)
         try:
@@ -32,7 +34,7 @@ class Server:
         else:
             conn.setblocking(True)
 
-    def __SendMsg(self, newMsg, conn):
+    def SendMsg(self, newMsg, conn):
         encMessage = newMsg.encode(self.__FORMAT) #encodes msg with utf-8
         msgLen = len(encMessage)
         msgLen = str(msgLen).encode(self.__FORMAT) 
@@ -45,33 +47,51 @@ class Server:
 
     def Run(self):
         self.__server.listen() #Looks for connections
-        clients = []    #Empty list for client objects
-        while True:     
+        playersInMatchmaking = []    #Empty list for client objects
+        currentGames = []
+        while True:
+            if numPlayers != len(playersInMatchmaking):
+                numPlayers = len(playersInMatchmaking)
             #Checks if client is trying to connect
             try:
                 conn, addr = self.__server.accept() #When connection occurs
-                clients.append({"address": addr, "connection": conn})   #Appends dictionary to clients list
+                newPlayer = Player(addr, conn)
+                playersInMatchmaking.append(newPlayer)   #Appends dictionary to playersInMatchmaking list
             except socket.error:
                 pass        
 
             #Empty list for closed sockets
             closedSockets = []
-            #Iterates through clients to checks for messages
-            for i in range(len(clients)):
-                msg = self.__GetMsgs(clients[i]["connection"], clients[i]["address"])   #Gets message, even if " "
+
+            #Creates new game object with 2 players in it 
+            while len(playersInMatchmaking) >= 2:
+                currentGames.append(Game(self, self, playersInMatchmaking[0], playersInMatchmaking[1]))
+                closedSockets.append(playersInMatchmaking.pop(0))
+                closedSockets.append(playersInMatchmaking.pop(0))
+                
+            #Iterates through playersInMatchmaking to check for messages
+            for i in range(len(playersInMatchmaking)):
+                msg = self.GetMsgs(playersInMatchmaking[i].connection, playersInMatchmaking[i].address)   #Gets message, even if " "
                 #Closes connection if command given
                 if msg == "!DISCONNECT":
-                    closedSockets.append(clients[i])
-                    clients[i]["connection"].close()   
+                    closedSockets.append(playersInMatchmaking[i])
+                    playersInMatchmaking[i].connection.close()   
                 
                 #Prints message if it isnt " "
-                if msg != " ":
+                if msg != " " and msg != None:
                     print(f"[Message]{msg}")
                     
             #Removes closed sockets from client list
             for client in closedSockets:
-                while i <= len(clients) - 1:
-                    if clients[i]["address"] == client["address"]:
-                        clients.pop(i)
+                while i <= len(playersInMatchmaking) - 1:
+                    if playersInMatchmaking[i].address == client.address:
+                        playersInMatchmaking.pop(i)
                     else:
                         i += 1
+
+            #Updates frame for every game currently in progress
+            for game in currentGames:
+                game.Run()
+   
+server = Server()
+server.Run()

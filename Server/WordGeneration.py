@@ -13,8 +13,6 @@ class WordGenerator:
         #private as it does not need to be accessed outside the object
         #string with the request for list of top 100 songs that have lyrics is made
         payload = f"chart.tracks.get?apikey={self.__API_KEY}&country=us&f_has_lyrics=1&explicit=0&page_size=100"
-        #encoded using UTF-8 (default for encode())
-        str(payload).encode()
         #uses response library to make request to the correct domain
         response = requests.get("https://api.musixmatch.com/ws/1.1/" + payload)
         #converts list of songs to json format

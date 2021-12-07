@@ -1,15 +1,15 @@
 #main file
 import pygame
-from Game import Game
+from Client import Client
 
-dispWidth = 1920
-dispHeight = 1080
+dispWidth = 500
+dispHeight = 500
 window = pygame.display.set_mode((dispWidth, dispHeight))
 pygame.display.set_caption("SpeedTyper")
 pygame.font.init()
 
-game = Game(dispWidth, dispHeight)
-game.main(window)
+game = Client()
+game.main(window, dispWidth, dispHeight)
 
 pygame.font.quit()
 pygame.quit()
