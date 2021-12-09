@@ -34,6 +34,7 @@ class WordGenerator:
     
     #cuts lyrics down to certain length and removes newlines
     def __CutLyrics(self, lyrics, length):
+        lyrics = "a          b"
         #private as it does not need to be accessed outside the object
         #cuts out watermark at the end of string so that if the length required is longer than the actual lyrics it will loop
         lyrics = lyrics.split("...")[0]
@@ -57,23 +58,27 @@ class WordGenerator:
                 x += 1
 
         newLyrics = ""
+        lyrics ="".join(lyrics)
         #adds length number of words to a string
+        lyrics = (lyrics.split(" "))[:length]
+        newLyrics = " ".join(lyrics)
 
-        x = 0
-        spaces = 0
+        # x = 0
+        # spaces = 0
 
-        #counts spaces
-        while length >= spaces:
-            #loops to the front of the string if lyrics runs out of words
-            if x == len(lyrics) - 1:
-                x = 0
+        # #counts spaces
+        # while length > spaces:
+        #     #loops to the front of the string if lyrics runs out of words
+        #     if x == len(lyrics):
+        #         newLyrics += " "
+        #         spaces += 1
+        #         x = 0
 
-            #appends word from lyrics to newLyrics 
-            newLyrics += lyrics[x]
-            if lyrics[x] == " ":
-                spaces += 1
-            x += 1
-
+        #     elif lyrics[x] == " ":
+        #         spaces += 1
+        #     #appends word from lyrics to newLyrics 
+        #     newLyrics += lyrics[x]
+        #     x += 1
         return newLyrics
 
     #main function that is to generate a number of words to be displayed in the game
@@ -81,3 +86,6 @@ class WordGenerator:
         #public as it is effectively the main() of this class
         #returns string with numberOfWords words
         return self.__CutLyrics(self.__GetLyrics(self.__GetSong()), numberOfWords)
+
+generator = WordGenerator()
+print(generator.GetWordsForProgram(2))
