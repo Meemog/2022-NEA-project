@@ -4,9 +4,11 @@ class WordGenerator:
     def __init__(self):
         self.__wordGenerator = RandomWords()
 
+    #Gets list of random words
     def __GetWords(self):
         listOfWords = self.__wordGenerator.get_random_words()
         x = 0
+        #Removes instances with numbers
         while x < len(listOfWords):
             numFound = False
             listOfWords[x] = listOfWords[x].lower()
@@ -24,7 +26,6 @@ class WordGenerator:
     #cuts lyrics down to certain length and removes newlines
     def __MakeWordsCorrectLength(self, words, length):
         newWords = []
-        print(words)
         while len(words) < length:
             newWords += words
             length -= len(words)
