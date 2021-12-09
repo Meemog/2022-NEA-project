@@ -1,69 +1,41 @@
-import requests
-import json
-import random
+from random_word import RandomWords
 
 class WordGenerator:
     def __init__(self):
-        #private so API key cant be accessed outside this object
-        file = open("APIKEY.txt", "r")
-        self.__API_KEY = file.readline()  
+        self.__wordGenerator = RandomWords()
 
-    #function to get a response object with 100 songs
-    def __GetSong(self):
-        #private as it does not need to be accessed outside the object
-        #string with the request for list of top 100 songs that have lyrics is made
-        payload = f"chart.tracks.get?apikey={self.__API_KEY}&country=us&f_has_lyrics=1&explicit=0&page_size=100"
-        #uses response library to make request to the correct domain
-        response = requests.get("https://api.musixmatch.com/ws/1.1/" + payload)
-        #converts list of songs to json format
-        response = response.json()
-        #gets a random track_id
-        tracks = response["message"]["body"]["track_list"]
-        randomTrack = tracks[random.randint(0, len(tracks) - 1)]["track"]["track_id"]
-        return randomTrack
-
-    #function to get lyrics of a specific track
-    def __GetLyrics(self, trackID):
-        #private as it does not need to be accessed outside the object
-        #string with API request to retrieve lyrics for given trackID
-        payload = f"track.lyrics.get?apikey={self.__API_KEY}&track_id={trackID}"
-        str(payload).encode()
-        response = requests.get("https://api.musixmatch.com/ws/1.1/" + payload).json()
-        response = response["message"]["body"]["lyrics"]["lyrics_body"]
-        return response
+    def __GetWords(self):
+        listOfWords = self.__wordGenerator.get_random_words()
+        x = 0
+        while x < len(listOfWords):
+            numFound = False
+            listOfWords[x] = listOfWords[x].lower()
+            for i in range(len(listOfWords[x]) - 1):
+                try: 
+                    int(listOfWords[x][i])
+                    numFound = True
+                except:
+                    pass
+            x += 1
+            if numFound:
+                listOfWords.pop(x)
+        return listOfWords
     
     #cuts lyrics down to certain length and removes newlines
-    def __CutLyrics(self, lyrics, length):
-        #cuts out watermark at the end of string so that if the length required is longer than the actual lyrics it will loop
-        lyrics = lyrics.split("...")[0]
-        lyrics = lyrics.lower()
-        lyrics = list(lyrics)
+    def __MakeWordsCorrectLength(self, words, length):
+        newWords = []
+        print(words)
+        while len(words) < length:
+            newWords += words
+            length -= len(words)
 
-        #Replaces newlines with spaces
-        x = 0
-        while x <= len(lyrics) - 1:
-            if lyrics[x] == '\n':
-                lyrics[x] = " "
-
-            x += 1
-
-        #Removes duplicate spaces
-        x = 0
-        while x < len(lyrics) - 1:
-            if lyrics[x] ==  " " and lyrics[x+1] == " ":
-                lyrics.pop(x)
-            else:
-                x += 1
-
-        newLyrics = ""
-        lyrics ="".join(lyrics)
-        #adds length number of words to a string
-        lyrics = (lyrics.split(" "))[:length]
-        newLyrics = " ".join(lyrics)
-        return newLyrics
+        newWords += words[:length]
+        wordsString = " ".join(newWords)
+        return wordsString
 
     #main function that is to generate a number of words to be displayed in the game
-    def GetWordsForProgram(self, numberOfWords):
-        #public as it is effectively the main() of this class
-        #returns string with numberOfWords words
-        return self.__CutLyrics(self.__GetLyrics(self.__GetSong()), numberOfWords)
+    def GetWordsForProgram(self, length):
+        return self.__MakeWordsCorrectLength(self.__GetWords(), length)
+
+wordGenerator = WordGenerator()
+print(wordGenerator.GetWordsForProgram(50))
