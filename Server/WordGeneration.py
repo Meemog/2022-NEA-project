@@ -37,4 +37,3 @@ class WordGenerator:
     #main function that is to generate a number of words to be displayed in the game
     def GetWordsForProgram(self, length):
         return self.__MakeWordsCorrectLength(self.__GetWords(), length)
-
