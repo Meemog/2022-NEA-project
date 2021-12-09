@@ -37,5 +37,3 @@ class WordGenerator:
     def GetWordsForProgram(self, length):
         return self.__MakeWordsCorrectLength(self.__GetWords(), length)
 
-wordGenerator = WordGenerator()
-print(wordGenerator.GetWordsForProgram(50))
