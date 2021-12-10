@@ -83,11 +83,6 @@ class Client:
             self.__textBox.DeleteLetter(self.__ctrl)
             self.__timeSinceLastBackspace = 0
 
-    # def __CheckForMessageFromServer(self):
-    #     msg = self.__clientSocket.GetMsgs()
-    #     if msg == "":
-    #         return " "
-
     #Gets text that should be used in the background
     def __GetBackText(self):
         msg = self.__clientSocket.GetMsgs()
