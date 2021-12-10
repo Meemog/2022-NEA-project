@@ -1,5 +1,4 @@
 import pygame
-import threading
 from TextBox import TextBox
 from InputHandler import InputHandler
 from Renderer import Renderer
