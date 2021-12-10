@@ -20,6 +20,7 @@ class Client:
         #Attempts to connect to the server, will continue indefinitely until a server is found
         self.__serverFound = False
         serverSearchThread = threading.Thread(target=self.__SearchForServer, args=self)
+        serverSearchThread.start()
         while not self.__serverFound:
             if self.__CheckIfUserQuit():
                 break
