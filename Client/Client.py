@@ -1,13 +1,11 @@
 import pygame
-import threading
 from TextBox import TextBox
 from InputHandler import InputHandler
 from Renderer import Renderer
-from Backend.client import ClientSocket
+from WordGeneration import WordGenerator
 
 class Client:
-    def __init__(self):
-        self.__clientSocket = ClientSocket()
+    def __init__(self, dispWidth, dispHeight):
         self.__gameClock = pygame.time.Clock()  #Makes a clock object
         self.__inputHandler = InputHandler()    #Creates an InputHandler object
         self.__timeBetweenBacspaces = 50        #Delay between backspaces when backspace is held down
@@ -15,27 +13,11 @@ class Client:
         self.__deleting = False    
         self.__ctrl = False             #Boolean that is true for the duration of the backspace key being held down
         self.__renderer = Renderer()            #Creates Renderer object
-        self.__backText = " "
-        self.__GAMELOOP = False
+        self.__GAMELOOP = True
+        self.__textBox = TextBox(int(dispWidth - (dispWidth * 2/5)), int(50 * dispHeight / 1080), (int(dispWidth / 5), int(6 * dispHeight / 20)), (40,40,40), (30,30,30), (255,144,8), int(dispHeight*42/1080))
 
-    def main(self, window,  dispWidth, dispHeight):
-        #Waits for game to start
-        waiting = True
-        self.__clientSocket.SendMsg("ConnectionEstablished")
-        while waiting:  
-            self.__backText = self.__GetBackText()
-            if self.__backText != " ":
-                #Creates a textbox object and passes arguments through it // refer to TextBox.py
-                self.__textBox = TextBox(int(dispWidth - (dispWidth * 2/5)), int(50 * dispHeight / 1080), (int(dispWidth / 5), int(6 * dispHeight / 20)), (40,40,40), (30,30,30), (255,144,8), int(dispHeight*42/1080), self.__backText, (160,160,160))
-                waiting = False
-                self.__GAMELOOP = True
-                waiting = False
-            #Checks for player closing the application
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    self.__clientSocket.EndConnection()
-                    waiting = False
 
+    def main(self, window):
         #Happens after game has started
         while self.__GAMELOOP:
             self.__gameClock.tick()                  
@@ -82,17 +64,3 @@ class Client:
         if self.__deleting and self.__timeSinceLastBackspace > self.__timeBetweenBacspaces and self.__inputHandler.typing:
             self.__textBox.DeleteLetter(self.__ctrl)
             self.__timeSinceLastBackspace = 0
-
-    # def __CheckForMessageFromServer(self):
-    #     msg = self.__clientSocket.GetMsgs()
-    #     if msg == "":
-    #         return " "
-
-    #Gets text that should be used in the background
-    def __GetBackText(self):
-        msg = self.__clientSocket.GetMsgs()
-        if msg[:9] == "BACKTEXT:":
-            return msg[9:]
-
-        else: 
-            return " "
