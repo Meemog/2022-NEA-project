@@ -49,6 +49,7 @@ class Server:
         self.__server.listen() #Looks for connections
         playersInMatchmaking = []    #Empty list for client objects
         currentGames = []
+        numPlayers = -1
         while True:
             if numPlayers != len(playersInMatchmaking):
                 numPlayers = len(playersInMatchmaking)
