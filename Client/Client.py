@@ -1,4 +1,5 @@
 import pygame
+import threading
 from TextBox import TextBox
 from InputHandler import InputHandler
 from Renderer import Renderer
@@ -6,7 +7,6 @@ from Backend.client import ClientSocket
 
 class Client:
     def __init__(self):
-        self.__clientSocket = ClientSocket()
         self.__gameClock = pygame.time.Clock()  #Makes a clock object
         self.__inputHandler = InputHandler()    #Creates an InputHandler object
         self.__timeBetweenBacspaces = 50        #Delay between backspaces when backspace is held down
@@ -17,11 +17,25 @@ class Client:
         self.__backText = " "
         self.__GAMELOOP = False
 
+        #Attempts to connect to the server, will continue indefinitely until a server is found
+        self.__serverFound = False
+        serverSearchThread = threading.Thread(target=self.__SearchForServer, args=self)
+        while not self.__serverFound:
+            if self.__CheckIfUserQuit():
+                break
+
     def main(self, window,  dispWidth, dispHeight):
+        #Ends program if no server was found before player quit
+        if not self.__serverFound:
+            return "Player quit while looking for server"
         #Waits for game to start
         waiting = True
         self.__clientSocket.SendMsg("ConnectionEstablished")
         while waiting:  
+            if self.__CheckIfUserQuit():
+                self.__clientSocket.SendMsg("!DISCONNECT")
+                return "Player quit while matchmaking"
+
             self.__backText = self.__GetBackText()
             if self.__backText != " ":
                 #Creates a textbox object and passes arguments through it // refer to TextBox.py
@@ -46,6 +60,24 @@ class Client:
             self.__timeSinceLastBackspace += self.__gameClock.get_time()    #Adds time since last frame to time since last backspace
             self.__renderer.Render(window, self.__textBox)  #Draws everything
         return 0
+
+    #Tries to connect to server, used in init to allow instant quitting when user alt+f4
+    #This runs in another thread
+    def __SearchForServer(self):
+        while not self.__serverFound:
+            try:
+                self.__clientSocket = ClientSocket()
+                self.__serverFound = True
+            except:
+                print("Failed to connect to server, trying again")
+
+    #Returns true if the player tries to quit the game
+    #Used in the init for Client to allow player to quit while it is searching for a server
+    def __CheckIfUserQuit(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                return True
+        return False
 
     def TranslateInput(self, commands):
         for command in commands:
