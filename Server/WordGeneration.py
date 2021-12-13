@@ -10,16 +10,14 @@ class WordGenerator:
         x = 0
         #Removes instances with numbers
         while x < len(listOfWords):
-            numFound = False
+            erroneousFound = False
             listOfWords[x] = listOfWords[x].lower()
             for i in range(len(listOfWords[x]) - 1):
-                try: 
-                    int(listOfWords[x][i])
-                    numFound = True
-                except:
-                    pass
+                asciiOfLetter = ord(listOfWords[x][i])
+                if not (33 <= asciiOfLetter <= 47 or 58 <= asciiOfLetter <= 90 or 97 <= asciiOfLetter <= 122):
+                    erroneousFound = True
             x += 1
-            if numFound:
+            if erroneousFound:
                 listOfWords.pop(x)
         return listOfWords
     
@@ -37,3 +35,6 @@ class WordGenerator:
     #main function that is to generate a number of words to be displayed in the game
     def GetWordsForProgram(self, length):
         return self.__MakeWordsCorrectLength(self.__GetWords(), length)
+
+generator = WordGenerator()
+print(generator.GetWordsForProgram(50))
