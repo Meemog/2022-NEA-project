@@ -40,7 +40,7 @@ class Client:
             self.__backText = self.__GetBackText()
             if self.__backText != " ":
                 #Creates a textbox object and passes arguments through it // refer to TextBox.py
-                self.__textBox = TextBox(int(dispWidth - (dispWidth * 2/5)), int(50 * dispHeight / 1080), (int(dispWidth / 5), int(6 * dispHeight / 20)), (40,40,40), (30,30,30), (255,144,8), int(dispHeight*42/1080), self.__backText, (160,160,160))
+                self.__textBox = TextBox(int(dispWidth - (dispWidth * 2/5)), int(50 * dispHeight / 1080), (int(dispWidth / 5), int(6 * dispHeight / 20)), (40,40,40), (30,30,30), (255,144,8), int(dispHeight*42/1080), self.__backText, (160,160,160), "Comic Sans MS")
                 waiting = False
                 self.__GAMELOOP = True
                 waiting = False

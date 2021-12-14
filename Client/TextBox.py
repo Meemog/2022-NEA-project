@@ -1,7 +1,7 @@
 import pygame
 
 class TextBox:
-    def __init__(self, boxWidth, boxHeight, boxCoords, boxColourActive, boxColourDormant, textColour, fontSize, previewText, previewTextColour, textColourWrong = (196, 24, 24)):
+    def __init__(self, boxWidth, boxHeight, boxCoords, boxColourActive, boxColourDormant, textColour, fontSize, previewText, previewTextColour, textColourWrong = (196, 24, 24), font="Courier New"):
         self.__boxSize = (boxWidth, boxHeight)  #Box size (width, height)
         self.__boxCoords = boxCoords    #Box coordinates (x,y)
         self.__boxColourActive = boxColourActive    #Box colour when box is selected
