@@ -22,7 +22,6 @@ class Client:
         self.__serverFound = False
         serverSearchThread = threading.Thread(target=self.__SearchForServer)
         serverSearchThread.start()
-        print("gothere")
         while not self.__serverFound and not self.__userQuit:
             self.__CheckIfUserQuit()
 
