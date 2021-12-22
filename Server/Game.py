@@ -13,7 +13,6 @@ class Game:
         self.__running = True
         self.__disconnected = ""
         self.__backText = WordGenerator().GetWordsForProgram(500)
-        print(self.__backText)
     
     def Run(self):
         startTimer = 0
