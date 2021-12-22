@@ -12,18 +12,19 @@ class Client:
         self.__timeBetweenBacspaces = 50        #Delay between backspaces when backspace is held down
         self.__timeSinceLastBackspace = 0     
         self.__deleting = False    
-        self.__ctrl = False             #Boolean that is true for the duration of the backspace key being held down
+        self.__ctrl = False                     #Boolean that is true for the duration of the backspace key being held down
         self.__renderer = Renderer()            #Creates Renderer object
         self.__backText = " "
         self.__GAMELOOP = False
+        self.__userQuit = False
 
         #Attempts to connect to the server, will continue indefinitely until a server is found
         self.__serverFound = False
-        serverSearchThread = threading.Thread(target=self.__SearchForServer(), args=self)
+        serverSearchThread = threading.Thread(target=self.__SearchForServer)
         serverSearchThread.start()
-        while not self.__serverFound:
-            if self.__CheckIfUserQuit():
-                break
+        print("gothere")
+        while not self.__serverFound and not self.__userQuit:
+            self.__CheckIfUserQuit()
 
     def main(self, window,  dispWidth, dispHeight):
         #Ends program if no server was found before player quit
@@ -43,7 +44,6 @@ class Client:
                 self.__textBox = TextBox(int(dispWidth - (dispWidth * 2/5)), int(50 * dispHeight / 1080), (int(dispWidth / 5), int(6 * dispHeight / 20)), (40,40,40), (30,30,30), (255,144,8), int(dispHeight*42/1080), self.__backText, (160,160,160))
                 waiting = False
                 self.__GAMELOOP = True
-                waiting = False
             #Checks for player closing the application
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -65,7 +65,7 @@ class Client:
     #Tries to connect to server, used in init to allow instant quitting when user alt+f4
     #This runs in another thread
     def __SearchForServer(self):
-        while not self.__serverFound:
+        while not self.__serverFound and not self.__userQuit:
             try:
                 self.__clientSocket = ClientSocket()
                 self.__serverFound = True
@@ -77,8 +77,8 @@ class Client:
     def __CheckIfUserQuit(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                return True
-        return False
+                self.__userQuit = True
+        
 
     def TranslateInput(self, commands):
         for command in commands:

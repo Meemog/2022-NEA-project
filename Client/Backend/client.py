@@ -4,7 +4,7 @@ import threading
 class ClientSocket:
     def __init__(self):
         self.__HEADER = 8
-        self.__PORT = 5000
+        self.__PORT = 5000  
         self.__SERVER = socket.gethostbyname(socket.gethostname()) #temporary // sets ip of host to client ip, which is same as host ip
         self.__FORMAT = 'utf-8'
         self.__ADDRESS = (self.__SERVER, self.__PORT)

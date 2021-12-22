@@ -53,4 +53,8 @@ class InputHandler:
         elif not self.typing and clicked:
             commands.append("CLICKED OUT OF BOX")
 
+        for command in commands:
+            print(f"[COMMAND]{command} ", end="")
+
         return commands
+
