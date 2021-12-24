@@ -5,7 +5,7 @@ from InputHandler import InputHandler
 from Renderer import Renderer
 from Backend.client import ClientSocket
 
-class Client:
+class Game:
     def __init__(self):
         self.__gameClock = pygame.time.Clock()  #Makes a clock object
         self.__inputHandler = InputHandler()    #Creates an InputHandler object
@@ -83,6 +83,7 @@ class Client:
         for command in commands:
             if command == "QUIT":                   #If alt + f4 pressed or quit button (in the future)
                 self.__GAMELOOP = False
+                self.__clientSocket.EndConnection()
 
             elif command[0] == "K":                 #K is always followed by another letter (letter that was pressed)
                 command = command[1:]               #Removes K
