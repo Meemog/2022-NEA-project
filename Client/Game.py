@@ -34,7 +34,7 @@ class Game:
         self.__clientSocket.SendMsg("ConnectionEstablished")
         while waiting:  
             if self.__CheckIfUserQuit():
-                self.__clientSocket.SendMsg("!DISCONNECT")
+                self.__clientSocket.EndConnection()
                 return "Player quit while matchmaking"
 
             self.__backText = self.__GetBackText()
@@ -77,7 +77,6 @@ class Game:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.__userQuit = True
-        
 
     def TranslateInput(self, commands):
         for command in commands:

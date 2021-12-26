@@ -38,6 +38,7 @@ class ClientSocket:
         return ""
 
     def EndConnection(self):
+        self.SendMsg("!DISCONNECT")
         self.__client.close()
         
 
