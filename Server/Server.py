@@ -51,6 +51,7 @@ class Server:
         currentGames = []
         numPlayers = -1
         while True:
+            print(playersInMatchmaking)
             if numPlayers != len(playersInMatchmaking):
                 numPlayers = len(playersInMatchmaking)
             #Checks if client is trying to connect
@@ -84,15 +85,16 @@ class Server:
                     
             #Removes closed sockets from client list
             for client in closedSockets:
+                i = 0
                 while i <= len(playersInMatchmaking) - 1:
-                    if playersInMatchmaking[i].address == client.address:
+                    if playersInMatchmaking[i] == client:
                         playersInMatchmaking.pop(i)
                     else:
                         i += 1
 
-            #Updates frame for every game currently in progress
-            for game in currentGames:
-                game.Run()
+        #Updates frame for every game currently in progress
+        for game in currentGames:
+            game.Run()
    
 server = Server()
 server.Run()
