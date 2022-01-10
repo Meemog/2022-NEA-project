@@ -15,30 +15,42 @@ class Game:
         self.__backText = WordGenerator().GetWordsForProgram(500)
     
     def Run(self):
-        startTimer = 0
-        #Sends background text to players
-        if not self.started:
-            print("Got to game countdown")
-            msg = f"BACKTEXT:{self.__backText}"
-            self.__server.SendMsg(msg, self.__1player.connection)
-            self.__server.SendMsg(msg, self.__2player.connection)
-            self.started = True
+        #Time before game starts in seconds
+        startTimer = 5
+        #Starts the countdown for the clients
+        self.__Countdown(startTimer)
+        self.__SendBackgroundText()
+        self.started = True
 
-            #Timer for game starting
-        # while not self.started:
-        #     self.__clock.tick()
-        #     startTimer += self.__clock.get_time()
-        #     if startTimer % 1000 == 0:
-        #         msg = f"!SECONDSLEFTUNTILSTART:{startTimer/1000}"
-        #         self.__server.SendMsg(msg, self.__1player.connection)
-        #         self.__server.SendMsg(msg, self.__2player.connection)
+    def __SendBackgroundText(self):
+        print("Got to game countdown")
+        msg = f"BACKTEXT:{self.__backText}"
+        self.__SendMsgToBothPlayers(msg)
 
-        #     if startTimer / 1000 == self.__delayBeforeStart:
-        #         self.started = True
+    #This method counts down from timer seconds and updates the client on this
+    def __Countdown(self, timer):
+        #Used to detect when the timer should be sent to client
+        timeSinceLastMessage = 1000 #milliseconds
+        started = False
 
-        # while self.__running:
-        #     pass
+        #Waits until the timer has run out
+        while not started:
+            self.__clock.tick()
+            timeSinceLastMessage += self.__clock.get_time()
+            #Checks if 1 second has passed since last message and sends the seconds left to both clients
+            if timeSinceLastMessage >= 1000:
+                msg = f"!SECONDSLEFTUNTILSTART:{timer}"
+                self.__SendMsgToBothPlayers(msg)
+                timer -= 1
+                timeSinceLastMessage -= 1000
+            #If the time has run out
+            if timer == 0:
+                started = True
 
+    #Sends the same message to both players
+    def __SendMsgToBothPlayers(self, msg):
+        self.__server.SendMsg(msg, self.__1player.connection)
+        self.__server.SendMsg(msg, self.__2player.connection)
 
     def CheckMsgs(self):
         #Check for messages from player 1

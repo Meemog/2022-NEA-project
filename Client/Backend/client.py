@@ -37,12 +37,11 @@ class ClientSocket:
                 return msg
         return ""
 
+
     def EndConnection(self):
         self.SendMsg("!DISCONNECT")
         self.__client.close()
         
-
-
 # client = ClientSocket()
 # receiveThread = threading.Thread(target=client.GetMsgs)
 # receiveThread.start()

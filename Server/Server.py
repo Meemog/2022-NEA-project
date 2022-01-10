@@ -50,8 +50,12 @@ class Server:
         playersInMatchmaking = []    #Empty list for client objects
         currentGames = []
         numPlayers = -1
+        prevPlayersInMatchmaking = ["Temp"]
         while True:
-            print(playersInMatchmaking)
+            if playersInMatchmaking != prevPlayersInMatchmaking:
+                print(playersInMatchmaking)
+                prevPlayersInMatchmaking = playersInMatchmaking
+
             if numPlayers != len(playersInMatchmaking):
                 numPlayers = len(playersInMatchmaking)
             #Checks if client is trying to connect
@@ -70,6 +74,7 @@ class Server:
                 currentGames.append(Game(self, self, playersInMatchmaking[0], playersInMatchmaking[1]))
                 closedSockets.append(playersInMatchmaking.pop(0))
                 closedSockets.append(playersInMatchmaking.pop(0))
+                currentGames[-1].Run()
                 
             #Iterates through playersInMatchmaking to check for messages
             for i in range(len(playersInMatchmaking)):
@@ -92,9 +97,5 @@ class Server:
                     else:
                         i += 1
 
-        #Updates frame for every game currently in progress
-        for game in currentGames:
-            game.Run()
-   
 server = Server()
 server.Run()
