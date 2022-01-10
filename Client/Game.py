@@ -3,7 +3,7 @@ import threading
 from TextBox import TextBox
 from InputHandler import InputHandler
 from Renderer import Renderer
-from Backend.client import ClientSocket
+from ClientSocket import ClientSocket
 
 class Game:
     def __init__(self, dispWidth, dispHeight):
