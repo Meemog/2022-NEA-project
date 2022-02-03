@@ -36,7 +36,7 @@ class InputHandler:
 
                 #Adds letter pressed down as a commands 
                 else:
-                    commands.append(f"K{event.unicode}")
+                    commands.append(f"K{event.unicode}") 
         
             #Detects key being depressed
             elif event.type == pygame.KEYUP:

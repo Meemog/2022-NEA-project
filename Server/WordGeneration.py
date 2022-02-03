@@ -6,7 +6,10 @@ class WordGenerator:
 
     #Gets list of random words
     def __GetWords(self):
-        listOfWords = self.__wordGenerator.get_random_words()
+        listOfWords = None
+        while listOfWords == None:
+            listOfWords = self.__wordGenerator.get_random_words(hasDictionaryDef="true")
+        print(listOfWords)
         x = 0
         #Removes instances with numbers
         while x < len(listOfWords):

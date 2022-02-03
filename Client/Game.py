@@ -16,7 +16,9 @@ class Game:
         self.__renderer = Renderer(dispHeight)            #Creates Renderer object
         self.__backText = " "
         self.__GAMELOOP = False
-        self.__userQuit = False
+        self.connected = True
+        self.userQuit = False 
+        self.__timerUntilGameStart = 0
         self.__dispWidth = dispWidth
         self.__dispHeight = dispHeight
         self.__font = pygame.font.SysFont("Courier New", int(dispHeight*42/1080))  #sets font to Courier New (font with constant letter size)
@@ -26,7 +28,7 @@ class Game:
         self.__serverFound = False
         serverSearchThread = threading.Thread(target=self.__SearchForServer)
         serverSearchThread.start()
-        while not self.__serverFound and not self.__userQuit:
+        while not self.__serverFound and not self.userQuit:
             self.__CheckIfUserQuit()
         #Sends message to server that connection has been established
 
@@ -36,56 +38,71 @@ class Game:
         if not self.__serverFound:
             return "Player quit while looking for server"
         else: 
-             self.__clientSocket.SendMsg("[ConnectionEstablished]")
+            self.clientSocket.msgsToSend.append("[Connection established with client]")
+            print("Connected to server")
 
-        #Draws the background and empty textbox
-        self.__renderer.Render(window, self.__textBox)
-        #Starts countdown until background text received by clients
-        self.__GetBackText()
+        self.timerActive = False
+        #Main loop starts here
+        while True:
+            #Checks if user is still connected
+            if self.userQuit:
+                self.clientSocket.EndConnection()
+                break
 
-        #Happens after game has started
-        while self.__GAMELOOP:
-            self.__gameClock.tick()                  
-            pygame.time.delay(30)                       #Determines max fps of game
-            commands = self.__inputHandler.HandleInput(self.__textBox.box) #Gets list of input events
-            self.TranslateInput(commands)   #Converts keyboard inputs into changes in attributes    
-            self.__CheckForBackspace()        #Function for checking if backspace is held down
-                        
-            self.__timeSinceLastBackspace += self.__gameClock.get_time()    #Adds time since last frame to time since last backspace
-            self.__renderer.Render(window, self.__textBox)  #Draws everything
-        return 0
+            #Draws the background and empty textbox
+            self.__renderer.Render(self.__window, self.__textBox)
+            self.__gameClock.tick()
 
-    #Gets text that should be used in the background
-    def __GetBackText(self):
-        waiting = True
-        while waiting:  
-            msg = self.__clientSocket.GetMsgs()
-            if msg[:9] == "BACKTEXT:":
-                self.__backText = msg[9:]
+            #Handles userinput
+            commands = self.__inputHandler.HandleInput(self.__textBox.box)
+            self.TranslateInput(commands)
+            self.__CheckForBackspace()
+            self.__timeSinceLastBackspace += self.__gameClock.get_time()
+            self.__renderer.Render(self.__window, self.__textBox)
+
+            #Handles messages from server
+            self.__HandleMessages()
+
+            #Does calculations for 1
+            if self.__GAMELOOP:
+                #Things that happen during the game will be here
+                pass
+            
+            #If game has not started
+            elif not self.__GAMELOOP:
+                if not self.timerActive:
+                    self.__renderer.RenderWaitingText(self.__window, (self.__dispWidth, self.__dispHeight))
+                else:
+                    #Display seconds left until start and removes time since last frame from timer
+                    self.__renderer.RenderTimer(self.__window, (self.__dispWidth, self.__dispHeight), self.__timerUntilGameStart)
+                    self.__timerUntilGameStart -= self.__gameClock.get_time()
+                    if self.__timerUntilGameStart <= 0:
+                        self.timerActive = False
+                        self.__GAMELOOP = True
+
+    def __HandleMessages(self):
+        for msg in self.clientSocket.receivedMsgs:
+            if msg == "!DISCONNECT":
+                self.clientSocket.connected = False
+            
+            elif msg[:10] == "!BACKTEXT:":
+                self.__backText = msg[10:]
                 #Creates a textbox object and passes arguments through it // refer to TextBox.py
                 self.__textBox.SetPreviewText(self.__backText)
-                waiting = False
+                self.__waiting = False
                 self.__GAMELOOP = True
                 #Stop displaying seconds left until start
 
             elif msg[:23] == "!SECONDSLEFTUNTILSTART:":
-                #Render textbox
-                self.__renderer.Render(self.__window, self.__textBox)
-                #Display seconds left until start 
-                self.__renderer.RenderTimer(self.__window, (self.__dispWidth, self.__dispHeight), msg[23:])
-
-            #Checks if user quit during the countdown
-            if self.__CheckIfUserQuit():
-                self.__clientSocket.EndConnection()
-                waiting = False
-                return "Player quit while matchmaking"
+                self.timerActive = True
+                self.__timerUntilGameStart = int(msg[23:])
 
     #Tries to connect to server, used in init to allow instant quitting when user alt+f4
     #This runs in another thread
     def __SearchForServer(self):
-        while not self.__serverFound and not self.__userQuit:
+        while not self.__serverFound and not self.userQuit:
             try:
-                self.__clientSocket = ClientSocket()
+                self.clientSocket = ClientSocket()
                 self.__serverFound = True
             except:
                 print("Failed to connect to server, trying again")
@@ -95,14 +112,14 @@ class Game:
     def __CheckIfUserQuit(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                self.__clientSocket.EndConnection()
-                self.__userQuit = True
+                self.userQuit = True
 
+    #Used to translate player input into actions on screen, such as typing a letter or deleting a letter
+    #commands is a list of commands received from the InputHandler object
     def TranslateInput(self, commands):
         for command in commands:
             if command == "QUIT":                   #If alt + f4 pressed or quit button (in the future)
-                self.__GAMELOOP = False
-                self.__clientSocket.EndConnection()
+                self.userQuit = True
 
             elif command[0] == "K":                 #K is always followed by another letter (letter that was pressed)
                 command = command[1:]               #Removes K

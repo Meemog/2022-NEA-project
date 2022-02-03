@@ -1,78 +1,102 @@
 import pygame
+import threading
 from WordGeneration import WordGenerator
 
 class Game:
-    def __init__(self, serverSocket, server, player1, player2):
-        self.__1player = player1
-        self.__2player = player2
+    def __init__(self, server, player1, player2):
+        self.player1 = player1
+        self.player2 = player2
         self.__server = server
         self.__clock = pygame.time.Clock()  #Pygame clock object
         self.started = False
-        self.__delayBeforeStart = 3 #Seconds before game starts
+        self.__backTextSent = False
+        self.__delayBeforeStart = 5 #Seconds before game starts
         self.__timeInGame = 30      #Seconds before game ends
         self.__running = True
         self.__disconnected = ""
-        self.__backText = WordGenerator().GetWordsForProgram(500)
+        self.__gameThread = threading.Thread(target=self.__Run)
+        print("Game init")
     
-    def Run(self):
-        #Time before game starts in seconds
-        startTimer = 5
-        #Starts the countdown for the clients
-        self.__Countdown(startTimer)
-        self.__SendBackgroundText()
-        self.started = True
+    def StartThread(self):
+        self.__gameThread.start()
+
+    def __Run(self):
+        self.__backText = WordGenerator().GetWordsForProgram(500)
+        #Main Loop for the game
+        while self.__running:
+            self.__clock.tick()
+            if not self.started:
+                #Manages countdown for clients
+                self.__Countdown()
+            #Sends background text if game has started but only does this once
+            elif not self.__backTextSent and self.started:
+                self.__SendBackgroundText()
+
+            #Checks messages of both players
+            self.CheckMsgs()
+    
+        #End of game
+        if self.__disconnected != "":
+            if self.__disconnected == "player1":
+                pass
+                #Do something when player 1 has disconnected
+
+            else:
+                pass
+                #Do something when player 2 has disconnected
+
+        else:
+            pass
+            #Do something when the game ended normally
 
     def __SendBackgroundText(self):
         print("Got to game countdown")
-        msg = f"BACKTEXT:{self.__backText}"
+        msg = f"!BACKTEXT:{self.__backText}"
         self.__SendMsgToBothPlayers(msg)
 
     #This method counts down from timer seconds and updates the client on this
-    def __Countdown(self, timer):
+    def __Countdown(self):
         #Used to detect when the timer should be sent to client
-        timeSinceLastMessage = 1000 #milliseconds
-        started = False
-
+        self.__timeSinceLastMessage = 1000 #milliseconds
         #Waits until the timer has run out
-        while not started:
-            self.__clock.tick()
-            timeSinceLastMessage += self.__clock.get_time()
-            #Checks if 1 second has passed since last message and sends the seconds left to both clients
-            if timeSinceLastMessage >= 1000:
-                msg = f"!SECONDSLEFTUNTILSTART:{timer}"
-                self.__SendMsgToBothPlayers(msg)
-                timer -= 1
-                timeSinceLastMessage -= 1000
-            #If the time has run out
-            if timer == 0:
-                started = True
+        self.__timeSinceLastMessage += self.__clock.get_time()
+        #Checks if 1 second has passed since last message and sends the seconds left to both clients
+        if self.__timeSinceLastMessage >= 1000:
+            msg = f"!SECONDSLEFTUNTILSTART:{self.__delayBeforeStart}"
+            self.__SendMsgToBothPlayers(msg)
+            self.__delayBeforeStart -= 1
+            self.__timeSinceLastMessage -= 1000
+        #If the time has run out
+        if self.__delayBeforeStart == 0:
+            started = True
 
     #Sends the same message to both players
     def __SendMsgToBothPlayers(self, msg):
-        self.__server.SendMsg(msg, self.__1player.connection)
-        self.__server.SendMsg(msg, self.__2player.connection)
+        self.player1.SendMsg(msg)
+        self.player2.SendMsg(msg)
 
     def CheckMsgs(self):
-        #Check for messages from player 1
-        msg = self.__server.GetMsgs(self.__1player.connection, self.__1player.address)
-        if msg == " ":
-            pass
+        for msg in self.player1.msgsReceived:
+            if msg == " ":
+                pass
 
-        elif msg == "!DISCONNECT":
-            self.__running = False
-            self.__disconnected = "player1"
+            elif msg == "!DISCONNECT":
+                self.__running = False
+                self.__disconnected = "player1"
 
-        elif msg[:8] == "!LETTER:":
-            self.__server.SendMsg(msg[8:], self.__1player.connection)
+            elif msg[:8] == "!LETTER:":
+                #Do things with letter
+                pass
 
-        #Checks for messages from player 2
-        msg = self.__server.GetMsgs(self.__2player.connection, self.__2player.address)
-        if msg == " ":
-            pass
+        for msg in self.player2.msgsReceived:
+            msg = self.__server.GetMsgs(self.player2.connection)
+            if msg == " ":
+                pass
 
-        elif msg == "!DISCONNECT":
-            self.__running = False
-            self.__disconnected = "player1"
+            elif msg == "!DISCONNECT":
+                self.__running = False
+                self.__disconnected = "player2"
 
-        elif msg[:8] == "!LETTER:":
-            self.__server.SendMsg(msg[8:], self.__2player.connection)
+            elif msg[:8] == "!LETTER:":
+                #Do things with letter
+                pass
