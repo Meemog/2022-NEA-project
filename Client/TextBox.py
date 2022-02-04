@@ -14,9 +14,6 @@ class TextBox:
         self.__textColourWrong = textColourWrong    #Text colour for wrong letters
         self.__text = ""    #Empty string to add text to later
         self.__previewText = ""
-        self.__removedText = [] #List to add removed letters to, so they can be added back when a letter is deleted
-        self.__missingPreviewText = ""  #Text that is hidden
-        self.__removedPreviewText = []
         self.__font = font
 
         self.box = pygame.Rect(self.__boxCoords, self.__boxSize) #Defines rectangle object (pygame)
@@ -33,76 +30,71 @@ class TextBox:
     def SetPreviewText(self, text):
         self.__previewText = text
         self.__text = ""
-        #Cuts preview text to fit the screen
-        while self.__font.size(self.__previewText)[0] > self.__boxSize[0] - 10:
-            self.__missingPreviewText += self.__previewText[len(self.__previewText) - 1]
-            self.__previewText = self.__previewText[:-1]
 
     #Removes a letter from text and potentially brings back a letter that was previously taken off the screen
     def DeleteLetter(self, control):
-        #Removes a word if the control key is held down
-        deleted = False
-        print(control)
-        if control:
-            while len(self.__text) > 0 and (self.__text[-1] != " " or not deleted): 
-                self.__missingPreviewText += self.__previewText[len(self.__previewText) - 1]
-                self.__previewText = self.__previewText[:-1]
-                self.__text = self.__text[:-1]
-                deleted = True
-                if self.__removedText != []:
-                    self.__text = self.__removedText.pop() + self.__text
+        if self.__text != "":
+            if control:
+                #Removes trailing spaces 
+                while self.__text[-1] == " ":
+                    self.__text = self.__text[:-1]
+                #Removes letters until a space is reached or text has run out
+                while self.__text != "" and self.__text[-1] != " ":
+                    self.__text = self.__text[:-1]
 
-                if self.__removedPreviewText != []:
-                    self.__previewText = self.__removedPreviewText.pop() + self.__previewText
-
-        else:
-            self.__text = self.__text[:-1]
-            if self.__previewText != "":
-                self.__missingPreviewText += self.__previewText[len(self.__previewText) - 1]
-                self.__previewText = self.__previewText[:-1]
-                if self.__removedText != []:
-                    self.__text = self.__removedText.pop() + self.__text
-
-                if self.__removedPreviewText != []:
-                    self.__previewText = self.__removedPreviewText.pop() + self.__previewText
+            else:
+                self.__text = self.__text[:-1]   
 
     def AddLetter(self, letter):
-        if self.__previewText != "":
-            #Checks if letter added is the same as next letter in preview text
-            if letter == self.__previewText[len(self.__text)]:
-                self.__text += " "
-            else:
-                self.__text += self.__previewText[len(self.__text)]
-        else:
-            self.__text += letter
+        self.__text += letter
 
     #Draws the textbox
     def DrawBox(self, window):
-        #Removes text when letter is typed and the cursor has reached the middle of the screen
-        while self.__font.size(self.__text)[0] > self.__boxSize[0] / 2:
-            self.__removedText.append(self.__text[0])   #Adds front letter to the removed text list when the typed letters get to the middle of the box 
-            self.__text = self.__text[1:]   #Removes front letter
+        #Length of text is used a lot, this saves some function calls
+        lenText = len(self.__text)
+        #Cuts front of text so that the end is in the middle
+        lettersFromBack = 0
+        while self.__font.size(self.__text[-(lettersFromBack + 1):])[0] <= self.__boxSize[0] / 2 and lettersFromBack + 1 <= lenText:
+            lettersFromBack += 1
+        #Text that is cut to reach the middle of the box
+        cutText = self.__text[-lettersFromBack:]
 
+        lettersFromBack2 = lettersFromBack
         #If the preview text isnt empty (Game has started) then it will cut it so that it fits in the textbox
         if self.__previewText != "":
-            #Removes text that goes out of the textbox
-            while self.__font.size(self.__previewText + self.__missingPreviewText[-1])[0] <= self.__boxSize[0] - 10:
-                self.__previewText += self.__missingPreviewText[-1]
-                self.__missingPreviewText = self.__missingPreviewText[:-1]
-                
-            #Blits (draws) the preview text
-            textRender = self.__font.render(self.__previewText, True, self.__previewTextColour)
-            window.blit(textRender, (self.__boxCoords[0] + 5, self.__boxCoords[1] + 5))
+            while self.__font.size(self.__previewText[lenText - lettersFromBack: lettersFromBack2 + 1])[0] <= self.__boxSize[0] - 10:
+                lettersFromBack2 += 1
 
-            #Blits the preview text in the right colour for how long the text written by player is
-            cutPreviewText = self.__previewText[:len(self.__text)]
-            textRender = self.__font.render(cutPreviewText, True, self.__textColour)
-            window.blit(textRender, (self.__boxCoords[0] + 5, self.__boxCoords[1] + 5))
+            #Cuts the preview text to fit the whole box
+            cutPreviewText = self.__previewText[lenText - lettersFromBack: lettersFromBack2]
+            #Cuts the preview text so that it is the same length as cutText
+            cutCorrectText = self.__previewText[lenText - lettersFromBack:lenText]
+           
+            #Replaces correct letters player types with spaces 
+            cutText = list(cutText)
+            cutCorrectText = list(cutCorrectText)
+            for i in range(len(cutText)):
+                if cutText[i] == cutPreviewText[i]:
+                    cutText[i] = " "
+                else:
+                    cutText[i] = cutPreviewText[i]
+                    cutCorrectText[i] = " "
+            cutText = "".join(cutText)
+            cutCorrectText = "".join(cutCorrectText)
 
-            #Blits the incorrect letters in a different colour
-            textRender = self.__font.render(self.__text, True, self.__textColourWrong)
-            window.blit(textRender, (self.__boxCoords[0] + 5, self.__boxCoords[1] + 5))
+            #Makes render for both
+            previewTextRender = self.__font.render(cutPreviewText, True, self.__previewTextColour)
+            cutCorrectTextRender = self.__font.render(cutCorrectText, True, self.__textColour)
+
+            #Renders text that is wrong
+            textRender = self.__font.render(cutText, True, self.__textColourWrong)
+            textCoords = (self.__boxCoords[0] + 5, self.__boxCoords[1] + 5)
+
+            #Blits the gray text, then the orange text and then the red text
+            window.blit(previewTextRender, textCoords)
+            window.blit(cutCorrectTextRender, textCoords)
+            window.blit(textRender, textCoords)
 
         elif self.__previewText == "":
-            textRender = self.__font.render(self.__text, True, self.__textColour)
+            textRender = self.__font.render(cutText, True, self.__previewTextColour)
             window.blit(textRender, (self.__boxCoords[0] + 5, self.__boxCoords[1] + 5))

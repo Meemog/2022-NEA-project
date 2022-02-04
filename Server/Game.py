@@ -14,6 +14,7 @@ class Game:
         self.__timeInGame = 30      #Seconds before game ends
         self.__running = True
         self.__disconnected = ""
+        self.__timeSinceLastMessage = 1000 #milliseconds
         self.__gameThread = threading.Thread(target=self.__Run)
         print("Game init")
     
@@ -53,11 +54,10 @@ class Game:
         print("Got to game countdown")
         msg = f"!BACKTEXT:{self.__backText}"
         self.__SendMsgToBothPlayers(msg)
+        self.__backTextSent = True
 
     #This method counts down from timer seconds and updates the client on this
     def __Countdown(self):
-        #Used to detect when the timer should be sent to client
-        self.__timeSinceLastMessage = 1000 #milliseconds
         #Waits until the timer has run out
         self.__timeSinceLastMessage += self.__clock.get_time()
         #Checks if 1 second has passed since last message and sends the seconds left to both clients
@@ -68,7 +68,7 @@ class Game:
             self.__timeSinceLastMessage -= 1000
         #If the time has run out
         if self.__delayBeforeStart == 0:
-            started = True
+            self.started = True
 
     #Sends the same message to both players
     def __SendMsgToBothPlayers(self, msg):
@@ -89,7 +89,6 @@ class Game:
                 pass
 
         for msg in self.player2.msgsReceived:
-            msg = self.__server.GetMsgs(self.player2.connection)
             if msg == " ":
                 pass
 

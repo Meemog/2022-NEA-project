@@ -9,19 +9,18 @@ class InputHandler:
         commands = []
         clicked = False
         for event in pygame.event.get():
-            #Alt + f4 
+            #Alt + f4 or red cross in top right
             if event.type == pygame.QUIT:
                 commands.append("QUIT")
 
             #On click changes if textbox is selected or not
             elif event.type == pygame.MOUSEBUTTONDOWN:
+                clicked = True
                 if box.collidepoint(pygame.mouse.get_pos()):
                     self.typing = True
-                    clicked = True
                     
                 else:
                     self.typing = False
-                    clicked = True
 
             #Checks keypresses
             elif event.type == pygame.KEYDOWN and self.typing:

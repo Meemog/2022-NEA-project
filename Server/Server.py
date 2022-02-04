@@ -50,10 +50,10 @@ class Server:
                     #b' ' means the byte representation of a space
                     conn.send(msgLen)
                     conn.send(encMessage)
+                player.msgsToSend = []
             except socket.error:
                 pass
             player.connection.setblocking(True)
-        return 0
 
     #Function to be used in the run function to look for new players and not block everything else that needs to happen
     #Ran in parallel by using threading module
@@ -85,16 +85,14 @@ class Server:
 
     def __CheckIfPlayersQuit(self):
         disconnectedPlayers = []
-        #Iterates through self.playersInMatchmaking to check for messages
+        #For player in self.playersInMatchmaking
         for i in range(len(self.playersInMatchmaking)):
+            #For msg in player.msgsReceived
             for msg in self.playersInMatchmaking[i].msgsReceived:
                 #Closes connection if command given
                 if msg == "!DISCONNECT":
                     disconnectedPlayers.append(i)
-                    i -= 1
                     self.hasPrintedNewPlayers = False
-                #Prints message on server console
-                print(f"[Message{str(self.playersInMatchmaking[i].address)}]{msg}")
             self.playersInMatchmaking[i].msgsReceived = []
 
         while len(disconnectedPlayers) > 0:

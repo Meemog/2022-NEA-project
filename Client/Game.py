@@ -15,7 +15,6 @@ class Game:
         self.__ctrl = False                     #Boolean that is true for the duration of the backspace key being held down
         self.__renderer = Renderer(dispHeight)            #Creates Renderer object
         self.__backText = " "
-        self.__GAMELOOP = False
         self.connected = True
         self.userQuit = False 
         self.__timerUntilGameStart = 0
@@ -32,54 +31,6 @@ class Game:
             self.__CheckIfUserQuit()
         #Sends message to server that connection has been established
 
-    def main(self, window):
-        self.__window = window
-        #Ends program if no server was found before player quit
-        if not self.__serverFound:
-            return "Player quit while looking for server"
-        else: 
-            self.clientSocket.msgsToSend.append("[Connection established with client]")
-            print("Connected to server")
-
-        self.timerActive = False
-        #Main loop starts here
-        while True:
-            #Checks if user is still connected
-            if self.userQuit:
-                self.clientSocket.EndConnection()
-                break
-
-            #Draws the background and empty textbox
-            self.__renderer.Render(self.__window, self.__textBox)
-            self.__gameClock.tick()
-
-            #Handles userinput
-            commands = self.__inputHandler.HandleInput(self.__textBox.box)
-            self.TranslateInput(commands)
-            self.__CheckForBackspace()
-            self.__timeSinceLastBackspace += self.__gameClock.get_time()
-            self.__renderer.Render(self.__window, self.__textBox)
-
-            #Handles messages from server
-            self.__HandleMessages()
-
-            #Does calculations for 1
-            if self.__GAMELOOP:
-                #Things that happen during the game will be here
-                pass
-            
-            #If game has not started
-            elif not self.__GAMELOOP:
-                if not self.timerActive:
-                    self.__renderer.RenderWaitingText(self.__window, (self.__dispWidth, self.__dispHeight))
-                else:
-                    #Display seconds left until start and removes time since last frame from timer
-                    self.__renderer.RenderTimer(self.__window, (self.__dispWidth, self.__dispHeight), self.__timerUntilGameStart)
-                    self.__timerUntilGameStart -= self.__gameClock.get_time()
-                    if self.__timerUntilGameStart <= 0:
-                        self.timerActive = False
-                        self.__GAMELOOP = True
-
     def __HandleMessages(self):
         for msg in self.clientSocket.receivedMsgs:
             if msg == "!DISCONNECT":
@@ -89,13 +40,13 @@ class Game:
                 self.__backText = msg[10:]
                 #Creates a textbox object and passes arguments through it // refer to TextBox.py
                 self.__textBox.SetPreviewText(self.__backText)
-                self.__waiting = False
-                self.__GAMELOOP = True
+                self.timerActive = False
                 #Stop displaying seconds left until start
 
             elif msg[:23] == "!SECONDSLEFTUNTILSTART:":
                 self.timerActive = True
                 self.__timerUntilGameStart = int(msg[23:])
+        self.clientSocket.receivedMsgs = []
 
     #Tries to connect to server, used in init to allow instant quitting when user alt+f4
     #This runs in another thread
@@ -150,3 +101,55 @@ class Game:
         if self.__deleting and self.__timeSinceLastBackspace > self.__timeBetweenBacspaces and self.__inputHandler.typing:
             self.__textBox.DeleteLetter(self.__ctrl)
             self.__timeSinceLastBackspace = 0
+
+    def __HandleSocket(self):
+        while self.clientSocket.connected or self.clientSocket.msgsToSend != []:
+            self.clientSocket.SendMsgs()
+            self.clientSocket.GetMsgs()
+
+    def main(self, window):
+        self.__window = window
+        #Ends program if no server was found before player quit
+        if not self.__serverFound:
+            return "Player quit while looking for server"
+        else: 
+            self.clientSocket.msgsToSend.append("[Connection established with client]")
+            print("Connected to server")
+
+        self.timerActive = False
+
+        SocketHandleThread = threading.Thread(target=self.__HandleSocket, daemon=True)
+        SocketHandleThread.start()
+
+        #Main loop starts here
+        while True:
+            #Checks if user is still connected
+            if self.userQuit:
+                self.clientSocket.EndConnection()
+                break
+
+            #Draws the background and empty textbox
+            self.__renderer.Render(self.__window, self.__textBox)
+            self.__gameClock.tick()
+
+            #Handles userinput
+            commands = self.__inputHandler.HandleInput(self.__textBox.box)
+            self.TranslateInput(commands)
+            self.__CheckForBackspace()
+            self.__timeSinceLastBackspace += self.__gameClock.get_time()
+            
+            #Handles messages from server
+            self.__HandleMessages()
+
+            if self.__backText == " ":
+                #If game has not started
+                if self.timerActive:
+                    #Display seconds left until start and removes time since last frame from timer
+                    self.__renderer.RenderTimer(self.__window, (self.__dispWidth, self.__dispHeight), self.__timerUntilGameStart)
+                    self.__timerUntilGameStart -= self.__gameClock.get_time()
+                    if self.__timerUntilGameStart <= 0:
+                        self.timerActive = False
+                else:
+                    self.__renderer.RenderWaitingText(self.__window, (self.__dispWidth, self.__dispHeight))
+        
+            pygame.display.update()

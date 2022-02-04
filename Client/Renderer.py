@@ -11,8 +11,6 @@ class Renderer:
         pygame.draw.rect(window, textBox.boxColour, textBox.box)
         textBox.DrawBox(window)
 
-        pygame.display.update()
-
     #Used in part where client is waiting for the game to start
     #Renders a number
     def RenderTimer(self, window, screenDimensions, seconds):
