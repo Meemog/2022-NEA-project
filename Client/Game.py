@@ -125,7 +125,7 @@ class Game:
         timeSinceLastTimerUpdate = 0
 
         #Main loop starts here
-        while True:
+        while self.__gameTimer >= 0:
             #Checks if user is still connected
             if self.userQuit:
                 self.clientSocket.EndConnection()
@@ -170,3 +170,4 @@ class Game:
                     timeSinceLastTimerUpdate -= 1000
 
             pygame.display.update()
+        self.clientSocket.EndConnection()
