@@ -10,6 +10,7 @@ class Game:
         self.__clock = pygame.time.Clock()  #Pygame clock object
         self.started = False
         self.__backTextSent = False
+        self.__timerSent = False
         self.__delayBeforeStart = 5 #Seconds before game starts
         self.__timeInGame = 30      #Seconds before game ends
         self.__running = True
@@ -58,16 +59,18 @@ class Game:
 
     #This method counts down from timer seconds and updates the client on this
     def __Countdown(self):
-        #Waits until the timer has run out
-        self.__timeSinceLastMessage += self.__clock.get_time()
-        #Checks if 1 second has passed since last message and sends the seconds left to both clients
-        if self.__timeSinceLastMessage >= 1000:
+        if not self.__timerSent:
+            #Sends message to clients to start timer
             msg = f"!SECONDSLEFTUNTILSTART:{self.__delayBeforeStart}"
             self.__SendMsgToBothPlayers(msg)
-            self.__delayBeforeStart -= 1
-            self.__timeSinceLastMessage -= 1000
+            self.__delayBeforeStart *= 1000
+            self.__timerSent = True
+
+        #Waits until the timer has run out
+        self.__delayBeforeStart -= self.__clock.get_time()
+
         #If the time has run out
-        if self.__delayBeforeStart == 0:
+        if self.__delayBeforeStart <= 0:
             self.started = True
 
     #Sends the same message to both players

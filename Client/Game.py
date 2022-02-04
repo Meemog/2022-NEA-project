@@ -18,6 +18,7 @@ class Game:
         self.connected = True
         self.userQuit = False 
         self.__timerUntilGameStart = 0
+        self.__timeSinceLastCountdown = 0
         self.__dispWidth = dispWidth
         self.__dispHeight = dispHeight
         self.__font = pygame.font.SysFont("Courier New", int(dispHeight*42/1080))  #sets font to Courier New (font with constant letter size)
@@ -41,11 +42,10 @@ class Game:
                 #Creates a textbox object and passes arguments through it // refer to TextBox.py
                 self.__textBox.SetPreviewText(self.__backText)
                 self.timerActive = False
-                #Stop displaying seconds left until start
 
             elif msg[:23] == "!SECONDSLEFTUNTILSTART:":
                 self.timerActive = True
-                self.__timerUntilGameStart = int(msg[23:])
+                self.__timerUntilGameStart = int(msg[23:]) - 2
         self.clientSocket.receivedMsgs = []
 
     #Tries to connect to server, used in init to allow instant quitting when user alt+f4
@@ -146,7 +146,12 @@ class Game:
                 if self.timerActive:
                     #Display seconds left until start and removes time since last frame from timer
                     self.__renderer.RenderTimer(self.__window, (self.__dispWidth, self.__dispHeight), self.__timerUntilGameStart)
-                    self.__timerUntilGameStart -= self.__gameClock.get_time()
+                    self.__timeSinceLastCountdown += self.__gameClock.get_time()
+                    
+                    if self.__timeSinceLastCountdown >= 1000:
+                        self.__timerUntilGameStart -= 1
+                        self.__timeSinceLastCountdown -= 1000
+
                     if self.__timerUntilGameStart <= 0:
                         self.timerActive = False
                 else:
