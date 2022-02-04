@@ -18,6 +18,7 @@ class Game:
         self.connected = True
         self.userQuit = False 
         self.__timerUntilGameStart = 0
+        self.__gameTimer = 30
         self.__timeSinceLastCountdown = 0
         self.__dispWidth = dispWidth
         self.__dispHeight = dispHeight
@@ -121,6 +122,8 @@ class Game:
         SocketHandleThread = threading.Thread(target=self.__HandleSocket, daemon=True)
         SocketHandleThread.start()
 
+        timeSinceLastTimerUpdate = 0
+
         #Main loop starts here
         while True:
             #Checks if user is still connected
@@ -156,5 +159,14 @@ class Game:
                         self.timerActive = False
                 else:
                     self.__renderer.RenderWaitingText(self.__window, (self.__dispWidth, self.__dispHeight))
-        
+
+            #When game has started
+            elif self.__gameTimer >= 0:
+                self.__renderer.RenderTimer(self.__window, (self.__dispWidth, self.__dispHeight), self.__gameTimer)
+                timeSinceLastTimerUpdate += self.__gameClock.get_time()
+                #Every second displays the current time left
+                if timeSinceLastTimerUpdate >= 1000:
+                    self.__gameTimer -= 1
+                    timeSinceLastTimerUpdate -= 1000
+
             pygame.display.update()
