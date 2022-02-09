@@ -3,10 +3,9 @@ import threading
 from WordGeneration import WordGenerator
 
 class Game:
-    def __init__(self, server, player1, player2):
+    def __init__(self, player1, player2):
         self.player1 = player1
         self.player2 = player2
-        self.__server = server
         self.__clock = pygame.time.Clock()  #Pygame clock object
         self.started = False
         self.__backTextSent = False
@@ -15,9 +14,7 @@ class Game:
         self.__timeInGame = 30      #Seconds before game ends
         self.__running = True
         self.__disconnected = ""
-        self.__timeSinceLastMessage = 1000 #milliseconds
         self.__gameThread = threading.Thread(target=self.__Run)
-        print("Game init")
     
     def StartThread(self):
         self.__gameThread.start()
@@ -78,6 +75,7 @@ class Game:
         self.player1.SendMsg(msg)
         self.player2.SendMsg(msg)
 
+    #Runs every frame
     def CheckMsgs(self):
         for msg in self.player1.msgsReceived:
             if msg == " ":

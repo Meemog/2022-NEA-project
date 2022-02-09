@@ -12,7 +12,6 @@ class Server:
         self.players = []
         self.playersInMatchmaking = []
         self.running = True #Boolean used to close other threads once the program ends
-
         self.__server = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #AF_INET is for ipv4. SOCK_STREAM is for TCP, SOCK_DGRAM is UDP
         self.__server.bind(self.__ADDRESS)
         print("[SERVER STARTED]")
@@ -20,8 +19,8 @@ class Server:
     #Made to be used in a seperate thread
     #Checks each player for a message being sent
     #If a message is received it is appended to the list player.msgsReceived
-    def GetMsgs(self):
-        for player in self.players:
+    def GetMsgs(self, players):
+        for player in players:
             player.connection.setblocking(False)
             try:
                 msgLen = int(player.connection.recv(self.__HEADER).decode(self.__FORMAT)) #Waits for message with length 8 bytes to be received from the client and then decodes it 
@@ -32,6 +31,7 @@ class Server:
             if msgLen > 0:  #First message will always be empty
                 msg = player.connection.recv(msgLen).decode(self.__FORMAT) #Waits for a message with length msgLen to be received
                 player.msgsReceived.append(msg)       
+                print(f"Message Received:{msg}")
 
     #Made to be used in a seperate thread
     #Checks each player for a message that needs to be sent from player.msgsToSend list
@@ -50,6 +50,7 @@ class Server:
                     #b' ' means the byte representation of a space
                     conn.send(msgLen)
                     conn.send(encMessage)
+                    print(f"Message sent:{msg}")
                 player.msgsToSend = []
             except socket.error:
                 pass
@@ -62,60 +63,106 @@ class Server:
         try:        
             conn, addr = self.__server.accept() #When connection occurs
             thisPlayer = Player(addr, conn)
-            self.playersInMatchmaking.append(thisPlayer)   #Appends player object to self.players list
             self.players.append(thisPlayer)
-            self.hasPrintedNewPlayers = False
         except:
             pass
         self.__server.setblocking(True)
 
-    def __PrintPlayersInMatchmaking(self):
-        print('-'*80)
-        for player in self.playersInMatchmaking:
-            print(f"[Player]{player}")
-        print('-'*80)
-        self.hasPrintedNewPlayers = True
+    def __PrintPlayersInMatchmaking(self):#
+        print(f"Players:{len(self.players)}, in matchmaking:{len(self.playersInMatchmaking)}", end="\r")
 
     def __CreateNewGame(self):
-        self.currentGames.append(Game(self, self.playersInMatchmaking[0], self.playersInMatchmaking[1]))
-        self.playersInMatchmaking.pop(0)
-        self.playersInMatchmaking.pop(0)
+        self.currentGames.append(Game(self.playersInMatchmaking[0], self.playersInMatchmaking[1]))
+        self.players.append(self.playersInMatchmaking.pop(0))
+        self.players.append(self.playersInMatchmaking.pop(0))
         self.currentGames[-1].StartThread()
-        self.hasPrintedNewPlayers = False
 
-    def __CheckIfPlayersQuit(self):
-        disconnectedPlayers = []
-        #For player in self.playersInMatchmaking
-        for i in range(len(self.playersInMatchmaking)):
-            #For msg in player.msgsReceived
-            for msg in self.playersInMatchmaking[i].msgsReceived:
-                #Closes connection if command given
-                if msg == "!DISCONNECT":
-                    disconnectedPlayers.append(i)
-                    self.hasPrintedNewPlayers = False
-            self.playersInMatchmaking[i].msgsReceived = []
+    #Goes through every message for every player in players parameter
+    def __HandleMessages(self):
+        i = 0
+        while i < len(self.players):
+            while self.players != [] and self.players[i].msgsReceived != []:
+                if self.players[i].msgsReceived[0] == "!DISCONNECT":
+                    self.players[i].msgsReceived = []
+                    self.players.pop(i)
+                    i -= 1
 
-        while len(disconnectedPlayers) > 0:
-            self.playersInMatchmaking.pop(disconnectedPlayers[-1])
-            disconnectedPlayers.pop(-1)
+                elif self.players[i].msgsReceived[0] == "!QUEUE":
+                    self.players[i].msgsReceived.pop(0)
+                    self.playersInMatchmaking.append(self.players.pop(i))
+                    i -= 1
+                    
+                #Checks if players login details are correct
+                elif self.players[i].username == "" and self.players[i].msgsReceived[0][:7] == "!LOGIN:":
+                    details = self.players[i].msgsReceived[0][7:]
+                    details = details.split(",")
+                    username = details[0]
+                    password = details[1]
+                    correctUsername = "TestUsername"
+                    correctPassword = "TestPassword"
+                    if username == correctUsername and password == correctPassword:
+                        self.players[i].SendMsg("!PASSWORDCORRECT")
+                        self.players[i].username = username
+                    else:
+                        self.players[i].SendMsg("!PASSWORDINCORRECT")
+
+                    self.players[i].msgsReceived.pop(0)
+
+                else:
+                    self.players[i].msgsReceived.pop(0)
+            i += 1
+            
+        i = 0
+        while i < len(self.playersInMatchmaking):
+            while self.playersInMatchmaking[i] != [] and self.playersInMatchmaking[i].msgsReceived != []:
+                if self.playersInMatchmaking[i].msgsReceived[0] == "!DISCONNECT":
+                    self.playersInMatchmaking[i].msgsReceived = []
+                    self.playersInMatchmaking.pop(i)
+                    i -= 1
+
+                elif self.playersInMatchmaking[i].msgsReceived[0] == "!DEQUEUE":
+                    self.playersInMatchmaking[i].msgsReceived.pop(0)
+                    self.players.append(self.playersInMatchmaking.pop(0))
+                    i -= 1
+                    
+                #More messages can be handled here
+
+                #Checks if players login details are correct
+                elif self.playersInMatchmaking[i].username != "" and self.playersInMatchmaking[i].msgsReceived[0][:7] == "!LOGIN:":
+                    details = self.playersInMatchmaking[i].msgsReceived[0][7:]
+                    details = details.split(",")
+                    username = details[0]
+                    password = details[1]
+                    correctUsername = "TestUsername"
+                    correctPassword = "TestPassword"
+                    if username == correctUsername and password == correctPassword:
+                        self.playersInMatchmaking[i].SendMsg("!PASSWORDCORRECT")
+                        self.playersInMatchmaking[i].username = username
+                    else:
+                        self.playersInMatchmaking[i].SendMsg("!PASSWORDINCORRECT")
+
+                    self.playersInMatchmaking[i].msgsReceived.pop(0)
+
+                else:
+                    self.playersInMatchmaking[i].msgsReceived.pop(0)
+            i += 1
 
     def Run(self):
         self.__server.listen() #Looks for connections
         self.currentGames = []
-        self.hasPrintedNewPlayers = False
         while self.running:
             self.__CheckForNewPlayers()
             #Prints players in matchmaking
-            if not self.hasPrintedNewPlayers:
-                self.__PrintPlayersInMatchmaking()
+            self.__PrintPlayersInMatchmaking()
 
             #Creates new game object with 2 players in it 
             while len(self.playersInMatchmaking) >= 2:
                 self.__CreateNewGame()
                 
-            self.GetMsgs()
+            self.GetMsgs(self.players)
+            self.GetMsgs(self.playersInMatchmaking)
             self.SendMsgs()
-            self.__CheckIfPlayersQuit()
+            self.__HandleMessages()
 
 server = Server()
 server.Run()
