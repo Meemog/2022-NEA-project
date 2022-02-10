@@ -1,12 +1,20 @@
 Allow user to register
-Testing for client server
-Testing for game (client)
 Sounds
 	Login system
 Score calculator 
 Stats section
 ELO system
 Matchmaking
+
+Testing for client server
+Testing for game (client)
+Testing for InputBox
+Testing for Button
+Testing for LoginScreen
+Testing for Main Menu
+Testing for Database
+
+Connect server to database for logging in
 
 Command to find number of lines:
 dir -Recurse *.py | Get-Content | Measure-Object -Line
