@@ -1,4 +1,3 @@
-from cmath import rect
 import pygame
 
 class InputBox:
