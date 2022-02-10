@@ -4,6 +4,7 @@ from TextBox import TextBox
 from Renderer import Renderer
 from ClientSocket import ClientSocket
 from LoginScreen import LoginScreen
+from MainMenu import MainMenu
 
 class Game:
     def __init__(self, dispWidth, dispHeight):
@@ -21,9 +22,11 @@ class Game:
         self.__timeSinceLastCountdown = 0
         self.__dispWidth = dispWidth
         self.__dispHeight = dispHeight
+        self.__settings = {"Volume": 50, "Res": (dispWidth, dispHeight)}
         
         self.ConnectToServer()
         self.__loginScreen = LoginScreen((dispWidth, dispHeight), self.clientSocket)
+        self.__mainMenu = MainMenu((dispWidth, dispHeight))
 
         font = pygame.font.SysFont("Courier New", int(dispHeight*42/1080))  #sets font to Courier New (font with constant letter size)
         self.__textBox = TextBox(int(self.__dispWidth - (self.__dispWidth * 2/5)), int(50 * self.__dispHeight / 1080), (int(self.__dispWidth / 5), int(6 * self.__dispHeight / 20)), (40,40,40), (30,30,30), (255,144,8), font, (160,160,160))
@@ -41,61 +44,63 @@ class Game:
             self.clientSocket.msgsToSend.append("[Connection established with client]")
             print("Connected to server")
 
-        if not self.__loginScreen.main(self.__window):
-            return "Player quit while logging in"
+        while not self.userQuit:
+            if not self.__loginScreen.main(self.__window):
+                self.clientSocket.EndConnection()
+                return "Player quit while logging in"
 
-        self.timerActive = False
+            if not self.__mainMenu.Run(self.__window):
+                self.clientSocket.EndConnection()
+                return "Player quit in menu"
 
-        #Queues into matchmaking
-        self.clientSocket.msgsToSend.append("!QUEUE")
+            self.timerActive = False
 
-        timeSinceLastTimerUpdate = 0
+            #Queues into matchmaking
+            self.clientSocket.msgsToSend.append("!QUEUE")
 
-        #Main loop starts here
-        while self.__gameTimer >= 0:
-            #Checks if user is still connected
-            if self.userQuit:
-                break
+            timeSinceLastTimerUpdate = 0
 
-            #Draws the background and empty textbox
-            self.__renderer.Render(self.__window, self.__textBox)
-            self.__gameClock.tick()
+            #Main loop starts here
+            while self.__gameTimer >= 0:
+                #Draws the background and empty textbox
+                self.__renderer.Render(self.__window, self.__textBox)
+                self.__gameClock.tick()
 
-            #Handles userinput
-            self.__HandleInput()
-            self.__CheckForBackspace()
-            self.__timeSinceLastBackspace += self.__gameClock.get_time()
-            
-            #Handles messages from server
-            self.__HandleMessages()
+                #Handles userinput
+                self.__HandleInput()
+                self.__CheckForBackspace()
+                self.__timeSinceLastBackspace += self.__gameClock.get_time()
+                
+                #Handles messages from server
+                self.__HandleMessages()
 
-            if self.__backText == " ":
-                #If game has not started
-                if self.timerActive:
-                    #Display seconds left until start and removes time since last frame from timer
-                    self.__renderer.RenderTimer(self.__window, (self.__dispWidth, self.__dispHeight), self.__timerUntilGameStart)
-                    self.__timeSinceLastCountdown += self.__gameClock.get_time()
-                    
-                    if self.__timeSinceLastCountdown >= 1000:
-                        self.__timerUntilGameStart -= 1
-                        self.__timeSinceLastCountdown -= 1000
+                if self.__backText == " ":
+                    #If game has not started
+                    if self.timerActive:
+                        #Display seconds left until start and removes time since last frame from timer
+                        self.__renderer.RenderTimer(self.__window, (self.__dispWidth, self.__dispHeight), self.__timerUntilGameStart)
+                        self.__timeSinceLastCountdown += self.__gameClock.get_time()
+                        
+                        if self.__timeSinceLastCountdown >= 1000:
+                            self.__timerUntilGameStart -= 1
+                            self.__timeSinceLastCountdown -= 1000
 
-                    if self.__timerUntilGameStart <= 0:
-                        self.timerActive = False
-                else:
-                    self.__renderer.RenderWaitingText(self.__window, (self.__dispWidth, self.__dispHeight))
+                        if self.__timerUntilGameStart <= 0:
+                            self.timerActive = False
+                    else:
+                        self.__renderer.RenderWaitingText(self.__window, (self.__dispWidth, self.__dispHeight))
 
-            #When game has started
-            elif self.__gameTimer >= 0:
-                self.__renderer.RenderTimer(self.__window, (self.__dispWidth, self.__dispHeight), self.__gameTimer)
-                timeSinceLastTimerUpdate += self.__gameClock.get_time()
-                #Every second displays the current time left
-                if timeSinceLastTimerUpdate >= 1000:
-                    self.__gameTimer -= 1
-                    timeSinceLastTimerUpdate -= 1000
+                #When game has started
+                elif self.__gameTimer >= 0:
+                    self.__renderer.RenderTimer(self.__window, (self.__dispWidth, self.__dispHeight), self.__gameTimer)
+                    timeSinceLastTimerUpdate += self.__gameClock.get_time()
+                    #Every second displays the current time left
+                    if timeSinceLastTimerUpdate >= 1000:
+                        self.__gameTimer -= 1
+                        timeSinceLastTimerUpdate -= 1000
 
-            pygame.display.update()
-        self.clientSocket.EndConnection()
+                pygame.display.update()
+            self.clientSocket.EndConnection()
     
     def ConnectToServer(self):
         #Attempts to connect to the server, will continue indefinitely until a server is found

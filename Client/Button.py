@@ -24,6 +24,9 @@ class Button:
 
         self.__font = font
 
+    def SetFont(self, font):
+        self.__font = font
+
     #Sets center to the new position
     def SetLocation(self, pos):
         self.rectangle.center = pos
@@ -31,6 +34,9 @@ class Button:
 
     def SetText(self, text):
         self.__text = text
+
+    def GetText(self):
+        return self.__text
 
     def Render(self, window):
         pygame.draw.rect(window, self.__backColour, self.rectangle)
