@@ -1,0 +1,8 @@
+Testing for client server
+Testing for game (client)
+Sounds
+	Login system
+Score calculator 
+Stats section
+ELO system
+Matchmaking
