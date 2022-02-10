@@ -1,3 +1,4 @@
+Allow user to register
 Testing for client server
 Testing for game (client)
 Sounds
@@ -6,3 +7,6 @@ Score calculator
 Stats section
 ELO system
 Matchmaking
+
+Command to find number of lines:
+dir -Recurse *.py | Get-Content | Measure-Object -Line
