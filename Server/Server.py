@@ -1,6 +1,7 @@
 import socket
 from Game import Game
 from Player import Player
+from Database import DatabaseHandler
 
 class Server:
     def __init__(self):
@@ -14,6 +15,7 @@ class Server:
         self.running = True #Boolean used to close other threads once the program ends
         self.__server = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #AF_INET is for ipv4. SOCK_STREAM is for TCP, SOCK_DGRAM is UDP
         self.__server.bind(self.__ADDRESS)
+        self.__dbHandler = DatabaseHandler()
         print("[SERVER STARTED]")
 
     #Made to be used in a seperate thread
@@ -105,6 +107,14 @@ class Server:
                         self.players[i].username = username
                     else:
                         self.players[i].SendMsg("!PASSWORDINCORRECT")
+
+                elif self.players[i].username == "" and self.players[i].msgsReceived[0][:10] == "!REGISTER:":
+                    details = self.players[i].msgsReceived[0][10:]
+                    details = details.split(",")
+                    self.players[i].username = details[0]
+                    self.players[i].password = details[1]
+                    #Creates new user in database
+                    self.__dbHandler.CreateNewUser(self.players[i])
 
                     self.players[i].msgsReceived.pop(0)
 
