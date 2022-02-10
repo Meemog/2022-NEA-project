@@ -53,10 +53,12 @@ class MainMenu:
                 else:
                     button.SetDormant()
 
+                #If button is pressed 
                 if button.GetPressedState():
+                    #Goes through button text to determine what button it is
                     if button.GetText() == "Play":
+                        #Goes back to Game object and continues to the main game
                         running = False
-                        pass
 
                     elif button.GetText() == "Statistics":
                         #Go to statistics
@@ -66,6 +68,7 @@ class MainMenu:
                         #Go to settings
                         pass
 
+                    #Makes it so that the Game object stops looping and the game closes
                     elif button.GetText() == "Quit":
                         running = False
                         playerQuit = True
