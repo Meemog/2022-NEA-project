@@ -1,5 +1,3 @@
-from cgitb import text
-from re import X
 import pygame
 from Button import Button
 from InputBox import InputBox

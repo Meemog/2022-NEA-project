@@ -1,5 +1,4 @@
 import sqlite3
-from Player import Player
 
 #An object that will be able to handle all the operations needed related to the database
 class DatabaseHandler:
@@ -64,11 +63,11 @@ class DatabaseHandler:
 
         return player
 
-dbHandler = DatabaseHandler()
+# dbHandler = DatabaseHandler()
 
-# thisPlayer = Player(0,0)
-# thisPlayer.username = "Player0"
+# # thisPlayer = Player(0,0)
+# # thisPlayer.username = "Player0"
 
-# thisPlayer = dbHandler.LoadUser(thisPlayer)
+# # thisPlayer = dbHandler.LoadUser(thisPlayer)
 
-dbHandler.Close()
+# dbHandler.Close()
