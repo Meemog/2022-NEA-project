@@ -49,7 +49,7 @@ class Game:
                 self.clientSocket.EndConnection()
                 return "Player quit while logging in"
 
-            if not self.__mainMenu.Run(self.__window):
+            if not self.__mainMenu.Run(self.__window, self.__settings):
                 self.clientSocket.EndConnection()
                 return "Player quit in menu"
 
