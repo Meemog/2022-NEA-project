@@ -129,7 +129,7 @@ class Server:
             
         i = 0
         while i < len(self.playersInMatchmaking):
-            while self.playersInMatchmaking[i] != [] and self.playersInMatchmaking[i].msgsReceived != []:
+            while self.playersInMatchmaking != [] and self.playersInMatchmaking[i].msgsReceived != []:
                 if self.playersInMatchmaking[i].msgsReceived[0] == "!DISCONNECT":
                     self.playersInMatchmaking[i].msgsReceived = []
                     self.playersInMatchmaking.pop(i)
