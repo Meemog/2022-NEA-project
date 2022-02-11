@@ -61,7 +61,7 @@ class Game:
             timeSinceLastTimerUpdate = 0
 
             #Main loop starts here
-            while self.__gameTimer >= 0:
+            while self.__gameTimer >= 0 and not self.userQuit:
                 #Draws the background and empty textbox
                 self.__renderer.Render(self.__window, self.__textBox)
                 self.__gameClock.tick()
@@ -188,7 +188,7 @@ class Game:
 
     def __CheckForBackspace(self):
         #Deletes text while backspace being held down
-        if self.__deleting and self.__timeSinceLastBackspace > self.__timeBetweenBacspaces and self.__inputHandler.typing:
+        if self.__deleting and self.__timeSinceLastBackspace > self.__timeBetweenBacspaces and self.__textBox.isActive:
             self.__textBox.DeleteLetter(self.__ctrl)
             self.__timeSinceLastBackspace = 0
 
