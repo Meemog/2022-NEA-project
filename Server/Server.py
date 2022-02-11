@@ -95,18 +95,23 @@ class Server:
                     i -= 1
                     
                 #Checks if players login details are correct
-                elif self.players[i].username == "" and self.players[i].msgsReceived[0][:7] == "!LOGIN:":
-                    details = self.players[i].msgsReceived[0][7:]
+                elif not self.players[i].loggedIn and self.players[i].msgsReceived[0][:7] == "!LOGIN:":
+                    details = self.players[i].msgsReceived.pop(0)[7:]
                     details = details.split(",")
                     username = details[0]
                     password = details[1]
-                    correctUsername = "TestUsername"
-                    correctPassword = "TestPassword"
-                    if username == correctUsername and password == correctPassword:
-                        self.players[i].SendMsg("!PASSWORDCORRECT")
+
+                    if self.__dbHandler.CheckIfUsernameInDB(username):
                         self.players[i].username = username
+                        correctPassword = self.__dbHandler.GetPassword(username)
+                        if password == correctPassword:
+                            self.players[i].SendMsg("!PASSWORDCORRECT")
+                            self.__dbHandler.LoadUser(self.players[i])
+                        else:
+                            self.players[i].SendMsg("!PASSWORDINCORRECT")
+                    
                     else:
-                        self.players[i].SendMsg("!PASSWORDINCORRECT")
+                        self.players[i].SendMsg("!USERNAMENOTFOUND")
 
                 elif self.players[i].username == "" and self.players[i].msgsReceived[0][:10] == "!REGISTER:":
                     details = self.players[i].msgsReceived[0][10:]

@@ -1,4 +1,5 @@
 import sqlite3
+from Player import Player
 
 #An object that will be able to handle all the operations needed related to the database
 class DatabaseHandler:
@@ -37,20 +38,39 @@ class DatabaseHandler:
 
         params = (username, level, password, avgWPM, Elo, highestElo, gamesWon, gamesPlayed, longestStreak, largestWinMargin, accuracy)
 
-        command = f"""INSERT INTO Users
+        command = """INSERT INTO Users
         VALUES(?,?,?,?,?,?,?,?,?,?,?)"""
 
         self.__cursor.execute(command, params)
 
+    def CheckIfUsernameInDB(self, username):
+        params = (username,)
+        command = """SELECT * FROM Users WHERE Username = ?"""
+
+        self.__cursor.execute(command, params)
+        if self.__cursor.fetchall() == []:
+            return False
+
+        else:
+            return True
+            
+    def GetPassword(self, username):
+        params = (username,)
+        command = """SELECT Password FROM Users WHERE Username = ?"""
+
+        self.__cursor.execute(command, params)
+        password = self.__cursor.fetchall()[0][0]
+        return password
+
     #Takes player object with username already defined and returns player object with values from database
     def LoadUser(self, player):
         params = (player.username,)
-        command = "SELECT * FROM Users WHERE Username = ?"
+        command = "SELECT * FROM Users WHERE Username = (?)"
         self.__cursor.execute(command, params)
         valuesReturned = self.__cursor.fetchall()   #Gives a list of tuples with the correct values in them
+        print(valuesReturned)
         valuesReturned = valuesReturned[0]
         player.username = valuesReturned[0]
-        player.password = valuesReturned[2]
         player.level = valuesReturned[1]
         player.avgWPM = valuesReturned[3]
         player.Elo = valuesReturned[4]
@@ -69,5 +89,9 @@ class DatabaseHandler:
 # # thisPlayer.username = "Player0"
 
 # # thisPlayer = dbHandler.LoadUser(thisPlayer)
+
+# player = Player(0,0)
+# player.username = "Player0"
+# print(dbHandler.LoadUser(player))
 
 # dbHandler.Close()

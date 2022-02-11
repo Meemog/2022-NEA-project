@@ -154,7 +154,7 @@ class LoginScreen:
                 if self.__socket.receivedMsgs[0] == "!PASSWORDCORRECT":
                     loggedIn = True
                 
-                elif self.__socket.receivedMsgs[0] == "!PASSWORDINCORRECT":
+                elif self.__socket.receivedMsgs[0] == "!PASSWORDINCORRECT" or self.__socket.receivedMsgs[0] == "!USERNAMENOTFOUND":
                     self.__continueButton.DePressed()
                     waiting = False
                     self.__usernameBox.text = ""

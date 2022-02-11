@@ -4,10 +4,10 @@ class Player:
         self.connection = connection
         self.msgsToSend = []
         self.msgsReceived = []
+        self.loggedIn = False
 
         #Details used for stats section and logging in / creating new player
         self.username = ""
-        self.password = ""
         self.level = 0
         self.avgWPM = 0
         self.Elo = 1000
