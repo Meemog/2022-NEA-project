@@ -1,4 +1,6 @@
 Allow user to register
+	Make it store password correctly
+	Make it so that it asks the user to verify their email, otherwise they will not be able to recover their account
 Sounds
 	Login system
 Score calculator 
