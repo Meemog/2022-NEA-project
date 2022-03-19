@@ -1,12 +1,17 @@
 #main file
 import pygame
+import ctypes
 from Game import Game
 
-dispWidth = 500
-dispHeight = 500
-window = pygame.display.set_mode((dispWidth, dispHeight))
+ctypes.windll.user32.SetProcessDPIAware()
+
+window = pygame.display.set_mode((0,0), pygame.FULLSCREEN)
 pygame.display.set_caption("SpeedTyper")
 pygame.font.init()
+
+res = pygame.display.Info()
+dispWidth = res.current_w
+dispHeight = res.current_h
 
 game = Game(dispWidth, dispHeight)
 game.main(window)
