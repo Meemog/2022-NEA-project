@@ -2,6 +2,7 @@ import pygame
 from Button import Button
 from InputBox import InputBox
 
+#Object for handling the loginscreen scene of the game
 class LoginScreen:
     def __init__(self, screenDimensions, socket):
         self.__socket = socket
@@ -13,28 +14,32 @@ class LoginScreen:
         boxColourDormant = (30,30,30)
         self.__textColour = (255,255,255)
 
-        x = 999
-        font = pygame.font.SysFont("Courier New", x)
-        while font.size("Username")[1] > 40:
-            x -= 1
-            font = pygame.font.SysFont("Courier New", x)
+        #Finds maximum fontsize that would fiit in 40 pixel height
+        fontSize = 1
+        font = pygame.font.SysFont("Courier New", fontSize)
+        while font.size("Username")[1] < 50 * dispHeight / 1080:
+            fontSize += 1
+            font = pygame.font.SysFont("Courier New", fontSize)
 
+        font = pygame.font.SysFont("Courier New", fontSize - 1)
         self.__font = font
 
         #Boxlocations
-        rectangleUsernameBox = pygame.rect.Rect((0,int(400 * dispHeight/1080)), (int(1000 * dispWidth / 1920), int(70 * dispHeight / 1080)))
-        rectangleUsernameBox.centerx = dispWidth / 2
+        boxSize = (int(1000 * dispWidth / 1920), int(60 * dispHeight / 1080))
+
+        boxTopLeft = (int((dispWidth - boxSize[0]) / 2), int(400 * dispHeight / 1080))
+        rectangleUsernameBox = pygame.Rect(boxTopLeft, boxSize)
         self.__usernameBox = InputBox((255,255,255), boxColourActive, boxColourDormant, False, rectangleUsernameBox, dispHeight)
 
-        rectanglePasswordBox = pygame.rect.Rect((0,int(600 * dispHeight/1080)), (int(1000 * dispWidth / 1920), int(70 * dispHeight / 1080)))
-        rectanglePasswordBox.centerx = dispWidth / 2
+        boxTopLeft = (int((dispWidth - boxSize[0]) / 2), int(540 * dispHeight / 1080))
+        rectanglePasswordBox = pygame.Rect(boxTopLeft, boxSize)
         self.__passwordBox = InputBox((255,255,255), boxColourActive, boxColourDormant, True, rectanglePasswordBox, dispHeight)
 
         #Need confirm button
         buttonSize = (int(400 * dispWidth / 1920), int(60 * dispHeight / 1080))
-        self.__continueButton = Button("Continue", (0,0), buttonSize, boxColourDormant, boxColourActive, self.__textColour, dispHeight)
-        newCoords = (dispWidth / 2, 730 * dispHeight / 1080)
-        self.__continueButton.SetLocation(newCoords)
+        buttonTopLeft = (int((dispWidth - buttonSize[0]) / 2), int(640 * dispHeight / 1080))
+        self.__continueButton = Button("Continue", buttonTopLeft, buttonSize, boxColourDormant, boxColourActive, self.__textColour, dispHeight)
+
 
     def main(self, window):
         #Variables used for conditions
@@ -171,9 +176,9 @@ class LoginScreen:
             window.fill((10,10,10))
             
             textRender = self.__font.render("Username", True, self.__textColour)
-            window.blit(textRender, (self.__usernameBox.rectangle.x + 10 * self.__screenDimensions[0] / 1920, self.__usernameBox.rectangle.y - 90 * self.__screenDimensions[1] / 1080))
+            window.blit(textRender, (self.__usernameBox.rectangle.x + 10 * self.__screenDimensions[0] / 1920, self.__usernameBox.rectangle.top - (15 + textRender.get_size()[1]) * self.__screenDimensions[1] / 1080))
             textRender = self.__font.render("Password", True, self.__textColour)
-            window.blit(textRender, (self.__passwordBox.rectangle.x + 10 * self.__screenDimensions[0] / 1920, self.__passwordBox.rectangle.y - 90 * self.__screenDimensions[1] / 1080))
+            window.blit(textRender, (self.__passwordBox.rectangle.x + 10 * self.__screenDimensions[0] / 1920, self.__passwordBox.rectangle.top - (15 + textRender.get_size()[1]) * self.__screenDimensions[1] / 1080))
 
             self.__usernameBox.DrawBox(window)
             self.__passwordBox.DrawBox(window)
