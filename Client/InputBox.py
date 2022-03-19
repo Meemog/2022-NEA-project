@@ -132,6 +132,8 @@ class InputBox:
 #     for event in pygame.event.get():
 #         if event.type == pygame.QUIT:
 #             running = False
+#             print(f"Username: {usernameBox.text}")
+#             print(f"Password: {passwordBox.text}")
 
 #         elif event.type == pygame.MOUSEBUTTONDOWN:
 #             clickLocation = pygame.mouse.get_pos()
