@@ -1,5 +1,8 @@
 import pygame
+import ctypes
 
+#Class for object that makes a box that when selected will take input and display it
+#Supports for starring things out e.g. for passwords
 class InputBox:
     #Does not support changing the size of the rectangle
     def __init__(self, textColour, colourActive, colourDormant, hashedOut, rectangle, dispHeight):
@@ -97,23 +100,23 @@ class InputBox:
 #This stuff can be ignored, was used for testing and is only still here in case I need it later.
 #--------------------------------
 
+# ctypes.windll.user32.SetProcessDPIAware()
+
 # dispWidth = 1920
 # dispHeight = 1080
-# window = pygame.display.set_mode((dispWidth, dispHeight))
+# window = pygame.display.set_mode((0,0), pygame.FULLSCREEN)
 # pygame.display.set_caption("SpeedTyper")
 # pygame.font.init()
 
+# boxWidth = 1000
+# boxHeight = 100
+
 # #Boxlocations
-# userBoxWidth = 600 * dispWidth / 1920
-# rectangleUsernameBox = pygame.rect.Rect((0,int(400 * dispHeight/1080)), (int(1000 * dispWidth / 1920), int(70 * dispHeight / 1080)))
-# rectangleUsernameBox.centerx = dispWidth / 2
+# rectangleUsernameBox = pygame.Rect((dispWidth - boxWidth) / 2, 400 * dispHeight / 1080, boxWidth * dispWidth / 1920, boxHeight * dispHeight/1080)
 # usernameBox = InputBox((255,255,255), (35,35,35), (30,30,30), False, rectangleUsernameBox, dispHeight)
 
-# rectanglePasswordBox = pygame.rect.Rect((0,int(400 * dispHeight/1080)), (int(1000 * dispWidth / 1920), int(70 * dispHeight / 1080)))
-# rectanglePasswordBox.centerx = dispWidth / 2
-# rectanglePasswordBox.centery += int((80 + rectanglePasswordBox.height / 2 + rectangleUsernameBox.height / 2) * dispHeight / 1080)
+# rectanglePasswordBox = pygame.Rect((dispWidth - boxWidth) / 2, 600 * dispHeight / 1080, boxWidth * dispWidth / 1920, boxHeight * dispHeight/1080)
 # passwordBox = InputBox((255,255,255), (35,35,35), (30,30,30), True, rectanglePasswordBox, dispHeight)
-
 
 # running = True
 
@@ -126,71 +129,71 @@ class InputBox:
 # clock = pygame.time.Clock()
 
 # while running:
-    # for event in pygame.event.get():
-    #     if event.type == pygame.QUIT:
-    #         running = False
+#     for event in pygame.event.get():
+#         if event.type == pygame.QUIT:
+#             running = False
 
-    #     elif event.type == pygame.MOUSEBUTTONDOWN:
-    #         clickLocation = pygame.mouse.get_pos()
-    #         if usernameBox.CheckIfClicked(clickLocation):
-    #             usernameBox.SetActive()
-    #             usernameBoxSelected = True
+#         elif event.type == pygame.MOUSEBUTTONDOWN:
+#             clickLocation = pygame.mouse.get_pos()
+#             if usernameBox.CheckIfClicked(clickLocation):
+#                 usernameBox.SetActive()
+#                 usernameBoxSelected = True
 
-    #         else:
-    #             usernameBox.SetDormant()
-    #             usernameBoxSelected = False
+#             else:
+#                 usernameBox.SetDormant()
+#                 usernameBoxSelected = False
 
-    #         if passwordBox.CheckIfClicked(clickLocation):
-    #             passwordBox.SetActive()
-    #             passWordBoxSelected = True
+#             if passwordBox.CheckIfClicked(clickLocation):
+#                 passwordBox.SetActive()
+#                 passWordBoxSelected = True
 
-    #         else:
-    #             passwordBox.SetDormant()
-    #             passWordBoxSelected = False
+#             else:
+#                 passwordBox.SetDormant()
+#                 passWordBoxSelected = False
 
-    #     elif event.type == pygame.KEYDOWN:
-    #         if event.key == pygame.K_BACKSPACE:
-    #             backspace = True
+#         elif event.type == pygame.KEYDOWN:
+#             if event.key == pygame.K_BACKSPACE:
+#                 backspace = True
                 
-    #             if usernameBoxSelected:
-    #                 usernameBox.RemoveLetter(control)
-    #             elif passWordBoxSelected:
-    #                 passwordBox.RemoveLetter(control)
+#                 if usernameBoxSelected:
+#                     usernameBox.RemoveLetter(control)
+#                 elif passWordBoxSelected:
+#                     passwordBox.RemoveLetter(control)
 
-    #             timeSinceLastBackspace = -200
+#                 timeSinceLastBackspace = -200
 
-    #         elif event.key == pygame.K_RETURN:
-    #             pass
+#             elif event.key == pygame.K_RETURN:
+#                 pass
 
-    #         elif event.key == pygame.K_LCTRL or event.key == pygame.K_RCTRL:
-    #             control = True
+#             elif event.key == pygame.K_LCTRL or event.key == pygame.K_RCTRL:
+#                 control = True
 
-    #         else:
-    #             if usernameBoxSelected:
-    #                 usernameBox.AddLetter(event.unicode)
-    #             elif passWordBoxSelected:
-    #                 passwordBox.AddLetter(event.unicode)
+#             else:
+#                 if usernameBoxSelected:
+#                     usernameBox.AddLetter(event.unicode)
+#                 elif passWordBoxSelected:
+#                     passwordBox.AddLetter(event.unicode)
 
-    #     elif event.type == pygame.KEYUP:
-    #         if event.key == pygame.K_BACKSPACE:
-    #             backspace = False
+#         elif event.type == pygame.KEYUP:
+#             if event.key == pygame.K_BACKSPACE:
+#                 backspace = False
 
-    #         elif event.key == pygame.K_RETURN:
-    #             pass
+#             elif event.key == pygame.K_RETURN:
+#                 pass
 
-    #         elif event.key == pygame.K_LCTRL or event.key == pygame.K_RCTRL:
-    #             control = False
+#             elif event.key == pygame.K_LCTRL or event.key == pygame.K_RCTRL:
+#                 control = False
 
-    # if backspace and timeSinceLastBackspace > timeBetweenBackspaces:
-    #     if usernameBoxSelected:
-    #         usernameBox.RemoveLetter(control)
-    #     elif passWordBoxSelected:
-    #         passwordBox.RemoveLetter(control)
+#     if backspace and timeSinceLastBackspace > timeBetweenBackspaces:
+#         if usernameBoxSelected:
+#             usernameBox.RemoveLetter(control)
+#         elif passWordBoxSelected:
+#             passwordBox.RemoveLetter(control)
 
-    #     timeSinceLastBackspace = 0
+#         timeSinceLastBackspace = 0
 
-    # clock.tick()
-    # timeSinceLastBackspace += clock.get_time()
+#     clock.tick()
+#     timeSinceLastBackspace += clock.get_time()
 
 #     window.fill((10,10,10))
 #     usernameBox.DrawBox(window)
