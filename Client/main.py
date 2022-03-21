@@ -3,6 +3,8 @@ import pygame
 import ctypes
 from Game import Game
 
+#Sets to ignore windows scale setting
+#System -> Display -> Scale and Layout
 ctypes.windll.user32.SetProcessDPIAware()
 
 window = pygame.display.set_mode((0,0), pygame.FULLSCREEN)
