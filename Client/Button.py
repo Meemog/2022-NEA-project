@@ -17,17 +17,14 @@ class Button:
 
         #Finds correct fontsize
         fontSize = 1
-#        font = pygame.font.SysFont("Courier New", int(dispHeight * fontSize/1080))
         font = pygame.font.SysFont("Courier New", int(fontSize))
         fontRenderSize = font.size(self.__text)
         #Checks if the text will fit in the texbox
         while fontRenderSize[0] < self.__size[0] and fontRenderSize[1] < self.__size[1]:
             fontSize += 1
-#            font = pygame.font.SysFont("Courier New", int(dispHeight * fontSize/1080))
             font = pygame.font.SysFont("Courier New", int(fontSize))
             fontRenderSize = font.size(self.__text)
 
-#        font = pygame.font.SysFont("Courier New", int(dispHeight * (fontSize - 1)/1080))
         self.__font = pygame.font.SysFont("Courier New", int(fontSize - 1))
 
     def SetFont(self, font):
