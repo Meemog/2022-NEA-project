@@ -3,9 +3,13 @@ import pygame
 import ctypes
 from Game import Game
 
-#Sets to ignore windows scale setting
+user32 = ctypes.windll.user32
+#Prevents the screen from scaling with windows resolution scale
 #System -> Display -> Scale and Layout
-ctypes.windll.user32.SetProcessDPIAware()
+user32.SetProcessDPIAware()
+# Alternative way of getting screen resolution
+# dispWidth = user32.GetSystemMetrics(0)
+# dispHeight = user32.GetSystemMetrics(1)
 
 window = pygame.display.set_mode((0,0), pygame.FULLSCREEN)
 pygame.display.set_caption("SpeedTyper")

@@ -16,7 +16,7 @@ Testing for LoginScreen
 Testing for Main Menu
 Testing for Database
 
-Connect server to database for logging in
+Make how certain scenes work better (inheritance and stuff with scenes)
 
 Command to find number of lines:
 dir -Recurse *.py | Get-Content | Measure-Object -Line
