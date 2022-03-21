@@ -25,15 +25,17 @@ class Game:
         self.__settings = {"Volume": 50, "Res": (dispWidth, dispHeight)}
         
         self.ConnectToServer()
-        self.__loginScreen = LoginScreen((dispWidth, dispHeight), self.clientSocket)
-        self.__mainMenu = MainMenu((dispWidth, dispHeight))
 
-        font = pygame.font.SysFont("Courier New", int(dispHeight*42/1080))  #sets font to Courier New (font with constant letter size)
-        self.__textBox = TextBox(int(self.__dispWidth - (self.__dispWidth * 2/5)), int(50 * self.__dispHeight / 1080), (int(self.__dispWidth / 5), int(6 * self.__dispHeight / 20)), (40,40,40), (30,30,30), (255,144,8), font, (160,160,160))
+        if not self.userQuit:
+            self.__loginScreen = LoginScreen((dispWidth, dispHeight), self.clientSocket)
+            self.__mainMenu = MainMenu((dispWidth, dispHeight))
 
-        #A thread that will get messages and send messages to the server
-        self.__SocketHandleThread = threading.Thread(target=self.__HandleSocket, daemon=True)
-        self.__SocketHandleThread.start()
+            font = pygame.font.SysFont("Courier New", int(dispHeight*42/1080))  #sets font to Courier New (font with constant letter size)
+            self.__textBox = TextBox(int(self.__dispWidth - (self.__dispWidth * 2/5)), int(50 * self.__dispHeight / 1080), (int(self.__dispWidth / 5), int(6 * self.__dispHeight / 20)), (40,40,40), (30,30,30), (255,144,8), font, (160,160,160))
+
+            #A thread that will get messages and send messages to the server
+            self.__SocketHandleThread = threading.Thread(target=self.__HandleSocket, daemon=True)
+            self.__SocketHandleThread.start()
 
     def main(self, window):
         self.__window = window
