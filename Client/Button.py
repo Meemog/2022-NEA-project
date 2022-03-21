@@ -2,27 +2,33 @@ import pygame
 
 #This object is a button that can be clicked to do certain actions 
 class Button:
+    #Location is the top left coordinates
+    #Size is (width, height) tuple
     def __init__(self, text, location, size, backColourDormant, backColourActive, textColour, dispHeight):
         self.__pressed = False
         self.__text = text
         self.__location = location
         self.__size = size
-        self.rectangle = pygame.rect.Rect(self.__location, self.__size)
+        self.rectangle = pygame.Rect(self.__location, self.__size)
         self.__backColourDormant = backColourDormant
         self.__backColourActive = backColourActive
         self.__backColour = self.__backColourDormant
         self.__textColour = textColour
 
-        fontSize = 999
-        font = pygame.font.SysFont("Courier New", int(dispHeight * fontSize/1080))
+        #Finds correct fontsize
+        fontSize = 1
+#        font = pygame.font.SysFont("Courier New", int(dispHeight * fontSize/1080))
+        font = pygame.font.SysFont("Courier New", int(fontSize))
         fontRenderSize = font.size(self.__text)
         #Checks if the text will fit in the texbox
-        while fontRenderSize[0] > self.__size[0] or fontRenderSize[1] > self.__size[1]:
-            fontSize -= 1
-            font = pygame.font.SysFont("Courier New", int(dispHeight * fontSize/1080))
+        while fontRenderSize[0] < self.__size[0] and fontRenderSize[1] < self.__size[1]:
+            fontSize += 1
+#            font = pygame.font.SysFont("Courier New", int(dispHeight * fontSize/1080))
+            font = pygame.font.SysFont("Courier New", int(fontSize))
             fontRenderSize = font.size(self.__text)
 
-        self.__font = font
+#        font = pygame.font.SysFont("Courier New", int(dispHeight * (fontSize - 1)/1080))
+        self.__font = pygame.font.SysFont("Courier New", int(fontSize - 1))
 
     def SetFont(self, font):
         self.__font = font
