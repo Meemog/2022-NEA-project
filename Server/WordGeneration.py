@@ -24,14 +24,18 @@ class WordGenerator:
                 listOfWords.pop(x)
         return listOfWords
     
-    #cuts lyrics down to certain length and removes newlines
+    #Cuts lyrics down to certain length and removes newlines
+    #Words is the list of words that could be used
+    #Length is the length that the returned string needs to be
     def __MakeWordsCorrectLength(self, words, length):
         newWords = []
-        while len(words) < length:
-            newWords += words
-            length -= len(words)
+        copyOfWords = words.copy()
+        #Appends length number of words to the end of newWords
+        while len(newWords) < length:
+            if copyOfWords == []:
+                copyOfWords = words.copy()
+            newWords.append(copyOfWords.pop())
 
-        newWords += words[:length]
         wordsString = " ".join(newWords)
         return wordsString
 
