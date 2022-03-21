@@ -3,6 +3,7 @@ Add message for "connecting to server"
 Allow user to register
 	Make it store password correctly
 	Make it so that it asks the user to verify their email, otherwise they will not be able to recover their account
+Finish settings menu
 Sounds
 	Login system
 Score calculator 
@@ -11,7 +12,6 @@ ELO system
 Matchmaking
 
 Testing for game (client)
-Testing for Button
 Testing for LoginScreen
 Testing for Main Menu
 Testing for Database

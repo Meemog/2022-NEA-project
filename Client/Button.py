@@ -74,13 +74,20 @@ class Button:
         self.__pressed = False
 
 #These are commented out as I might need them later
-# dispWidth = 500
-# dispHeight = 500
-# window = pygame.display.set_mode((dispWidth, dispHeight))
+# import ctypes
+
+# user32 = ctypes.windll.user32
+# #Prevents the screen from scaling with windows resolution scale
+# user32.SetProcessDPIAware()
+# #Gets the screen resolution
+# dispWidth = user32.GetSystemMetrics(0)
+# dispHeight = user32.GetSystemMetrics(1)
+
+# window = pygame.display.set_mode((0,0), pygame.FULLSCREEN)
 # pygame.display.set_caption("SpeedTyper")
 # pygame.font.init()
 
-# ThisButton = Button("Amogus", (100,100), (200,50), (30,30,30), (35,35,35), (255,255,255), dispHeight)
+# ThisButton = Button("TestButton", (dispWidth / 2, dispHeight / 2), (500,500), (30,30,30), (100,100,100), (255,255,255), 1080)
 
 # running = True
 # stillInBox = False
@@ -90,13 +97,14 @@ class Button:
 #             running = False
 
 #         elif event.type == pygame.MOUSEBUTTONDOWN:
-#             if ThisButton.CheckIfHovering():
+#             if ThisButton.CheckIfHovering(pygame.mouse.get_pos()):
 #                 stillInBox = True
+#                 print("Clicked on box")
 
 #         elif event.type == pygame.MOUSEBUTTONUP and stillInBox:
 #             ThisButton.Pressed()
 
-#     if ThisButton.CheckIfHovering():
+#     if ThisButton.CheckIfHovering(pygame.mouse.get_pos()):
 #         ThisButton.SetActive()
     
 #     else:
