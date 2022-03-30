@@ -9,4 +9,10 @@ class Scene:
         self.__listOfButtonObjects = []
         self.__listOfTextObjects = []
 
-    
+    def Render(self):
+        for box in self.__listOfBoxObjects:
+            box.Render()
+        for button in self.__listOfButtonObjects:
+            button.Render()
+        for textObject in self.__listOfTextObjects:
+            textObject.Render()
