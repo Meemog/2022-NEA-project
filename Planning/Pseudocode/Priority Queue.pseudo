@@ -1,0 +1,18 @@
+CLASS 
+    SUBROUTINE INIT(self)
+        self.__queue <-- []
+    ENDSUBROUTINE
+
+    SUBROUTINE Enqueue(self, itemToAdd, priority)
+        FOR i <-- 0 TO LEN(self.__queue)
+            IF self.__queue[i][0] < priority THEN
+                startOfQueue <-- self.__queue[:i]
+                endOfQueue <-- self.__queue[i:LEN(self.__queue)]
+                self.__queue <-- startOfQueue + [priority, itemToAdd] + endOfQueue
+        ENDFOR
+    ENDSUBROUTINE
+
+    SUBROUTINE DEQUEUE(self)
+        RETURN self.___queue.POP(0)
+    ENDSUBROUTINE
+ENDCLASS

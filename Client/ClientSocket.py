@@ -1,6 +1,4 @@
 import socket
-import threading
-from tkinter.tix import Tree
 
 class ClientSocket:
     def __init__(self):
