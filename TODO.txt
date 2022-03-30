@@ -1,11 +1,13 @@
-Fix UI elements being 50% smaller
-Add message for "connecting to server"
+finish matchmaking screen for user
+make server side work for matchmaking
+redo server
+	Almost done
 Allow user to register
 	Make it store password correctly
 	Make it so that it asks the user to verify their email, otherwise they will not be able to recover their account
 Finish settings menu
 Sounds
-	Login system
+Login system
 Score calculator 
 Stats section
 ELO system
@@ -16,7 +18,7 @@ Testing for LoginScreen
 Testing for Main Menu
 Testing for Database
 
-Make how certain scenes work better (inheritance and stuff with scenes)
+Change the dimension/1920 or 1080 to not need an extra calculation
 
 Command to find number of lines:
 dir -Recurse *.py | Get-Content | Measure-Object -Line

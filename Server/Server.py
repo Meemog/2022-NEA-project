@@ -5,17 +5,19 @@ from Database import DatabaseHandler
 
 class Server:
     def __init__(self):
-        self.__HEADER = 8
-        self.__PORT = 5000
-        self.__SERVER = socket.gethostbyname(socket.gethostname()) #Gets the local IP address
-        self.__ADDRESS = (self.__SERVER, self.__PORT) #Makes a tuple for the address
-        self.__FORMAT = 'utf-8'
+        self.HEADER = 8
+        self.PORT = 5000
+        self.SERVER = socket.gethostbyname(socket.gethostname()) #Gets the local IP address
+        self.ADDRESS = (self.SERVER, self.PORT) #Makes a tuple for the address
+        self.FORMAT = 'utf-8'
+
+        self.running = True
         self.players = []
         self.playersInMatchmaking = []
-        self.running = True #Boolean used to close other threads once the program ends
-        self.__server = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #AF_INET is for ipv4. SOCK_STREAM is for TCP, SOCK_DGRAM is UDP
-        self.__server.bind(self.__ADDRESS)
-        self.__dbHandler = DatabaseHandler()
+        
+        self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #AF_INET is for ipv4. SOCK_STREAM is for TCP, SOCK_DGRAM is UDP
+        self.server.bind(self.ADDRESS)
+        self.dbHandler = DatabaseHandler()
         print("[SERVER STARTED]")
 
     #Made to be used in a seperate thread
@@ -25,159 +27,140 @@ class Server:
         for player in players:
             player.connection.setblocking(False)
             try:
-                msgLen = int(player.connection.recv(self.__HEADER).decode(self.__FORMAT)) #Waits for message with length 8 bytes to be received from the client and then decodes it 
+                msgLen = int(player.connection.recv(self.HEADER).decode(self.FORMAT)) #Waits for message with length 8 bytes to be received from the client and then decodes it 
             except:
                 player.connection.setblocking(True)
                 return 0
             player.connection.setblocking(True)
             if msgLen > 0:  #First message will always be empty
-                msg = player.connection.recv(msgLen).decode(self.__FORMAT) #Waits for a message with length msgLen to be received
+                msg = player.connection.recv(msgLen).decode(self.FORMAT) #Waits for a message with length msgLen to be received
                 player.msgsReceived.append(msg)       
                 print(f"Message Received:{msg}")
 
     #Made to be used in a seperate thread
     #Checks each player for a message that needs to be sent from player.msgsToSend list
     #If a message needs to be sent it will send it and remove it from the list
-    def SendMsgs(self):
+    def SendMsgsToPlayersNotInQueue(self):
         #Checks queue for each player to send messages that need to be sent.
         for player in self.players:
             player.connection.setblocking(False)
-            try:
-                for msg in player.msgsToSend:
+            while player.msgsToSend.GetLength() != 0:
+                message = player.msgsToSend.Dequeue()
+                try:
                     conn = player.connection
-                    encMessage = msg.encode(self.__FORMAT) #encodes msg with utf-8
+                    encMessage = message.encode(self.FORMAT) #encodes msg with utf-8
                     msgLen = len(encMessage)
-                    msgLen = str(msgLen).encode(self.__FORMAT) 
-                    msgLen += b' ' * (self.__HEADER - len(msgLen)) #makes the message length be 8 bytes long so the server recognises it
+                    msgLen = str(msgLen).encode(self.FORMAT) 
+                    msgLen += b' ' * (self.HEADER - len(msgLen)) #makes the message length be 8 bytes long so the server recognises it
                     #b' ' means the byte representation of a space
                     conn.send(msgLen)
                     conn.send(encMessage)
-                    print(f"Message sent:{msg}")
-                player.msgsToSend = []
-            except socket.error:
-                pass
+                except socket.error:
+                    player.msgsToSend.Enqueue(message)
+            player.connection.setblocking(True)
+
+    def SendMsgsToPlayersInQueue(self):
+        #Checks queue for each player to send messages that need to be sent.
+        for player in self.playersInMatchmaking:
+            player.connection.setblocking(False)
+            while player.msgsToSend.GetLength() != 0:
+                message = player.msgsToSend.Dequeue()
+                try:
+                    conn = player.connection
+                    encMessage = message.encode(self.FORMAT) #encodes msg with utf-8
+                    msgLen = len(encMessage)
+                    msgLen = str(msgLen).encode(self.FORMAT) 
+                    msgLen += b' ' * (self.HEADER - len(msgLen)) #makes the message length be 8 bytes long so the server recognises it
+                    #b' ' means the byte representation of a space
+                    conn.send(msgLen)
+                    conn.send(encMessage)
+                except socket.error:
+                    player.msgsToSend.Enqueue(message)
             player.connection.setblocking(True)
 
     #Function to be used in the run function to look for new players and not block everything else that needs to happen
     #Ran in parallel by using threading module
-    def __CheckForNewPlayers(self):
-        self.__server.setblocking(False)
+    def CheckForNewPlayers(self):
+        self.server.setblocking(False)
         try:        
-            conn, addr = self.__server.accept() #When connection occurs
+            conn, addr = self.server.accept() #When connection occurs
             thisPlayer = Player(addr, conn)
             self.players.append(thisPlayer)
         except:
             pass
-        self.__server.setblocking(True)
+        self.server.setblocking(True)
 
-    def __PrintPlayersInMatchmaking(self):#
+    def PrintPlayers(self):#
         print(f"Players:{len(self.players)}, in matchmaking:{len(self.playersInMatchmaking)}", end="\r")
 
-    def __CreateNewGame(self):
-        self.currentGames.append(Game(self.playersInMatchmaking[0], self.playersInMatchmaking[1]))
-        self.players.append(self.playersInMatchmaking.pop(0))
-        self.players.append(self.playersInMatchmaking.pop(0))
-        self.currentGames[-1].StartThread()
+    def HandleMessagesForPlayersNotInQueue(self):
+        playersQuit = []
+        for player in self.players:
+            while player.msgsReceived.GetLength() != 0:
+                message = player.msgsReceived.Dequeue()
+                if player.loggedIn and message == "!DISCONNECT":
+                    playersQuit.append(player)
+                
+                elif player.loggedIn and message == "!QUEUE":
+                    playersQuit.append(player)
+                    self.playersInMatchmaking.append(player)
 
-    #Goes through every message for every player in players parameter
-    def __HandleMessages(self):
-        i = 0
-        while i < len(self.players):
-            while self.players != [] and self.players[i].msgsReceived != []:
-                if self.players[i].msgsReceived[0] == "!DISCONNECT":
-                    self.players[i].msgsReceived = []
-                    self.players.pop(i)
-                    i -= 1
-
-                elif self.players[i].msgsReceived[0] == "!QUEUE":
-                    self.players[i].msgsReceived.pop(0)
-                    self.playersInMatchmaking.append(self.players.pop(i))
-                    i -= 1
-                    
-                #Checks if players login details are correct
-                elif not self.players[i].loggedIn and self.players[i].msgsReceived[0][:7] == "!LOGIN:":
-                    details = self.players[i].msgsReceived.pop(0)[7:]
-                    details = details.split(",")
+                elif not player.loggedIn and message[:7] == "!LOGIN:":
+                    details = message[7:].split(",")
                     username = details[0]
                     password = details[1]
 
-                    if self.__dbHandler.CheckIfUsernameInDB(username):
-                        self.players[i].username = username
-                        correctPassword = self.__dbHandler.GetPassword(username)
-                        if password == correctPassword:
-                            self.players[i].SendMsg("!PASSWORDCORRECT")
-                            self.__dbHandler.LoadUser(self.players[i])
+                    #Checks password and sends message to user to confirm if they are signed in or not
+                    if self.dbHandler.CheckIfUsernameInDB(username):
+                        if self.dbHandler.CheckPassword(username, password):
+                            player.loggedIn = True
+                            player.msgsToSend.Enqueue("!PASSWORDCORRECT")
                         else:
-                            self.players[i].SendMsg("!PASSWORDINCORRECT")
-                    
+                            player.msgsToSend.Enqueue("!PASSWORDINCORRECT")
                     else:
-                        self.players[i].SendMsg("!USERNAMENOTFOUND")
+                        player.msgsToSend.Enqueue("!USERNAMENOTFOUND")
+                
+        #Removes players who quit from the list of players
+        playersRemoved = 0
+        for player in playersQuit:
+            for i in range(len(self.players)):
+                if player == self.players[i - playersRemoved]:
+                    playersRemoved += 1
+                    self.players.pop(i - playersRemoved)
 
-                elif self.players[i].username == "" and self.players[i].msgsReceived[0][:10] == "!REGISTER:":
-                    details = self.players[i].msgsReceived[0][10:]
-                    details = details.split(",")
-                    self.players[i].username = details[0]
-                    self.players[i].password = details[1]
-                    #Creates new user in database
-                    self.__dbHandler.CreateNewUser(self.players[i])
-
-                    self.players[i].msgsReceived.pop(0)
-
-                else:
-                    self.players[i].msgsReceived.pop(0)
-            i += 1
-            
-        i = 0
-        while i < len(self.playersInMatchmaking):
-            while self.playersInMatchmaking != [] and self.playersInMatchmaking[i].msgsReceived != []:
-                if self.playersInMatchmaking[i].msgsReceived[0] == "!DISCONNECT":
-                    self.playersInMatchmaking[i].msgsReceived = []
-                    self.playersInMatchmaking.pop(i)
-                    i -= 1
-
-                elif self.playersInMatchmaking[i].msgsReceived[0] == "!DEQUEUE":
-                    self.playersInMatchmaking[i].msgsReceived.pop(0)
-                    self.players.append(self.playersInMatchmaking.pop(0))
-                    i -= 1
-                    
-                #More messages can be handled here
-
-                #Checks if players login details are correct
-                elif self.playersInMatchmaking[i].username != "" and self.playersInMatchmaking[i].msgsReceived[0][:7] == "!LOGIN:":
-                    details = self.playersInMatchmaking[i].msgsReceived[0][7:]
-                    details = details.split(",")
-                    username = details[0]
-                    password = details[1]
-                    correctUsername = "TestUsername"
-                    correctPassword = "TestPassword"
-                    if username == correctUsername and password == correctPassword:
-                        self.playersInMatchmaking[i].SendMsg("!PASSWORDCORRECT")
-                        self.playersInMatchmaking[i].username = username
-                    else:
-                        self.playersInMatchmaking[i].SendMsg("!PASSWORDINCORRECT")
-
-                    self.playersInMatchmaking[i].msgsReceived.pop(0)
-
-                else:
-                    self.playersInMatchmaking[i].msgsReceived.pop(0)
-            i += 1
+    def HandleMessagesForPlayersInQueue(self):
+        playersQuit = []
+        for player in self.playersInMatchmaking:
+            while player.msgsReceived.GetLength() != 0:
+                message = player.msgsReceived.Dequeue()
+                if message == "!DISCONNECT":
+                    playersQuit.append(player)
+                elif message == "!DEQUEUE":
+                    playersQuit.append(player)
+                    self.players.append(player)
+        
+        playersRemoved = 0
+        for player in playersQuit:
+            for i in range(len(self.playersInMatchmaking)):
+                if player == self.playersInMatchmaking[i - playersRemoved]:
+                    playersRemoved += 1
+                    self.playersInMatchmaking.pop(i - playersRemoved)
 
     def Run(self):
-        self.__server.listen() #Looks for connections
+        self.server.listen() #Looks for connections
         self.currentGames = []
         while self.running:
-            self.__CheckForNewPlayers()
-            #Prints players in matchmaking
-            self.__PrintPlayersInMatchmaking()
+            self.CheckForNewPlayers()
+            self.PrintPlayers()
 
-            #Creates new game object with 2 players in it 
-            while len(self.playersInMatchmaking) >= 2:
-                self.__CreateNewGame()
-                
+            #Handling messages
             self.GetMsgs(self.players)
+            self.HandleMessagesForPlayersNotInQueue()
+            self.SendMsgsToPlayersNotInQueue()
+
             self.GetMsgs(self.playersInMatchmaking)
-            self.SendMsgs()
-            self.__HandleMessages()
+            self.HandleMessagesForPlayersInQueue()
+            self.SendMsgsToPlayersInQueue()
 
 server = Server()
 server.Run()
