@@ -1,5 +1,5 @@
 import pygame, threading
-from Scene import ConnectingToServer, LoginScreen, MainMenu, MatchmakingScreen
+from Scene import ConnectionScreen
 
 class Game:
     def __init__(self, window):
@@ -14,31 +14,28 @@ class Game:
         self.resolution = (self.resolution.current_w / 1920, self.resolution.current_h / 1080)
 
         #Various scenes get defined here
-        self.connectionScreen = ConnectingToServer(self.window, self. resolution, None)
-        self.loginScreen = LoginScreen(self.window, self.resolution, None)
-        self.mainMenu = MainMenu(self.window, self.resolution, None)
-        self.matchmakingScreen = MatchmakingScreen(self.window, self.resolution, None)
+        self.connectionScreen = ConnectionScreen(self.window, self.resolution)
 
-        self.scenes = [self.connectionScreen, self.loginScreen, self.mainMenu, self.matchmakingScreen]
+        self.scenes = [self.connectionScreen]
         self.activeScene = self.connectionScreen
         
     def main(self):
         while not self.userQuit:
             if self.socket is None:
                 self.activeScene = self.connectionScreen
-            else:
-                if not self.loginScreen.loggedIn:
-                    self.activeScene = self.loginScreen
-                elif not self.mainMenu.userHasMadeChoice:
-                    self.activeScene = self.mainMenu
-                elif not self.matchmakingScreen.gameFound:
-                    self.activeScene = self.matchmakingScreen
+            # else:
+            #     if not self.loginScreen.loggedIn:
+            #         self.activeScene = self.loginScreen
+            #     elif not self.mainMenu.userHasMadeChoice:
+            #         self.activeScene = self.mainMenu
+            #     elif not self.matchmakingScreen.gameFound:
+            #         self.activeScene = self.matchmakingScreen
             
             self.activeScene.main()
             if self.activeScene.userQuit:
                 self.userQuit = True
 
-            if self.activeScene == self.connectionScreen and self.socket is None:
+            if self.socket is None and self.connectionScreen.socket is not None:
                 self.socket = self.connectionScreen.socket
         
                 #Starts the client checking and sending messages
