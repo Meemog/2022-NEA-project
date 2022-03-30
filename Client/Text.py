@@ -31,10 +31,7 @@ class Text:
     def SetFont(self, newFont):
         self.font = newFont
         self.UpdateRender()
-    
-    def SetLocation(self, newLocation):
-        self.location = newLocation
-
+        
     #Renders the text onto the given window
     def Render(self, window):
         window.blit(self.textRender, self.location)
