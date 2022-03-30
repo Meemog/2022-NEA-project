@@ -2,7 +2,6 @@ import pygame, threading
 from InputHandler import InputHandler
 from Boxes import InputBox, Button
 from Text import Text
-from ClientSocket import ClientSocket
 
 #A class for handling scenes
 #A scene is made up of buttons, textboxes and displays to render
