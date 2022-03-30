@@ -1,5 +1,5 @@
 import ctypes, pygame
-from NewGame import Game
+from Game import Game
 
 user32 = ctypes.windll.user32
 #Prevents the screen from scaling with windows resolution scale
