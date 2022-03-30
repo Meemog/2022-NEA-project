@@ -11,7 +11,7 @@ class Game:
         self.msgGetThread = None
 
         self.resolution = pygame.display.Info()
-        self.resolution = (self.resolution.current_w, self.resolution.current_h)
+        self.resolution = (self.resolution.current_w / 1920, self.resolution.current_h / 1080)
 
         #Various scenes get defined here
         self.connectionScreen = ConnectingToServer(self.window, self. resolution, None)
