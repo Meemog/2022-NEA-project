@@ -11,9 +11,9 @@ class Text:
         self.location = location
 
         #Pygame surface object that can be drawn on other surface objects
-        #Having this here reduces number of times it needs to be rendered, better performance
         self.textRender = self.font.render(self.text, True, self.colour)
 
+    #Having this here reduces number of times it needs to be rendered, better performance
     def UpdateRender(self):
         self.textRender = self.font.render(self.text, True, self.colour)
 
