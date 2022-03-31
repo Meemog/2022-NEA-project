@@ -18,36 +18,44 @@ class ClientSocket:
     #Checks if any messages need to be sent
     #Sends them to the server and removes them from the list
     def SendMsgs(self):
-        self.__client.setblocking(False)
-        try:
-            while self.msgsToSend != []:
-                encMessage = self.msgsToSend[0].encode(self.__FORMAT) #encodes msg with utf-8
-                msgLen = str(len(encMessage)).encode(self.__FORMAT) 
-                msgLen += b' ' * (self.__HEADER - len(msgLen)) #makes the message length be 8 bytes long so the server recognises it
-                #b' ' means the byte representation of a space
-                self.__client.send(msgLen)
-                self.__client.send(encMessage)
-                print(f"Message Sent:{self.msgsToSend.pop(0)}")
-        except socket.error:
-            pass
-        self.__client.setblocking(True)
+        while self.connected:
+            self.__client.setblocking(False)
+            try:
+                while self.msgsToSend != []:
+                    encMessage = self.msgsToSend[0].encode(self.__FORMAT) #encodes msg with utf-8
+                    msgLen = str(len(encMessage)).encode(self.__FORMAT) 
+                    msgLen += b' ' * (self.__HEADER - len(msgLen)) #makes the message length be 8 bytes long so the server recognises it
+                    #b' ' means the byte representation of a space
+                    self.__client.send(msgLen)
+                    self.__client.send(encMessage)
+                    print(f"Message Sent:{self.msgsToSend.pop(0)}")
+            except socket.error:
+                pass
+            self.__client.setblocking(True)
 
     def GetMsgs(self):
-        self.__client.setblocking(False)
-        msgLen = 0
-        try:
-            msgLen = self.__client.recv(self.__HEADER).decode(self.__FORMAT)
-            msgLen = int(msgLen)
-        except:
+        while self.connected:
+            self.__client.setblocking(False)
+            msgLen = 0
+            try:
+                msgLen = self.__client.recv(self.__HEADER).decode(self.__FORMAT)
+                msgLen = int(msgLen)
+            except:
+                self.__client.setblocking(True)
+                return 0
             self.__client.setblocking(True)
-            return 0
-        self.__client.setblocking(True)
-        if msgLen > 0:  #First message will always be empty
-            msg = self.__client.recv(msgLen).decode(self.__FORMAT) #Waits for a message with length msgLen to be received
-            self.receivedMsgs.append(msg)
-            print(f"Message Received:{msg}")
+            if msgLen > 0:  #First message will always be empty
+                msg = self.__client.recv(msgLen).decode(self.__FORMAT) #Waits for a message with length msgLen to be received
+                self.receivedMsgs.append(msg)
+                print(f"Message Received:{msg}")
 
     #This function needs to make sure the message is sent before closing the socket
     def EndConnection(self):
+        encMessage = "!DISCONNECT".encode(self.__FORMAT) #encodes msg with utf-8
+        msgLen = str(len(encMessage)).encode(self.__FORMAT) 
+        msgLen += b' ' * (self.__HEADER - len(msgLen)) #makes the message length be 8 bytes long so the server recognises it
+        #b' ' means the byte representation of a space
+        self.__client.send(msgLen)
+        self.__client.send(encMessage)
+        
         self.connected = False
-        self.msgsToSend.append("!DISCONNECT")
