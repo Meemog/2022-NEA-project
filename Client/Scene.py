@@ -98,10 +98,6 @@ class ConnectionScreen(Scene):
 
     def main(self):
         super().main()
-        if self.connected:
-            self._textToRender = "Connected to server successfully"
-            self.__textObject.SetText(self._textToRender)
-            return 0
         self._timeSinceLastMessageUpdate += self._clock.get_time()
         if self._timeSinceLastMessageUpdate >= 700:
             self._textToRender = "Connecting to server" + "." * self._numberOfDots
