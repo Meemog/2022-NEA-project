@@ -118,17 +118,17 @@ class DatabaseHandler:
         return False
 
 
-dbHandler = DatabaseHandler()
+# dbHandler = DatabaseHandler()
 
-# thisPlayer = Player(0,0)
-# thisPlayer.username = "Player0"
+# # thisPlayer = Player(0,0)
+# # thisPlayer.username = "Player0"
 
-# thisPlayer = dbHandler.LoadUser(thisPlayer)
+# # thisPlayer = dbHandler.LoadUser(thisPlayer)
 
-# for i in range(50,60):
-#     dbHandler.CreateRandomUser(f"Username{i}", f"Password{i}")
+# # for i in range(50,60):
+# #     dbHandler.CreateRandomUser(f"Username{i}", f"Password{i}")
 
-for i in range(50):
-    print(dbHandler.CheckPassword("Username" + str(i), "Password" + str(i)))
+# for i in range(50):
+#     print(dbHandler.CheckPassword("Username" + str(i), "Password" + str(i)))
 
-dbHandler.Close()
+# dbHandler.Close()
