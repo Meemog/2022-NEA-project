@@ -11,11 +11,10 @@ class Game:
         self.msgGetThread = None
 
         self.resolution = pygame.display.Info()
-        self.resolution = (self.resolution.current_w, self.resolution.current_h)
-        self.resolutionScale = (self.resolution[0] / 1920, self.resolution[1] / 1080)
+        self.resolution = (self.resolution.current_w / 1920, self.resolution.current_h / 1080)
 
         #Various scenes get defined here
-        self.connectionScreen = ConnectionScreen(self.window, self.resolution, self.resolutionScale)
+        self.connectionScreen = ConnectionScreen(self.window, self.resolution)
 
         self.scenes = [self.connectionScreen]
         self.activeScene = self.connectionScreen

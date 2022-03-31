@@ -6,7 +6,7 @@ from Button import Button
 from Text import Text
 
 class Scene:
-    def __init__(self, window, resolution, resolutionScale, socket = None) -> None:
+    def __init__(self, window, resolution, socket = None) -> None:
         self.userQuit = False
         self.socket = socket
 
@@ -25,7 +25,6 @@ class Scene:
 
         self._window = window
         self._resolution = resolution
-        self._resolutionScale = resolutionScale
 
         self._clock = pygame.time.Clock()
         self._inputHandler = InputHandler()
@@ -74,15 +73,15 @@ class Scene:
 
 #Displays text that changes in the middle of the screen
 class ConnectionScreen(Scene):
-    def __init__(self, window, resolution, resolutionScale, socket=None) -> None:
-        super().__init__(window, resolution, resolutionScale, socket)
+    def __init__(self, window, resolution, socket=None) -> None:
+        super().__init__(window, resolution, socket)
         self.connected = False
 
         #Used for changing the number of dots in the text
         self._timeSinceLastMessageUpdate = 0
         self._numberOfDots = 0
 
-        self._font = pygame.font.SysFont("Calibri", int(72 * self._resolutionScale[1]))
+        self._font = pygame.font.SysFont("Calibri", int(72 * self._resolution[1] * 1080))
 
         textSize = self._font.size("Connecting to server...")
         textLocation = ((self._resolution[0] - textSize[0]) / 2, (self._resolution[1] - textSize[1]) / 2)
@@ -114,3 +113,9 @@ class ConnectionScreen(Scene):
                 self.connected = True
             except socket.error:
                 pass
+
+class LoginScreen(Scene):
+    def __init__(self, window, resolution, socket=None) -> None:
+        super().__init__(window, resolution, socket)
+        
+        #Need 2 inputboxes and 1 button
