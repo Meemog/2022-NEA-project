@@ -14,7 +14,7 @@ class DatabaseHandler:
         CREATE TABLE IF NOT EXISTS
         Users(
             Username TEXT PRIMARY KEY, 
-            Password TEXT, 
+            Password BLOB, 
             WordsTyped INTEGER, 
             TimePlayed INTEGER, 
             Elo INTEGER, 
@@ -52,7 +52,7 @@ class DatabaseHandler:
         self.__connection.close()
 
     def CreateNewUser(self, username, password):
-        password = GenHash(password)
+        password = GenHash(password).decode("utf-8")
         wordsTyped = 0
         timePlayed = 0
         Elo = 1000
@@ -71,8 +71,9 @@ class DatabaseHandler:
         """
         self.__cursor.execute(command, params)
 
+    #Used for testing
     def CreateRandomUser(self, username, password):
-        password = GenHash("Password" + str(password))
+        password = GenHash(password)
         wordsTyped = random.randint(0,1000000)
         timePlayed = random.randint(0,999999999)
         Elo = random.randint(500, 4000)
@@ -113,22 +114,21 @@ class DatabaseHandler:
         correctPasswordHash = fetchResult[0][0]
 
         #Uses bcrypt library to check password against hash
-        if CheckPW(password, correctPasswordHash):
-            return True
-        return False
+        return CheckPW(password, correctPasswordHash)
 
+dbHandler = DatabaseHandler()
 
-# dbHandler = DatabaseHandler()
+# correctUsername = "Username600"
+# correctPassword = "Password600"
 
-# # thisPlayer = Player(0,0)
-# # thisPlayer.username = "Player0"
+# dbHandler.CreateRandomUser(correctUsername, correctPassword)
 
-# # thisPlayer = dbHandler.LoadUser(thisPlayer)
-
-# # for i in range(50,60):
-# #     dbHandler.CreateRandomUser(f"Username{i}", f"Password{i}")
+# print(dbHandler.CheckPassword("Username0", "Password0"))
 
 # for i in range(50):
-#     print(dbHandler.CheckPassword("Username" + str(i), "Password" + str(i)))
+#     dbHandler.CreateRandomUser(f"Username{i}", f"Password{i}")
 
-# dbHandler.Close()
+# # for i in range(50):
+# #     print(dbHandler.CheckPassword("Username" + str(i), "Password" + str(i)))
+
+dbHandler.Close()
