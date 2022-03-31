@@ -130,6 +130,7 @@ class LoginScreen(Scene):
     def __init__(self, window, resolution, socket=None) -> None:
         super().__init__(window, resolution, socket)
         self.loggedIn = False
+        self.__detailsSent = False
 
         inputBoxFont = pygame.font.SysFont("Courier New", int(36 * self._resolution[1]))
 
@@ -164,12 +165,29 @@ class LoginScreen(Scene):
 
     def main(self):
         super().main()
-
         #Automatic removal of text every 50 milliseconds
-        if self._backspace and self._timeSinceLastBackspace >= 50:
+        if self._backspace and self._timeSinceLastBackspace >= 50 and not self.__continueButton.clicked:
             for box in self._listOfBoxObjects:
                 if box.isActive:
                     box.RemoveLetter(self._ctrl)
+        if self.__continueButton.clicked and not self.__detailsSent:
+            username = self.__usernameBox.text
+            password = self.__passwordBox.text
+            self.socket.msgsToSend.Enqueue(f"!LOGIN:{username},{password}")
+            self.__detailsSent = True
+
+    def HandleMessages(self):
+        unusedMessages = []
+        while len(self.socket.receivedMsgs) != 0:
+            message = self.socket.receivedMsgs.pop()
+            if message == "!PASSWORDCORRECT":
+                self.loggedIn = True
+            elif message == "!PASSWORDINCORRECT" or message == "!USERNAMENOTFOUND":
+                self.__continueButton.clicked = False
+                self.__detailsSent = False
+                self.__usernameBox.text = ""
+                self.__passwordBox.text = ""
+                self.__continueButton.SetText("Continue")
 
     def HandleInputs(self):
         super().HandleInputs()
@@ -182,6 +200,7 @@ class LoginScreen(Scene):
                     clickLocation = (int(clickLocation[0]), int(clickLocation[1]))
                     if self.__continueButton.CheckForCollision(clickLocation):
                         self.__continueButton.clicked = True
+                        self.__continueButton.SetText("Checking...")
                     else:
                         for box in self._listOfBoxObjects:
                             if box.CheckForCollisionWithMouse(clickLocation):

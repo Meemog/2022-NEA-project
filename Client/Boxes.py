@@ -12,27 +12,27 @@ class Box:
         self.isActive = False
         self._colour = colourInactive
         
-        self._text = text
+        self.text = text
         self._textColour = textColour
 
     def Render(self, window):
         pygame.draw.rect(window, self._colour, self._rect)
 
     def AddLetter(self, letter):
-        self._text += letter
+        self.text += letter
 
     def RemoveLetter(self, control):
-        if self._text != "":
+        if self.text != "":
             if control:
                 #Removes trailing spaces 
-                while self._text[-1] == " ":
-                    self._text = self._text[:-1]
+                while self.text[-1] == " ":
+                    self.text = self.text[:-1]
                 #Removes letters until a space is reached or text has run out
-                while self._text != "" and self._text[-1] != " ":
-                    self._text = self._text[:-1]
+                while self.text != "" and self.text[-1] != " ":
+                    self.text = self.text[:-1]
 
             else:
-                self._text = self._text[:-1]
+                self.text = self.text[:-1]
 
     def SetActive(self):
         self.isActive = True
@@ -55,7 +55,7 @@ class TextBox(Box):
         self._incorrectTextColour = incorrectTextColour
 
     def CheckIfFinished(self):
-        if len(self._text) >= len(self._previewText):
+        if len(self.text) >= len(self._previewText):
             return True
         return False
 
