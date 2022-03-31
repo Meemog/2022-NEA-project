@@ -26,7 +26,7 @@ class Button():
 
         #Makes Text object
         textSize = self.__font.size(self.__text)
-        textLocation = (int(self.rect.left + (self.__rect.width - textSize[0]) / 2), int(self.__rect.top + (self.__rect.height - textSize[1]) / 2))
+        textLocation = (int(self.__rect.left + (self.__rect.width - textSize[0]) / 2), int(self.__rect.top + (self.__rect.height - textSize[1]) / 2))
         self.__textObject = Text(self.__font, self.__textColour, self.__text, location=textLocation)
 
     def Render(self, window):
