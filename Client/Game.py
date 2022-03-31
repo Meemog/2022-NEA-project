@@ -11,10 +11,11 @@ class Game:
         self.msgGetThread = None
 
         self.resolution = pygame.display.Info()
-        self.resolution = (self.resolution.current_w / 1920, self.resolution.current_h / 1080)
+        self.resolution = (self.resolution.current_w, self.resolution.current_h)
+        self.resolutionScale = (self.resolution[0] / 1920, self.resolution[1] / 1080)
 
         #Various scenes get defined here
-        self.connectionScreen = ConnectionScreen(self.window, self.resolution)
+        self.connectionScreen = ConnectionScreen(self.window, self.resolution, self.resolutionScale)
 
         self.scenes = [self.connectionScreen]
         self.activeScene = self.connectionScreen
@@ -35,7 +36,7 @@ class Game:
             if self.activeScene.userQuit:
                 self.userQuit = True
 
-            if self.socket is None and self.connectionScreen.socket is not None:
+            if self.socket is None and self.connectionScreen.connected:
                 self.socket = self.connectionScreen.socket
         
                 #Starts the client checking and sending messages

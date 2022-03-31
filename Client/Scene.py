@@ -1,4 +1,4 @@
-import pygame, threading
+import pygame, threading, socket
 from ClientSocket import ClientSocket
 from InputHandler import InputHandler
 from Boxes import InputBox
@@ -6,7 +6,7 @@ from Button import Button
 from Text import Text
 
 class Scene:
-    def __init__(self, window, resolution, socket = None) -> None:
+    def __init__(self, window, resolution, resolutionScale, socket = None) -> None:
         self.userQuit = False
         self.socket = socket
 
@@ -25,6 +25,7 @@ class Scene:
 
         self._window = window
         self._resolution = resolution
+        self._resolutionScale = resolutionScale
 
         self._clock = pygame.time.Clock()
         self._inputHandler = InputHandler()
@@ -72,19 +73,20 @@ class Scene:
 
 #Displays text that changes in the middle of the screen
 class ConnectionScreen(Scene):
-    def __init__(self, window, resolution, socket=None) -> None:
-        super().__init__(window, resolution, socket)
+    def __init__(self, window, resolution, resolutionScale, socket=None) -> None:
+        super().__init__(window, resolution, resolutionScale, socket)
         self.connected = False
 
         #Used for changing the number of dots in the text
         self._timeSinceLastMessageUpdate = 0
         self._numberOfDots = 0
 
-        #Setting up text
-        self._font = pygame.font.SysFont("Calibri", int(72 * self._resolution[1]))
-        self.__textObject = Text(self._font, text = "Connecting to server")
-        location = ((self._resolution[0] - self.__textObject.textRender.get_size()[0]) / 2, self._resolution[1] / 2)
-        self.__textObject.location = location
+        self._font = pygame.font.SysFont("Calibri", int(72 * self._resolutionScale[1]))
+
+        textSize = self._font.size("Connecting to server...")
+        textLocation = ((self._resolution[0] - textSize[0]) / 2, (self._resolution[1] - textSize[1]) / 2)
+
+        self.__textObject = Text(self._font, text = "Connecting to server", location=textLocation)
 
         self._listOfTextObjects = [self.__textObject]
         
@@ -98,8 +100,14 @@ class ConnectionScreen(Scene):
         if self._timeSinceLastMessageUpdate >= 700:
             self.__textObject.SetText("Connecting to server" + "." * self._numberOfDots)
             self._numberOfDots += 1
+            if self._numberOfDots == 4:
+                self._numberOfDots = 0
             self._timeSinceLastMessageUpdate = 0
 
     def ConnectToServer(self):
-        self.socket = ClientSocket()
-        self.connected = True
+        while not self.connected:
+            try:
+                self.socket = ClientSocket()
+                self.connected = True
+            except socket.error:
+                pass
