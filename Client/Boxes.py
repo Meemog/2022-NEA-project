@@ -128,5 +128,5 @@ class InputBox(Box):
             textSize = self._font.size(textToRender)
 
         textRender = self._font.render(textToRender, True, self._textColour)
-        textLocation = (self._rect.left + 5 * self._resolution[0], self._rect.top + 5 * self._resolution[1])
+        textLocation = (self._rect.left + 5 * self._resolution[0], self._rect.top + 10 * self._resolution[1])
         window.blit(textRender, textLocation)
