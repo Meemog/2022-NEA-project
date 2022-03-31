@@ -1,52 +1,55 @@
 import pygame, threading
-from Scene import ConnectionScreen
+from Scene import ConnectionScreen, LoginScreen
 
 class Game:
     def __init__(self, window):
-        self.window = window
-        self.connected = False
-        self.userQuit = False
         self.socket = None
-        self.msgSendThread = None
-        self.msgGetThread = None
+        self.__window = window
+        self.__connected = False
+        self.__userQuit = False
+        self.__msgSendThread = None
+        self.__msgGetThread = None
 
-        self.resolution = pygame.display.Info()
-        self.resolution = (self.resolution.current_w / 1920, self.resolution.current_h / 1080)
+        self.__resolution = pygame.display.Info()
+        self.__resolution = (self.__resolution.current_w / 1920, self.__resolution.current_h / 1080)
 
         #Various scenes get defined here
-        self.connectionScreen = ConnectionScreen(self.window, self.resolution)
+        self.__connectionScreen = ConnectionScreen(self.__window, self.__resolution)
+        self.__loginScreen = LoginScreen(self.__window, self.__resolution)
 
-        self.scenes = [self.connectionScreen]
-        self.activeScene = self.connectionScreen
+        self.__scenes = [self.__connectionScreen]
+        self.__activeScene = self.__connectionScreen
         
     def main(self):
-        while not self.userQuit:
+        while not self.__userQuit:
             if self.socket is None:
-                self.activeScene = self.connectionScreen
-            # else:
-            #     if not self.loginScreen.loggedIn:
-            #         self.activeScene = self.loginScreen
+                self.__activeScene = self.__connectionScreen
+            else:
+                if not self.__loginScreen.loggedIn:
+                    self.__activeScene = self.__loginScreen
             #     elif not self.mainMenu.userHasMadeChoice:
-            #         self.activeScene = self.mainMenu
+            #         self.__activeScene = self.mainMenu
             #     elif not self.matchmakingScreen.gameFound:
-            #         self.activeScene = self.matchmakingScreen
+            #         self.__activeScene = self.matchmakingScreen
             
-            self.activeScene.main()
-            if self.activeScene.userQuit:
-                self.userQuit = True
+            self.__activeScene.main()
+            if self.__activeScene.userQuit:
+                self.__userQuit = True
 
-            if self.socket is None and self.connectionScreen.connected:
-                self.socket = self.connectionScreen.socket
+            if self.socket is None and self.__connectionScreen.connected:
+                self.socket = self.__connectionScreen.socket
         
                 #Starts the client checking and sending messages
-                self.msgGetThread = threading.Thread(target = self.socket.GetMsgs, daemon = True)
-                self.msgSendThread = threading.Thread(target = self.socket.SendMsgs, daemon = True)
-                self.msgGetThread.start()
-                self.msgSendThread.start()
+                self.__msgGetThread = threading.Thread(target = self.socket.GetMsgs, daemon = True)
+                self.__msgSendThread = threading.Thread(target = self.socket.SendMsgs, daemon = True)
+                self.__msgGetThread.start()
+                self.__msgSendThread.start()
                 
                 #Applies new socket to all scenes, by default they are None
-                for scene in self.scenes:
-                    scene.socket = self.connectionScreen.socket
+                for scene in self.__scenes:
+                    scene.socket = self.__connectionScreen.socket
 
             pygame.display.update()
-        self.socket.EndConnection()
+            
+        if self.socket is not None:
+            self.socket.EndConnection()

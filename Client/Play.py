@@ -13,8 +13,5 @@ pygame.font.init()
 game = Game(window)
 game.main()
 
-if game.socket is not None:
-    game.socket.EndConnection()
-
 pygame.font.quit()
 pygame.quit()

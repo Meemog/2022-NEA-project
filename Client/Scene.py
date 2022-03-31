@@ -34,6 +34,13 @@ class Scene:
         self._timeSinceLastBackspace += self._clock.get_time()
 
         self.HandleInputs()
+
+        for buttonObject in self._listOfButtonObjects:
+            if buttonObject.CheckForCollision(pygame.mouse.get_pos()):
+                buttonObject.SetActive()
+            else:
+                buttonObject.SetInactive()
+
         self.Render()
 
     def Render(self):
@@ -47,6 +54,7 @@ class Scene:
 
     def HandleInputs(self):
         self._inputHandler.CheckInputs()
+        unusedInputs = []
         while self._inputHandler.inputsPriorityQueue.GetLength() != 0:
             input = self._inputHandler.inputsPriorityQueue.Dequeue()
             
@@ -70,6 +78,10 @@ class Scene:
                 self._timeSinceLastBackspace = -200
             elif input[1] == "BACKSPACEUP":
                 self._backspace = False
+            else:
+                unusedInputs.append(input)
+        for input in unusedInputs:
+            self._inputHandler.inputsPriorityQueue.Enqueue(input[0], input[1])
 
 #Displays text that changes in the middle of the screen
 class ConnectionScreen(Scene):
@@ -81,7 +93,7 @@ class ConnectionScreen(Scene):
         self._timeSinceLastMessageUpdate = 0
         self._numberOfDots = 0
 
-        self._font = pygame.font.SysFont("Calibri", int(72 * self._resolution[1] * 1080))
+        self._font = pygame.font.SysFont("Calibri", int(72 * self._resolution[1]))
 
         textSize = self._font.size("Connecting to server...")
         textLocation = ((self._resolution[0] - textSize[0]) / 2, (self._resolution[1] - textSize[1]) / 2)
@@ -117,5 +129,82 @@ class ConnectionScreen(Scene):
 class LoginScreen(Scene):
     def __init__(self, window, resolution, socket=None) -> None:
         super().__init__(window, resolution, socket)
-        
-        #Need 2 inputboxes and 1 button
+        self.loggedIn = False
+
+        inputBoxFont = pygame.font.SysFont("Courier New", int(36 * self._resolution[1]))
+
+        #Need 2 inputboxes, 2 text and 1 button
+        inputBoxSize = (int(625 * self._resolution[0]), int(60 * self._resolution[1]))
+        #Button needs to be centred and 400 pixels down
+        usernameBoxLocation = ((self._resolution[0] * 1920 - inputBoxSize[0]) / 2, 400 * self._resolution[1])
+        passwordBoxLocation = ((self._resolution[1] * 1920 - inputBoxSize[0]) / 2, 540 * self._resolution[1])
+        usernameRect = pygame.Rect(usernameBoxLocation[0], usernameBoxLocation[1], inputBoxSize[0], inputBoxSize[1])
+        passwordRect = pygame.Rect(passwordBoxLocation[0], passwordBoxLocation[1], inputBoxSize[0], inputBoxSize[1])
+        self.__usernameBox = InputBox(usernameRect, inputBoxFont, self._resolution, (40,40,40), (25,25,25), (255,255,255), "")
+        self.__passwordBox = InputBox(passwordRect, inputBoxFont, self._resolution, (40,40,40), (25,25,25), (255,255,255), "")
+
+        continueButtonSize = (400 * self._resolution[0], 60 * self._resolution[1])
+        #Button needs to be centred and 680 pixels down
+        continueButtonLocation = ((self._resolution[0] * 1920 - continueButtonSize[0]) / 2, 680 * self._resolution[1])
+        continueButtonRect = pygame.Rect(continueButtonLocation[0], continueButtonLocation[1], continueButtonSize[0], continueButtonSize[1])
+        self.__continueButton = Button(continueButtonRect, (40,40,40), (25,25,25), (255,255,255), text="Continue")
+
+        #Text needs to be 5 pixels to the right of the corresponding box and needs to be 25 pixels above (so 25 pixels and the height of the text itself)
+        usernameTextSize = inputBoxFont.size("Username")
+        usernameTextLocation = (usernameBoxLocation[0] + 5 * self._resolution[0], usernameBoxLocation[1] - 25 * self._resolution[1] - usernameTextSize[1])
+        self.__usernameText = Text(inputBoxFont, text="Username", location=usernameTextLocation)
+        passwordTextSize = inputBoxFont.size("Password")
+        passwordTextLocation = (passwordBoxLocation[0] + 5 * self._resolution[0], passwordBoxLocation[1] - 25 * self._resolution[1] - passwordTextSize[1])
+        self.__passwordText = Text(inputBoxFont, text="Password", location=passwordTextLocation)
+
+        #These lists are used to render things on the screen, they are iterated through
+        self._listOfBoxObjects = [self.__usernameBox, self.__passwordBox]
+        self._listOfButtonObjects = [self.__continueButton]
+        self._listOfTextObjects = [self.__usernameText, self.__passwordText]
+
+    def main(self):
+        super().main()
+
+        #Automatic removal of text every 50 milliseconds
+        if self._backspace and self._timeSinceLastBackspace >= 50:
+            for box in self._listOfBoxObjects:
+                if box.isActive:
+                    box.RemoveLetter(self._ctrl)
+
+    def HandleInputs(self):
+        super().HandleInputs()
+        if not self.__continueButton.clicked:
+            unusedInputs = []
+            while self._inputHandler.inputsPriorityQueue.GetLength() != 0:
+                input = self._inputHandler.inputsPriorityQueue.Dequeue()
+                if input[1][:6] == "CLICK:":
+                    clickLocation = input[1][6:].split(",")
+                    clickLocation = (int(clickLocation[0]), int(clickLocation[1]))
+                    if self.__continueButton.CheckForCollision(clickLocation):
+                        self.__continueButton.clicked = True
+                    else:
+                        for box in self._listOfBoxObjects:
+                            if box.CheckForCollisionWithMouse(clickLocation):
+                                box.SetActive()
+                            else:
+                                box.SetInactive()
+                elif input[1][:3] == "KD_":
+                    key = input[1][3:]
+                    for box in self._listOfBoxObjects:
+                        if box.isActive:
+                            box.AddLetter(key)
+                #Sets the other box to be active than the one that is active
+                elif input[1] == "TABDOWN":
+                    if self.__usernameBox.isActive:
+                        self.__usernameBox.SetInactive()
+                        self.__passwordBox.SetActive()
+                    elif self.__passwordBox.isActive:
+                        self.__usernameBox.SetActive()
+                        self.__passwordBox.SetInactive()
+                elif input[1] == "BACKSPACEDOWN":
+                    self._backspace = True
+                    self._timeSinceLastBackspace = -200
+                elif input[1] == "BACKSPACEUP":
+                    self._backspace = False
+                else:
+                    unusedInputs.append(input)
