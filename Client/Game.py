@@ -50,3 +50,4 @@ class Game:
                     scene.socket = self.connectionScreen.socket
 
             pygame.display.update()
+        self.socket.EndConnection()
