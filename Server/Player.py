@@ -7,3 +7,5 @@ class Player:
         self.msgsToSend = Queue()
         self.msgsReceived = Queue()
         self.loggedIn = False
+
+        self.username = ""

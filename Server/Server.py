@@ -114,12 +114,13 @@ class Server:
                     if self.dbHandler.CheckIfUsernameInDB(username):
                         if self.dbHandler.CheckPassword(username, password):
                             player.loggedIn = True
+                            player.username = username
                             player.msgsToSend.Enqueue("!PASSWORDCORRECT")
                         else:
                             player.msgsToSend.Enqueue("!PASSWORDINCORRECT")
                     else:
                         player.msgsToSend.Enqueue("!USERNAMENOTFOUND")
-                
+
         #Removes players who quit from the list of players
         playersRemoved = 0
         for player in playersQuit:

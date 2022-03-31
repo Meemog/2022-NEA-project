@@ -13,6 +13,8 @@ Stats section
 ELO system
 Matchmaking
 
+Make text to say information is incorrect on loginscreen
+
 Testing for game (client)
 Testing for LoginScreen
 Testing for Main Menu
