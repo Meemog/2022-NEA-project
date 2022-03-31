@@ -38,6 +38,7 @@ class Scene:
         self.Render()
 
     def Render(self):
+        self._window.fill((0,0,0))
         for box in self._listOfBoxObjects:
             box.Render(self._window)
         for button in self._listOfButtonObjects:
@@ -86,7 +87,8 @@ class ConnectionScreen(Scene):
         textSize = self._font.size("Connecting to server...")
         textLocation = ((self._resolution[0] - textSize[0]) / 2, (self._resolution[1] - textSize[1]) / 2)
 
-        self.__textObject = Text(self._font, text = "Connecting to server", location=textLocation)
+        self._textToRender = "Connecting to server"
+        self.__textObject = Text(self._font, text=self._textToRender, location=textLocation)
 
         self._listOfTextObjects = [self.__textObject]
         
@@ -98,7 +100,8 @@ class ConnectionScreen(Scene):
         super().main()
         self._timeSinceLastMessageUpdate += self._clock.get_time()
         if self._timeSinceLastMessageUpdate >= 700:
-            self.__textObject.SetText("Connecting to server" + "." * self._numberOfDots)
+            self._textToRender = "Connecting to server" + "." * self._numberOfDots
+            self.__textObject.SetText(self._textToRender)
             self._numberOfDots += 1
             if self._numberOfDots == 4:
                 self._numberOfDots = 0
