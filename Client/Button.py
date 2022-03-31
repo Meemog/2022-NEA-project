@@ -38,3 +38,8 @@ class Button():
         self.textObject.SetFont(newFont)
         textLocation = (int(self.rect.x + (self.rect.width - self.textObject.textRender.get_size()[0]) / 2), int(self.rect.y + (self.rect.height - self.textObject.textRender.get_size()[1]) / 2))
         self.textObject.SetLocation(textLocation)
+
+    def CheckForCollision(self, pos):
+        if self.rect.collidepoint(pos):
+            return True
+        return False
