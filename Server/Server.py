@@ -34,7 +34,7 @@ class Server:
             player.connection.setblocking(True)
             if msgLen > 0:  #First message will always be empty
                 msg = player.connection.recv(msgLen).decode(self.FORMAT) #Waits for a message with length msgLen to be received
-                player.msgsReceived.append(msg)       
+                player.msgsReceived.Enqueue(msg)       
                 print(f"Message Received:{msg}")
 
     #Made to be used in a seperate thread
@@ -90,7 +90,7 @@ class Server:
             pass
         self.server.setblocking(True)
 
-    def PrintPlayers(self):#
+    def PrintPlayers(self):
         print(f"Players:{len(self.players)}, in matchmaking:{len(self.playersInMatchmaking)}", end="\r")
 
     def HandleMessagesForPlayersNotInQueue(self):
@@ -98,7 +98,7 @@ class Server:
         for player in self.players:
             while player.msgsReceived.GetLength() != 0:
                 message = player.msgsReceived.Dequeue()
-                if player.loggedIn and message == "!DISCONNECT":
+                if message == "!DISCONNECT":
                     playersQuit.append(player)
                 
                 elif player.loggedIn and message == "!QUEUE":
@@ -133,6 +133,7 @@ class Server:
         for player in self.playersInMatchmaking:
             while player.msgsReceived.GetLength() != 0:
                 message = player.msgsReceived.Dequeue()
+                print(message)
                 if message == "!DISCONNECT":
                     playersQuit.append(player)
                 elif message == "!DEQUEUE":
@@ -148,7 +149,7 @@ class Server:
 
     def Run(self):
         self.server.listen() #Looks for connections
-        self.currentGames = []
+        self.currentGames = []  
         while self.running:
             self.CheckForNewPlayers()
             self.PrintPlayers()
