@@ -17,13 +17,25 @@ class Game:
         self.__connectionScreen = ConnectionScreen(self.__window, self.__resolution)
         self.__loginScreen = LoginScreen(self.__window, self.__resolution)
 
-        self.__scenes = [self.__connectionScreen]
+        self.__scenes = [self.__connectionScreen, self.__loginScreen]
         self.__activeScene = self.__connectionScreen
         
     def main(self):
         while not self.__userQuit:
             if self.socket is None:
-                self.__activeScene = self.__connectionScreen
+                if self.__connectionScreen.socket is not None:
+                    self.socket = self.__connectionScreen.socket
+            
+                    #Starts the client checking and sending messages
+                    self.__msgGetThread = threading.Thread(target = self.socket.GetMsgs, daemon = True)
+                    self.__msgSendThread = threading.Thread(target = self.socket.SendMsgs, daemon = True)
+                    self.__msgGetThread.start()
+                    self.__msgSendThread.start()
+                
+                    for scene in self.__scenes:
+                        scene.socket = self.__connectionScreen.socket
+                else:
+                    self.__activeScene = self.__connectionScreen
             else:
                 if not self.__loginScreen.loggedIn:
                     self.__activeScene = self.__loginScreen
@@ -35,19 +47,6 @@ class Game:
             self.__activeScene.main()
             if self.__activeScene.userQuit:
                 self.__userQuit = True
-
-            if self.socket is None and self.__connectionScreen.connected:
-                self.socket = self.__connectionScreen.socket
-        
-                #Starts the client checking and sending messages
-                self.__msgGetThread = threading.Thread(target = self.socket.GetMsgs, daemon = True)
-                self.__msgSendThread = threading.Thread(target = self.socket.SendMsgs, daemon = True)
-                self.__msgGetThread.start()
-                self.__msgSendThread.start()
-                
-                #Applies new socket to all scenes, by default they are None
-                for scene in self.__scenes:
-                    scene.socket = self.__connectionScreen.socket
 
             pygame.display.update()
             
