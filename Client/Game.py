@@ -1,5 +1,5 @@
 import pygame, threading
-from Scene import ConnectionScreen, LoginScreen
+from Scene import ConnectionScreen, LoginScreen, MainMenu
 
 class Game:
     def __init__(self, window):
@@ -16,8 +16,9 @@ class Game:
         #Various scenes get defined here
         self.__connectionScreen = ConnectionScreen(self.__window, self.__resolution)
         self.__loginScreen = LoginScreen(self.__window, self.__resolution)
+        self.__mainMenu = MainMenu(self.__window, self.__resolution)
 
-        self.__scenes = [self.__connectionScreen, self.__loginScreen]
+        self.__scenes = [self.__connectionScreen, self.__loginScreen, self.__mainMenu]
         self.__activeScene = self.__connectionScreen
         
     def main(self):
@@ -25,7 +26,6 @@ class Game:
             if self.socket is None:
                 if self.__connectionScreen.socket is not None:
                     self.socket = self.__connectionScreen.socket
-            
                     #Starts the client checking and sending messages
                     self.__msgGetThread = threading.Thread(target = self.socket.GetMsgs, daemon = True)
                     self.__msgSendThread = threading.Thread(target = self.socket.SendMsgs, daemon = True)
@@ -39,11 +39,17 @@ class Game:
             else:
                 if not self.__loginScreen.loggedIn:
                     self.__activeScene = self.__loginScreen
-            #     elif not self.mainMenu.userHasMadeChoice:
-            #         self.__activeScene = self.mainMenu
-            #     elif not self.matchmakingScreen.gameFound:
-            #         self.__activeScene = self.matchmakingScreen
-            
+                elif self.__mainMenu.userChoice is None:
+                    self.__activeScene = self.__mainMenu
+                elif self.__mainMenu.userChoice is not None and self.__activeScene == self.__mainMenu:
+                    #User choice cannot be quit by this point as that is checked directly after the main() of main menu
+                    if self.__mainMenu.userChoice == "Play":
+                        print("Playbutton pressed")
+                    elif self.__mainMenu.userChoice == "Statistics":
+                        pass
+                    elif self.__mainMenu.userChoice == "Settings":
+                        pass
+
             self.__activeScene.main()
             if self.__activeScene.userQuit:
                 self.__userQuit = True

@@ -99,7 +99,7 @@ class ConnectionScreen(Scene):
         self._font = pygame.font.SysFont("Calibri", int(72 * self._resolution[1]))
 
         textSize = self._font.size("Connecting to server...")
-        textLocation = ((self._resolution[0] * 1920 - textSize[0]) / 2, (self._resolution[1] * 1080 - textSize[1]) / 2)
+        textLocation = (int((self._resolution[0] * 1920 - textSize[0]) / 2), int((self._resolution[1] * 1080 - textSize[1]) / 2))
 
         self._textToRender = "Connecting to server"
         self.__textObject = Text(self._font, text=self._textToRender, location=textLocation)
@@ -140,8 +140,8 @@ class LoginScreen(Scene):
         #Need 2 inputboxes, 2 text and 1 button
         inputBoxSize = (int(625 * self._resolution[0]), int(60 * self._resolution[1]))
         #Button needs to be centred and 400 pixels down
-        usernameBoxLocation = ((self._resolution[0] * 1920 - inputBoxSize[0]) / 2, 400 * self._resolution[1])
-        passwordBoxLocation = ((self._resolution[1] * 1920 - inputBoxSize[0]) / 2, 540 * self._resolution[1])
+        usernameBoxLocation = (int((self._resolution[0] * 1920 - inputBoxSize[0]) / 2), int(400 * self._resolution[1]))
+        passwordBoxLocation = (int((self._resolution[1] * 1920 - inputBoxSize[0]) / 2), int(540 * self._resolution[1]))
         usernameRect = pygame.Rect(usernameBoxLocation[0], usernameBoxLocation[1], inputBoxSize[0], inputBoxSize[1])
         passwordRect = pygame.Rect(passwordBoxLocation[0], passwordBoxLocation[1], inputBoxSize[0], inputBoxSize[1])
         self.__usernameBox = InputBox(usernameRect, inputBoxFont, self._resolution, (40,40,40), (25,25,25), (255,255,255), "")
@@ -188,6 +188,7 @@ class LoginScreen(Scene):
         while len(self.socket.receivedMsgs) != 0:
             message = self.socket.receivedMsgs.pop()
             if message == "!PASSWORDCORRECT" or message == "!ALREADYLOGGEDIN":
+                print("Logged in")
                 self.loggedIn = True
             elif message == "!PASSWORDINCORRECT" or message == "!USERNAMENOTFOUND":
                 self.__continueButton.clicked = False
@@ -235,3 +236,57 @@ class LoginScreen(Scene):
                     pass
                 else:
                     unusedInputs.append(input)
+    
+class MainMenu(Scene):
+    def __init__(self, window, resolution, socket=None) -> None:
+        super().__init__(window, resolution, socket)
+        self.userChoice = None
+        colourActive = (40,40,40)
+        colourInactive = (25,25,25)
+        textColour = (255,255,255)
+
+        self.__titleFont = pygame.font.SysFont("Calibri", int(140 * self._resolution[1]))
+
+        boxSize = (int(2/5 * self._resolution[0] * 1920), int(150 * self._resolution[1]))
+        boxX = int((self._resolution[0] * 1920 - boxSize[0]) / 2)
+
+        #Needs 4 buttons and a title text
+        playButtonRect = pygame.Rect(boxX, int(320 * self._resolution[1]), boxSize[0], boxSize[1])
+        statisticsButtonRect = pygame.Rect(boxX, int(500 * self._resolution[1]), boxSize[0], boxSize[1])
+        settingsButtonRect = pygame.Rect(boxX, int(680 * self._resolution[1]), boxSize[0], boxSize[1])
+        quitButtonRect = pygame.Rect(boxX, int(860 * self._resolution[1]), boxSize[0], boxSize[1])
+    
+        self.__playButton = Button(playButtonRect, colourActive, colourInactive, textColour, text="Play")
+        self.__statisticsButton = Button(statisticsButtonRect, colourActive, colourInactive, textColour, text="Statistics")
+        self.__settingsButton = Button(settingsButtonRect, colourActive, colourInactive, textColour, text = "Settings")
+        self.__quitButton = Button(quitButtonRect, colourActive, colourInactive, textColour, text="Quit")
+
+        self._listOfButtonObjects = [self.__playButton, self.__statisticsButton, self.__settingsButton, self.__quitButton]
+
+        #Need title text
+        titleSize = self.__titleFont.size("SpeedTyper")
+        titleLocation = (int((self._resolution[0] * 1920 - titleSize[0]) / 2), int(160 * self._resolution[1]))
+        self.__titleText = Text(self.__titleFont, text="SpeedTyper", location=titleLocation, colour=(255,165,0))
+        
+        self._listOfTextObjects = [self.__titleText]
+
+    def main(self):
+        super().main()
+        for button in self._listOfButtonObjects:
+            if button.clicked:
+                if button.text == "Quit":
+                    self.userQuit = True
+                else:
+                    self.userChoice = button.text
+
+    def HandleInputs(self):
+        super().HandleInputs()
+        unusedInputs = []
+        while self._inputHandler.inputsPriorityQueue.GetLength() != 0:
+            input = self._inputHandler.inputsPriorityQueue.Dequeue()
+            if input[1][:6] == "CLICK:":
+                clickLocation = input[1][6:].split(",")
+                clickLocation = (int(clickLocation[0]), int(clickLocation[1]))
+                for button in self._listOfButtonObjects:
+                    if button.CheckForCollision(clickLocation):
+                        button.clicked = True
