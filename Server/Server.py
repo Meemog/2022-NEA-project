@@ -2,6 +2,7 @@ import socket
 from Game import Game
 from Player import Player
 from Database import DatabaseHandler
+from SearchingAlgorithms import LinearSearch
 
 class Server:
     def __init__(self):
@@ -36,15 +37,16 @@ class Server:
                     msg = player.connection.recv(msgLen).decode(self.FORMAT) #Waits for a message with length msgLen to be received
                     player.msgsReceived.Enqueue(msg)       
                     print(f"Message Received:{msg}")
-            except:
+                player.connection.setblocking(True)
+            except socket.error:
                 player.connection.setblocking(True)
 
     #Made to be used in a seperate thread
     #Checks each player for a message that needs to be sent from player.msgsToSend list
     #If a message needs to be sent it will send it and remove it from the list
-    def SendMsgsToPlayersNotInQueue(self):
+    def SendMessageToPlayers(self, listOfPlayers):
         #Checks queue for each player to send messages that need to be sent.
-        for player in self.players:
+        for player in listOfPlayers:
             player.connection.setblocking(False)
             while player.msgsToSend.GetLength() != 0:
                 message = player.msgsToSend.Dequeue()
@@ -62,30 +64,11 @@ class Server:
                     player.msgsToSend.Enqueue(message)
             player.connection.setblocking(True)
 
-    def SendMsgsToPlayersInQueue(self):
-        #Checks queue for each player to send messages that need to be sent.
-        for player in self.playersInMatchmaking:
-            player.connection.setblocking(False)
-            while player.msgsToSend.GetLength() != 0:
-                message = player.msgsToSend.Dequeue()
-                try:
-                    conn = player.connection
-                    encMessage = message.encode(self.FORMAT) #encodes msg with utf-8
-                    msgLen = len(encMessage)
-                    msgLen = str(msgLen).encode(self.FORMAT) 
-                    msgLen += b' ' * (self.HEADER - len(msgLen)) #makes the message length be 8 bytes long so the server recognises it
-                    #b' ' means the byte representation of a space
-                    conn.send(msgLen)
-                    conn.send(encMessage)
-                except socket.error:
-                    player.msgsToSend.Enqueue(message)
-            player.connection.setblocking(True)
-
     #Function to be used in the run function to look for new players and not block everything else that needs to happen
     #Ran in parallel by using threading module
     def CheckForNewPlayers(self):
         self.server.setblocking(False)
-        try:        
+        try:
             conn, addr = self.server.accept() #When connection occurs
             thisPlayer = Player(addr, conn)
             self.players.append(thisPlayer)
@@ -94,7 +77,7 @@ class Server:
         self.server.setblocking(True)
 
     def PrintPlayers(self):
-        print(f"Players:{len(self.players)}, in matchmaking:{len(self.playersInMatchmaking)}", end="\r")
+        print(f"Players:{len(self.players)}, in matchmaking:{len(self.playersInMatchmaking)}, in game:{len(self.playersInGame)}", end="\r")
 
     def HandleMessagesForPlayersNotInQueue(self):
         playersQuit = []
@@ -128,12 +111,11 @@ class Server:
                         player.msgsToSend.Enqueue("!ALREADYLOGGEDIN")
 
         #Removes players who quit from the list of players
-        playersRemoved = 0
         for player in playersQuit:
-            for i in range(len(self.players)):
-                if player == self.players[i - playersRemoved]:
-                    playersRemoved += 1
-                    self.players.pop(i - playersRemoved)
+            listIndex = LinearSearch(player, self.players)
+            #Linear search returns None if item is not in list
+            if listIndex is not None:
+                self.players.pop(listIndex)
 
     def HandleMessagesForPlayersInQueue(self):
         playersQuit = []
@@ -146,13 +128,13 @@ class Server:
                 elif message == "!DEQUEUE":
                     playersQuit.append(player)
                     self.players.append(player)
-        
-        playersRemoved = 0
+    
+        #Removes players who quit from the list of players
         for player in playersQuit:
-            for i in range(len(self.playersInMatchmaking)):
-                if player == self.playersInMatchmaking[i - playersRemoved]:
-                    playersRemoved += 1
-                    self.playersInMatchmaking.pop(i - playersRemoved)
+            listIndex = LinearSearch(player, self.playersInMatchmaking)
+            #Linear search returns None if item is not in list
+            if listIndex is not None:
+                self.playersInMatchmaking.pop(listIndex)
 
     def Run(self):
         self.server.listen() #Looks for connections
@@ -179,11 +161,14 @@ class Server:
             #Handling messages
             self.GetMsgs(self.players)
             self.HandleMessagesForPlayersNotInQueue()
-            self.SendMsgsToPlayersNotInQueue()
+            self.SendMessageToPlayers(self.players)
 
             self.GetMsgs(self.playersInMatchmaking)
             self.HandleMessagesForPlayersInQueue()
-            self.SendMsgsToPlayersInQueue()
+            self.SendMessageToPlayers(self.playersInMatchmaking)
+
+            self.GetMsgs(self.playersInGame)
+            self.SendMessageToPlayers(self.playersInGame)
 
 server = Server()
 server.Run()
