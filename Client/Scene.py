@@ -76,6 +76,9 @@ class Scene:
             elif input[1] == "BACKSPACEDOWN":
                 self._backspace = True
                 self._timeSinceLastBackspace = -200
+                for box in self._listOfBoxObjects:
+                    if box.isActive:
+                        box.RemoveLetter(self._ctrl)
             elif input[1] == "BACKSPACEUP":
                 self._backspace = False
             else:
@@ -142,7 +145,7 @@ class LoginScreen(Scene):
         usernameRect = pygame.Rect(usernameBoxLocation[0], usernameBoxLocation[1], inputBoxSize[0], inputBoxSize[1])
         passwordRect = pygame.Rect(passwordBoxLocation[0], passwordBoxLocation[1], inputBoxSize[0], inputBoxSize[1])
         self.__usernameBox = InputBox(usernameRect, inputBoxFont, self._resolution, (40,40,40), (25,25,25), (255,255,255), "")
-        self.__passwordBox = InputBox(passwordRect, inputBoxFont, self._resolution, (40,40,40), (25,25,25), (255,255,255), "")
+        self.__passwordBox = InputBox(passwordRect, inputBoxFont, self._resolution, (40,40,40), (25,25,25), (255,255,255), "", hashed=True)
 
         continueButtonSize = (400 * self._resolution[0], 60 * self._resolution[1])
         #Button needs to be centred and 680 pixels down
@@ -170,17 +173,21 @@ class LoginScreen(Scene):
             for box in self._listOfBoxObjects:
                 if box.isActive:
                     box.RemoveLetter(self._ctrl)
-        if self.__continueButton.clicked and not self.__detailsSent:
-            username = self.__usernameBox.text
-            password = self.__passwordBox.text
-            self.socket.msgsToSend.Enqueue(f"!LOGIN:{username},{password}")
-            self.__detailsSent = True
+            self._timeSinceLastBackspace = 0
+        if self.__continueButton.clicked:
+            if not self.__detailsSent:
+                username = self.__usernameBox.text
+                password = self.__passwordBox.text
+                self.socket.msgsToSend.append(f"!LOGIN:{username},{password}")
+                self.__detailsSent = True
+            else:
+                self.HandleMessages()
 
     def HandleMessages(self):
         unusedMessages = []
         while len(self.socket.receivedMsgs) != 0:
             message = self.socket.receivedMsgs.pop()
-            if message == "!PASSWORDCORRECT":
+            if message == "!PASSWORDCORRECT" or message == "!ALREADYLOGGEDIN":
                 self.loggedIn = True
             elif message == "!PASSWORDINCORRECT" or message == "!USERNAMENOTFOUND":
                 self.__continueButton.clicked = False
@@ -220,10 +227,11 @@ class LoginScreen(Scene):
                     elif self.__passwordBox.isActive:
                         self.__usernameBox.SetActive()
                         self.__passwordBox.SetInactive()
-                elif input[1] == "BACKSPACEDOWN":
-                    self._backspace = True
-                    self._timeSinceLastBackspace = -200
-                elif input[1] == "BACKSPACEUP":
-                    self._backspace = False
+                elif input[1] == "RETURNDOWN":
+                    self.__continueButton.clicked = True
+                    self.__continueButton.SetText("Checking...")
+                #Returnup shouldnt be added back to queue
+                elif input[1] == "RETURNUP":
+                    pass
                 else:
                     unusedInputs.append(input)
