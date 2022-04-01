@@ -13,7 +13,7 @@ class Box:
         self._colour = colourInactive
         
         self.text = text
-        self._textColour = textColour
+        self.textColour = textColour
 
     def Render(self, window):
         pygame.draw.rect(window, self._colour, self._rect)
@@ -66,9 +66,9 @@ class TextBox(Box):
             return 0
 
         #Length of text is used a lot, this saves some function calls
-        lenText = len(self._text)
+        lenText = len(self.text)
         #Makes text the same length as 
-        text = self._text
+        text = self.text
         while self._font.size(text) > (self._rect.width - 10 * self._resolution[0]) / 2:
             text = text[1:]
 
@@ -76,7 +76,7 @@ class TextBox(Box):
         if self._previewText != "":
             #Removes same number of letters from start of previewtext as was removed from text
             previewText = self._previewText
-            previewText = previewText[len(self._text) - len(text):]
+            previewText = previewText[len(self.text) - len(text):]
 
             #Makes sure that previewText doesn't go out the box
             while self._font.size(previewText) > self._rect.width - 10:
@@ -98,13 +98,13 @@ class TextBox(Box):
 
             #Makes render for preview text and correctly typed text
             self._previewTextRender = self._font.render(cutPreviewText, True, self._previewTextColour)
-            self.cutCorrectTextRender = self._font.render(cutCorrectText, True, self._textColour)
+            self.cutCorrectTextRender = self._font.render(cutCorrectText, True, self.textColour)
 
             #Renders incorrectly typed text
             self.cutIncorrectTextRender = self._font.render(cutText, True, self._incorrectTextColour)
 
         elif self._previewText == "":
-            self._textRender = self._font.render(cutText, True, self._previewTextColour)
+            self.textRender = self._font.render(cutText, True, self._previewTextColour)
 
 class InputBox(Box):
     def __init__(self, rect, font, resolution, colourActive, colourInactive, textColour, text, hashed = False) -> None:
@@ -116,9 +116,9 @@ class InputBox(Box):
 
         if self.__hashed:
             #Makes hashed string
-            textToRender = len(self._text) * "*"
+            textToRender = len(self.text) * "*"
         else:
-            textToRender = self._text
+            textToRender = self.text
 
         textSize = self._font.size(textToRender)
 
@@ -127,6 +127,6 @@ class InputBox(Box):
             textToRender = textToRender[1:]
             textSize = self._font.size(textToRender)
 
-        textRender = self._font.render(textToRender, True, self._textColour)
+        textRender = self._font.render(textToRender, True, self.textColour)
         textLocation = (self._rect.left + 5 * self._resolution[0], self._rect.top + 10 * self._resolution[1])
         window.blit(textRender, textLocation)
