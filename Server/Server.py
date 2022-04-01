@@ -14,6 +14,9 @@ class Server:
         self.running = True
         self.players = []
         self.playersInMatchmaking = []
+        self.playersInGame = []
+
+        self.currentGames = []
         
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #AF_INET is for ipv4. SOCK_STREAM is for TCP, SOCK_DGRAM is UDP
         self.server.bind(self.ADDRESS)
@@ -28,14 +31,13 @@ class Server:
             player.connection.setblocking(False)
             try:
                 msgLen = int(player.connection.recv(self.HEADER).decode(self.FORMAT)) #Waits for message with length 8 bytes to be received from the client and then decodes it 
+                player.connection.setblocking(True)
+                if msgLen > 0:  #First message will always be empty
+                    msg = player.connection.recv(msgLen).decode(self.FORMAT) #Waits for a message with length msgLen to be received
+                    player.msgsReceived.Enqueue(msg)       
+                    print(f"Message Received:{msg}")
             except:
                 player.connection.setblocking(True)
-                return 0
-            player.connection.setblocking(True)
-            if msgLen > 0:  #First message will always be empty
-                msg = player.connection.recv(msgLen).decode(self.FORMAT) #Waits for a message with length msgLen to be received
-                player.msgsReceived.Enqueue(msg)       
-                print(f"Message Received:{msg}")
 
     #Made to be used in a seperate thread
     #Checks each player for a message that needs to be sent from player.msgsToSend list
@@ -154,10 +156,25 @@ class Server:
 
     def Run(self):
         self.server.listen() #Looks for connections
-        self.currentGames = []  
         while self.running:
             self.CheckForNewPlayers()
             self.PrintPlayers()
+
+            #Creates game if there is more than 1 player in queue
+            while len(self.playersInMatchmaking) >= 2:
+                player1 = self.playersInMatchmaking.pop(0)
+                player2 = self.playersInMatchmaking.pop(0)
+                self.playersInGame.append(player1)
+                self.playersInGame.append(player2)
+                self.currentGames.append(Game(player1, player2))
+
+            #Checks if any players in game have disconnected
+            i = 0
+            while i < len(self.playersInGame):
+                if not self.playersInGame[i].connected:
+                    self.playersInGame.pop(i)
+                else:
+                    i += 1
 
             #Handling messages
             self.GetMsgs(self.players)
