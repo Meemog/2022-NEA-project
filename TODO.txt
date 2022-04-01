@@ -18,7 +18,7 @@ Testing for LoginScreen
 Testing for Main Menu
 Testing for Database
 
-Change the dimension/1920 or 1080 to not need an extra calculation
+Add try except to disconnect from server in case of crash
 
 Command to find number of lines:
 dir -Recurse *.py | Get-Content | Measure-Object -Line
