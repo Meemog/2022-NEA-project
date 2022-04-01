@@ -96,7 +96,7 @@ class ConnectionScreen(Scene):
         self._font = pygame.font.SysFont("Calibri", int(72 * self._resolution[1]))
 
         textSize = self._font.size("Connecting to server...")
-        textLocation = ((self._resolution[0] - textSize[0]) / 2, (self._resolution[1] - textSize[1]) / 2)
+        textLocation = ((self._resolution[0] * 1920 - textSize[0]) / 2, (self._resolution[1] * 1080 - textSize[1]) / 2)
 
         self._textToRender = "Connecting to server"
         self.__textObject = Text(self._font, text=self._textToRender, location=textLocation)
