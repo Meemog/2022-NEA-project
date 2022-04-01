@@ -47,7 +47,7 @@ class ClientSocket:
                 msg = self.__client.recv(msgLen).decode(self.__FORMAT) #Waits for a message with length msgLen to be received
                 self.receivedMsgs.append(msg)
                 print(f"Message Received:{msg}")
-        except socket.error:
+        except:
             self.__client.setblocking(True)
 
     #This function needs to make sure the message is sent before closing the socket
