@@ -44,10 +44,9 @@ class ClientSocket:
                 self.__client.setblocking(True)
                 return 0
             self.__client.setblocking(True)
-            if msgLen > 0:  #First message will always be empty
-                msg = self.__client.recv(msgLen).decode(self.__FORMAT) #Waits for a message with length msgLen to be received
-                self.receivedMsgs.append(msg)
-                print(f"Message Received:{msg}")
+            msg = self.__client.recv(msgLen).decode(self.__FORMAT) #Waits for a message with length msgLen to be received
+            self.receivedMsgs.append(msg)
+            print(f"Message Received:{msg}")
 
     #This function needs to make sure the message is sent before closing the socket
     def EndConnection(self):
