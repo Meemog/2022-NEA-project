@@ -93,33 +93,33 @@ class ConnectionScreen(Scene):
         self.connected = False
 
         #Used for changing the number of dots in the text
-        self._timeSinceLastMessageUpdate = 0
-        self._numberOfDots = 0
+        self.__timeSinceLastMessageUpdate = 0
+        self.__numberOfDots = 0
 
-        self._font = pygame.font.SysFont("Calibri", int(72 * self._resolution[1]))
+        self.__font = pygame.font.SysFont("Calibri", int(72 * self._resolution[1]))
 
-        textSize = self._font.size("Connecting to server...")
+        textSize = self.__font.size("Connecting to server...")
         textLocation = (int((self._resolution[0] * 1920 - textSize[0]) / 2), int((self._resolution[1] * 1080 - textSize[1]) / 2))
 
-        self._textToRender = "Connecting to server"
-        self.__textObject = Text(self._font, text=self._textToRender, location=textLocation)
+        self.__textToRender = "Connecting to server"
+        self.__textObject = Text(self.__font, text=self.__textToRender, location=textLocation)
 
         self._listOfTextObjects = [self.__textObject]
         
         #Used for connecting to server
-        self._serverSearchThread = threading.Thread(target=self.ConnectToServer, daemon=True)
-        self._serverSearchThread.start()
+        self.__serverSearchThread = threading.Thread(target=self.ConnectToServer, daemon=True)
+        self.__serverSearchThread.start()
 
     def main(self):
         super().main()
-        self._timeSinceLastMessageUpdate += self._clock.get_time()
-        if self._timeSinceLastMessageUpdate >= 700:
-            self._textToRender = "Connecting to server" + "." * self._numberOfDots
-            self.__textObject.SetText(self._textToRender)
-            self._numberOfDots += 1
-            if self._numberOfDots == 4:
-                self._numberOfDots = 0
-            self._timeSinceLastMessageUpdate = 0
+        self.__timeSinceLastMessageUpdate += self._clock.get_time()
+        if self.__timeSinceLastMessageUpdate >= 700:
+            self.__textToRender = "Connecting to server" + "." * self.__numberOfDots
+            self.__textObject.SetText(self.__textToRender)
+            self.__numberOfDots += 1
+            if self.__numberOfDots == 4:
+                self.__numberOfDots = 0
+            self.__timeSinceLastMessageUpdate = 0
 
     def ConnectToServer(self):
         while not self.connected:
@@ -129,6 +129,7 @@ class ConnectionScreen(Scene):
             except socket.error:
                 pass
 
+#Displays username and password input boxes
 class LoginScreen(Scene):
     def __init__(self, window, resolution, socket=None) -> None:
         super().__init__(window, resolution, socket)
@@ -236,7 +237,8 @@ class LoginScreen(Scene):
                     pass
                 else:
                     unusedInputs.append(input)
-    
+
+#Displays main menu for user to make choice what to see
 class MainMenu(Scene):
     def __init__(self, window, resolution, socket=None) -> None:
         super().__init__(window, resolution, socket)
@@ -290,3 +292,34 @@ class MainMenu(Scene):
                 for button in self._listOfButtonObjects:
                     if button.CheckForCollision(clickLocation):
                         button.clicked = True
+    
+#Displays message that they are in queue
+class MatchmakingScreen(Scene):
+    def __init__(self, window, resolution, socket=None) -> None:
+        super().__init__(window, resolution, socket)
+        self.gameFound = False
+
+        #Used for changing the number of dots in the text
+        self.__timeSinceLastMessageUpdate = 0
+        self.__numberOfDots = 0
+
+        self.__font = pygame.font.SysFont("Calibri", int(72 * self._resolution[1]))
+
+        textSize = self.__font.size("Looking for game...")
+        textLocation = (int((self._resolution[0] * 1920 - textSize[0]) / 2), int((self._resolution[1] * 1080 - textSize[1]) / 2))
+
+        self.__textToRender = "Looking for game"
+        self.__textObject = Text(self.__font, text=self.__textToRender, location=textLocation)
+
+        self._listOfTextObjects = [self.__textObject]
+
+    def main(self):
+        super().main()
+        self.__timeSinceLastMessageUpdate += self._clock.get_time()
+        if self.__timeSinceLastMessageUpdate >= 700:
+            self.__textToRender = "Looking for game" + "." * self.__numberOfDots
+            self.__textObject.SetText(self.__textToRender)
+            self.__numberOfDots += 1
+            if self.__numberOfDots == 4:
+                self.__numberOfDots = 0
+            self.__timeSinceLastMessageUpdate = 0

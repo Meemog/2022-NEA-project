@@ -1,5 +1,5 @@
 import pygame, threading
-from Scene import ConnectionScreen, LoginScreen, MainMenu
+from Scene import ConnectionScreen, LoginScreen, MainMenu, MatchmakingScreen
 
 class Game:
     def __init__(self, window):
@@ -17,6 +17,7 @@ class Game:
         self.__connectionScreen = ConnectionScreen(self.__window, self.__resolution)
         self.__loginScreen = LoginScreen(self.__window, self.__resolution)
         self.__mainMenu = MainMenu(self.__window, self.__resolution)
+        self.__matchmakingScreen = MatchmakingScreen(self.__window, self.__resolution)
 
         self.__scenes = [self.__connectionScreen, self.__loginScreen, self.__mainMenu]
         self.__activeScene = self.__connectionScreen
@@ -44,7 +45,8 @@ class Game:
                 elif self.__mainMenu.userChoice is not None and self.__activeScene == self.__mainMenu:
                     #User choice cannot be quit by this point as that is checked directly after the main() of main menu
                     if self.__mainMenu.userChoice == "Play":
-                        print("Playbutton pressed")
+                        self.__activeScene = self.__matchmakingScreen
+                        self.socket.msgsToSend.append("!QUEUE")
                     elif self.__mainMenu.userChoice == "Statistics":
                         pass
                     elif self.__mainMenu.userChoice == "Settings":
