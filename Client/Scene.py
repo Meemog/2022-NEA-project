@@ -60,7 +60,6 @@ class Scene:
             
             if input[1] == "QUIT":
                 self.userQuit = True
-
             elif input[1] == "SHIFTDOWN":
                 self._shift = True
             elif input[1] == "SHIFTUP":
@@ -281,6 +280,11 @@ class MainMenu(Scene):
                 else:
                     self.userChoice = button.text
 
+    def Reset(self):
+        self.userChoice = None
+        for button in self._listOfButtonObjects:
+            button.clicked = False
+
     def HandleInputs(self):
         super().HandleInputs()
         unusedInputs = []
@@ -292,12 +296,13 @@ class MainMenu(Scene):
                 for button in self._listOfButtonObjects:
                     if button.CheckForCollision(clickLocation):
                         button.clicked = True
-    
+
 #Displays message that they are in queue
 class MatchmakingScreen(Scene):
     def __init__(self, window, resolution, socket=None) -> None:
         super().__init__(window, resolution, socket)
         self.gameFound = False
+        self.userClickedBackButton = False
 
         #Used for changing the number of dots in the text
         self.__timeSinceLastMessageUpdate = 0
@@ -305,6 +310,7 @@ class MatchmakingScreen(Scene):
 
         self.__font = pygame.font.SysFont("Calibri", int(72 * self._resolution[1]))
 
+        #Text for the screen
         textSize = self.__font.size("Looking for game...")
         textLocation = (int((self._resolution[0] * 1920 - textSize[0]) / 2), int((self._resolution[1] * 1080 - textSize[1]) / 2))
 
@@ -312,6 +318,15 @@ class MatchmakingScreen(Scene):
         self.__textObject = Text(self.__font, text=self.__textToRender, location=textLocation)
 
         self._listOfTextObjects = [self.__textObject]
+
+        #Button to dequeue
+        backButtonSize = (400 * self._resolution[0], 60 * self._resolution[1])
+        #Button needs to be centred and 680 pixels down
+        backButtonLocation = ((self._resolution[0] * 1920 - backButtonSize[0]) / 2, 680 * self._resolution[1])
+        backButtonRect = pygame.Rect(backButtonLocation[0], backButtonLocation[1], backButtonSize[0], backButtonSize[1])
+        self.backButton = Button(backButtonRect, (40,40,40), (25,25,25), (255,255,255), text="Back")
+
+        self._listOfButtonObjects = [self.backButton]
 
     def main(self):
         super().main()
@@ -323,3 +338,22 @@ class MatchmakingScreen(Scene):
             if self.__numberOfDots == 4:
                 self.__numberOfDots = 0
             self.__timeSinceLastMessageUpdate = 0
+
+    def Reset(self):
+        self.userClickedBackButton = False
+        for button in self._listOfButtonObjects:
+            button.clicked = False
+
+    def HandleInputs(self):
+        super().HandleInputs()
+        unusedInputs = []
+        while self._inputHandler.inputsPriorityQueue.GetLength() != 0:
+            input = self._inputHandler.inputsPriorityQueue.Dequeue()
+            if input[1][:6] == "CLICK:":
+                clickLocation = input[1][6:].split(",")
+                clickLocation = (int(clickLocation[0]), int(clickLocation[1]))
+                for button in self._listOfButtonObjects:
+                    if button.CheckForCollision(clickLocation):
+                        button.clicked = True
+                        if button.text == "Back":
+                            self.userClickedBackButton = True

@@ -1,4 +1,4 @@
-finish matchmaking screen for user
+Make game work with one player
 make server side work for matchmaking
 Allow user to register
 	Make it store password correctly

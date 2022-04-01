@@ -19,7 +19,7 @@ class Game:
         self.__mainMenu = MainMenu(self.__window, self.__resolution)
         self.__matchmakingScreen = MatchmakingScreen(self.__window, self.__resolution)
 
-        self.__scenes = [self.__connectionScreen, self.__loginScreen, self.__mainMenu]
+        self.__scenes = [self.__connectionScreen, self.__loginScreen, self.__mainMenu, self.__matchmakingScreen]
         self.__activeScene = self.__connectionScreen
         
     def main(self):
@@ -28,11 +28,9 @@ class Game:
                 if self.__connectionScreen.socket is not None:
                     self.socket = self.__connectionScreen.socket
                     #Starts the client checking and sending messages
-                    self.__msgGetThread = threading.Thread(target = self.socket.GetMsgs, daemon = True)
-                    self.__msgSendThread = threading.Thread(target = self.socket.SendMsgs, daemon = True)
-                    self.__msgGetThread.start()
-                    self.__msgSendThread.start()
-                
+                    self.__socketHandleThread = threading.Thread(target=self.ClientHandler, daemon=True)
+                    self.__socketHandleThread.start()
+
                     for scene in self.__scenes:
                         scene.socket = self.__connectionScreen.socket
                 else:
@@ -45,12 +43,19 @@ class Game:
                 elif self.__mainMenu.userChoice is not None and self.__activeScene == self.__mainMenu:
                     #User choice cannot be quit by this point as that is checked directly after the main() of main menu
                     if self.__mainMenu.userChoice == "Play":
+                        self.__matchmakingScreen.Reset()
                         self.__activeScene = self.__matchmakingScreen
                         self.socket.msgsToSend.append("!QUEUE")
                     elif self.__mainMenu.userChoice == "Statistics":
                         pass
                     elif self.__mainMenu.userChoice == "Settings":
                         pass
+
+            if self.__activeScene == self.__matchmakingScreen:
+                if self.__matchmakingScreen.userClickedBackButton:
+                    self.socket.msgsToSend.append("!DEQUEUE")
+                    self.__mainMenu.Reset()
+                    self.__activeScene = self.__mainMenu
 
             self.__activeScene.main()
             if self.__activeScene.userQuit:
@@ -60,3 +65,10 @@ class Game:
             
         if self.socket is not None:
             self.socket.EndConnection()
+
+    #Handles getting and sending of messages
+    #Necessary as if there are 2 threads then they will mistime the blocking settings
+    def ClientHandler(self):
+        while self.socket.connected:
+            self.socket.GetMsgs()
+            self.socket.SendMsgs()
