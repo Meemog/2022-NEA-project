@@ -3,4 +3,5 @@ def LinearSearch(itemSought, list):
     while i < len(list):
         if list[i] == itemSought:
             return i
+        i += 1
     return None
