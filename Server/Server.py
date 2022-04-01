@@ -55,6 +55,7 @@ class Server:
                     #b' ' means the byte representation of a space
                     conn.send(msgLen)
                     conn.send(encMessage)
+                    print(f"Message sent:{message}")
                 except socket.error:
                     player.msgsToSend.Enqueue(message)
             player.connection.setblocking(True)
