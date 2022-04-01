@@ -105,21 +105,24 @@ class Server:
                     playersQuit.append(player)
                     self.playersInMatchmaking.append(player)
 
-                elif not player.loggedIn and message[:7] == "!LOGIN:":
-                    details = message[7:].split(",")
-                    username = details[0]
-                    password = details[1]
+                elif message[:7] == "!LOGIN:":
+                    if not player.loggedIn:
+                        details = message[7:].split(",")
+                        username = details[0]
+                        password = details[1]
 
-                    #Checks password and sends message to user to confirm if they are signed in or not
-                    if self.dbHandler.CheckIfUsernameInDB(username):
-                        if self.dbHandler.CheckPassword(username, password):
-                            player.loggedIn = True
-                            player.username = username
-                            player.msgsToSend.Enqueue("!PASSWORDCORRECT")
+                        #Checks password and sends message to user to confirm if they are signed in or not
+                        if self.dbHandler.CheckIfUsernameInDB(username):
+                            if self.dbHandler.CheckPassword(username, password):
+                                player.loggedIn = True
+                                player.username = username
+                                player.msgsToSend.Enqueue("!PASSWORDCORRECT")
+                            else:
+                                player.msgsToSend.Enqueue("!PASSWORDINCORRECT")
                         else:
-                            player.msgsToSend.Enqueue("!PASSWORDINCORRECT")
+                            player.msgsToSend.Enqueue("!USERNAMENOTFOUND")
                     else:
-                        player.msgsToSend.Enqueue("!USERNAMENOTFOUND")
+                        player.msgsToSend.Enqueue("!ALREADYLOGGEDIN")
 
         #Removes players who quit from the list of players
         playersRemoved = 0
