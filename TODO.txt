@@ -2,13 +2,11 @@ Make game work with one player
 make server side work for matchmaking
 Allow user to register
 	Make it store password correctly
-	Make it so that it asks the user to verify their email, otherwise they will not be able to recover their account
 Finish settings menu
 Sounds
 Score calculator 
 Stats section
 ELO system
-Matchmaking
 
 Make text to say information is incorrect on loginscreen
 
