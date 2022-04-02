@@ -11,11 +11,11 @@ class Text:
         self.location = location
 
         #Pygame surface object that can be drawn on other surface objects
-        self.__textRender = self.__font.render(self.__text, True, self.__colour)
+        self.textRender = self.__font.render(self.__text, True, self.__colour)
 
     #Having this here reduces number of times it needs to be rendered, better performance
     def UpdateRender(self):
-        self.__textRender = self.__font.render(self.__text, True, self.__colour)
+        self.textRender = self.__font.render(self.__text, True, self.__colour)
 
     #Changes the text that needs to be rendered
     def SetText(self, newText):
@@ -34,4 +34,4 @@ class Text:
         
     #Renders the text onto the given window
     def Render(self, window):
-        window.blit(self.__textRender, self.location)
+        window.blit(self.textRender, self.location)
