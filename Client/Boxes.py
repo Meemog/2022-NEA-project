@@ -2,7 +2,7 @@ import pygame
 
 #A class box that is used for textboxes and inputboxes
 class Box:
-    def __init__(self, rect, font, resolution, colourActive, colourInactive, textColour, text) -> None:
+    def __init__(self, rect, font, resolution, colourActive, colourInactive, textColour, text = "") -> None:
         self._rect = rect
         self._font = font
         self._resolution = resolution
@@ -47,64 +47,61 @@ class Box:
             return True
         return False
 
+#Main box object for race
 class TextBox(Box):
-    def __init__(self, rect, font, resolution, colourActive, colourInactive, textColour, text, previewText, previewTextColour, incorrectTextColour) -> None:
-        super().__init__(rect, font, resolution, colourActive, colourInactive, textColour, text)
-        self._previewText = previewText
+    def __init__(self, rect, font, resolution, colourActive, colourInactive, textColour, previewText, previewTextColour, incorrectTextColour) -> None:
+        super().__init__(rect, font, resolution, colourActive, colourInactive, textColour)
+        self.previewText = previewText
         self._previewTextColour = previewTextColour
         self._incorrectTextColour = incorrectTextColour
 
     def CheckIfFinished(self):
-        if len(self.text) >= len(self._previewText):
+        if len(self.text) == len(self.previewText):
             return True
         return False
 
     def Render(self, window):
         super().Render(window)
-        
-        if self.CheckIfFinished():
-            return 0
 
-        #Length of text is used a lot, this saves some function calls
-        lenText = len(self.text)
-        #Makes text the same length as 
+        #Copies text so that it can be changed
         text = self.text
-        while self._font.size(text) > (self._rect.width - 10 * self._resolution[0]) / 2:
+        #Cuts text so that it is at most halfway through the box 
+        previewText = self.previewText
+        while self._font.size(text)[0] > (self._rect.width - 10 * self._resolution[0]) / 2:
+            #Splices text for everything after the first letter
             text = text[1:]
+            previewText = previewText[1:]
+            
+        #Cuts end of previewText out until it fits in the box
+        while self._font.size(previewText)[0] > self._rect.width - 10 * self._resolution[0]:
+            previewText = previewText[:-1]
+        
+        #Convert to list to assign individual letters
+        text = list(text)
+        #Makes string of correct and incorrect text
+        correctText = []
+        incorrectText = []
+        for i in range(len(text)):
+            if text[i] == previewText[i]:
+                correctText += previewText[i]
+                incorrectText += " "
+            else:
+                correctText += " " 
+                incorrectText += previewText[i]
+            
+        correctText = "".join(correctText)
+        incorrectText = "".join(incorrectText)
 
-        #If the preview text isnt empty (Game has started) then it will cut it so that it fits in the textbox
-        if self._previewText != "":
-            #Removes same number of letters from start of previewtext as was removed from text
-            previewText = self._previewText
-            previewText = previewText[len(self.text) - len(text):]
-
-            #Makes sure that previewText doesn't go out the box
-            while self._font.size(previewText) > self._rect.width - 10:
-                previewText = previewText[:1]
-
-            #Replaces correct letters player types with spaces 
-            cutText = list(text)
-            cutCorrectText = list(text)
-            cutPreviewText = previewText
-            for i in range(len(cutText)):
-                if cutText[i] == cutPreviewText[i]:
-                    cutText[i] = " "
-                else:
-                    cutText[i] = cutPreviewText[i]
-                    cutCorrectText[i] = " "
-                    
-            cutText = "".join(cutText)
-            cutCorrectText = "".join(cutCorrectText)
-
-            #Makes render for preview text and correctly typed text
-            self._previewTextRender = self._font.render(cutPreviewText, True, self._previewTextColour)
-            self.cutCorrectTextRender = self._font.render(cutCorrectText, True, self.textColour)
-
-            #Renders incorrectly typed text
-            self.cutIncorrectTextRender = self._font.render(cutText, True, self._incorrectTextColour)
-
-        elif self._previewText == "":
-            self.textRender = self._font.render(cutText, True, self._previewTextColour)
+        #Location is textbox (x + 5, y + 5)
+        textRenderLocation = (int(self._rect.left + 5 * self._resolution[0]), int(self._rect.top + 5 * self._resolution[1]))
+        #Converts text to surface objects
+        previewText = self._font.render(previewText, True, self._previewTextColour)
+        correctText = self._font.render(correctText, True, self.textColour)
+        incorrectText = self._font.render(incorrectText, True, self._incorrectTextColour)
+        #Draws surface objects onto window
+        window.blit(previewText, textRenderLocation)
+        window.blit(correctText, textRenderLocation)
+        window.blit(incorrectText, textRenderLocation)
 
 class InputBox(Box):
     def __init__(self, rect, font, resolution, colourActive, colourInactive, textColour, text, hashed = False) -> None:
