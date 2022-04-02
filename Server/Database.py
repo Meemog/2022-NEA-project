@@ -116,19 +116,9 @@ class DatabaseHandler:
         #Uses bcrypt library to check password against hash
         return CheckPW(password, correctPasswordHash)
 
-dbHandler = DatabaseHandler()
-
-# correctUsername = "Username600"
-# correctPassword = "Password600"
-
-# dbHandler.CreateRandomUser(correctUsername, correctPassword)
-
-# print(dbHandler.CheckPassword("Username0", "Password0"))
+# dbHandler = DatabaseHandler()
 
 # for i in range(50):
-#     dbHandler.CreateRandomUser(f"Username{i}", f"Password{i}")
+#     dbHandler.CreateRandomUser(f"username{i}", f"password{i}")
 
-# # for i in range(50):
-# #     print(dbHandler.CheckPassword("Username" + str(i), "Password" + str(i)))
-
-dbHandler.Close()
+# dbHandler.Close()
