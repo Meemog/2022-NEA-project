@@ -8,7 +8,7 @@ class Text:
         self.__font = font
         self.__colour = colour
         self.__text = text
-        self.__location = location
+        self.location = location
 
         #Pygame surface object that can be drawn on other surface objects
         self.__textRender = self.__font.render(self.__text, True, self.__colour)
@@ -34,4 +34,4 @@ class Text:
         
     #Renders the text onto the given window
     def Render(self, window):
-        window.blit(self.__textRender, self.__location)
+        window.blit(self.__textRender, self.location)
