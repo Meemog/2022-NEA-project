@@ -357,3 +357,41 @@ class MatchmakingScreen(Scene):
                         button.clicked = True
                         if button.text == "Back":
                             self.userClickedBackButton = True
+
+#Scene for timer
+class TimerScene(Scene):
+    def __init__(self, window, resolution, socket=None) -> None:
+        super().__init__(window, resolution, socket)
+        self.timerFinished = False
+        self.__font = pygame.font.SysFont("Calibri", int(72 * self._resolution[1]))
+
+        #Text for the screen
+        textSize = self.__font.size("Waiting for timer")
+        textLocation = (int((self._resolution[0] * 1920 - textSize[0]) / 2), int((self._resolution[1] * 1080 - textSize[1]) / 2))
+        self.__textObject = Text(self.__font, text="Waiting for timer", location=textLocation)
+        self._listOfTextObjects = [self.__textObject]
+
+    def main(self):
+        super().main()
+        self.__HandleMessages()
+
+    def __HandleMessages(self):
+        i = 0
+        while i < len(self.socket.receivedMsgs):
+            if self.socket.receivedMsgs[i][:10] == "!TIMELEFT:":
+                timeLeft = self.socket.receivedMsgs[i][10:]
+                #Updates timer on screen
+                self.__UpdateTextObject(timeLeft)
+                if timeLeft == 0:
+                    self.timerFinished = True
+                #Removes message from list
+                self.socket.receivedMsgs.pop(i)
+            else:
+                i += 1
+
+    #Updates text and location to be centred
+    def __UpdateTextObject(self, newText):
+        textSize = self.__font.size(newText)
+        textLocation = (int((self._resolution[0] * 1920 - textSize[0]) / 2), int((self._resolution[1] * 1080 - textSize[1]) / 2))
+        self.__textObject.location = textLocation
+        self.__textObject.SetText(newText)
