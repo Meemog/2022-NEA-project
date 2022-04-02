@@ -119,6 +119,6 @@ class DatabaseHandler:
 # dbHandler = DatabaseHandler()
 
 # for i in range(50):
-#     dbHandler.CreateRandomUser(f"username{i}", f"password{i}")
+#     dbHandler.CreateRandomUser(f"{i}", f"{i}")
 
 # dbHandler.Close()
