@@ -24,6 +24,40 @@ class Server:
         self.dbHandler = DatabaseHandler()
         print("[SERVER STARTED]")
 
+    def Run(self):
+        self.server.listen() #Looks for connections
+        while self.running:
+            self.CheckForNewPlayers()
+            self.PrintPlayers()
+
+            #Creates game if there is more than 1 player in queue
+            while len(self.playersInMatchmaking) >= 2:
+                player1 = self.playersInMatchmaking.pop(0)
+                player2 = self.playersInMatchmaking.pop(0)
+                self.playersInGame.append(player1)
+                self.playersInGame.append(player2)
+                self.currentGames.append(Game(player1, player2))
+
+            #Checks if any players in game have disconnected
+            i = 0
+            while i < len(self.playersInGame):
+                if not self.playersInGame[i].connected:
+                    self.playersInGame.pop(i)
+                else:
+                    i += 1
+
+            #Handling messages
+            self.GetMsgs(self.players)
+            self.HandleMessagesForPlayersNotInQueue()
+            self.SendMessageToPlayers(self.players)
+
+            self.GetMsgs(self.playersInMatchmaking)
+            self.HandleMessagesForPlayersInQueue()
+            self.SendMessageToPlayers(self.playersInMatchmaking)
+
+            self.GetMsgs(self.playersInGame)
+            self.SendMessageToPlayers(self.playersInGame)
+
     #Made to be used in a seperate thread
     #Checks each player for a message being sent
     #If a message is received it is appended to the list player.msgsReceived
@@ -135,40 +169,6 @@ class Server:
             #Linear search returns None if item is not in list
             if listIndex is not None:
                 self.playersInMatchmaking.pop(listIndex)
-
-    def Run(self):
-        self.server.listen() #Looks for connections
-        while self.running:
-            self.CheckForNewPlayers()
-            self.PrintPlayers()
-
-            #Creates game if there is more than 1 player in queue
-            while len(self.playersInMatchmaking) >= 2:
-                player1 = self.playersInMatchmaking.pop(0)
-                player2 = self.playersInMatchmaking.pop(0)
-                self.playersInGame.append(player1)
-                self.playersInGame.append(player2)
-                self.currentGames.append(Game(player1, player2))
-
-            #Checks if any players in game have disconnected
-            i = 0
-            while i < len(self.playersInGame):
-                if not self.playersInGame[i].connected:
-                    self.playersInGame.pop(i)
-                else:
-                    i += 1
-
-            #Handling messages
-            self.GetMsgs(self.players)
-            self.HandleMessagesForPlayersNotInQueue()
-            self.SendMessageToPlayers(self.players)
-
-            self.GetMsgs(self.playersInMatchmaking)
-            self.HandleMessagesForPlayersInQueue()
-            self.SendMessageToPlayers(self.playersInMatchmaking)
-
-            self.GetMsgs(self.playersInGame)
-            self.SendMessageToPlayers(self.playersInGame)
 
 server = Server()
 server.Run()
