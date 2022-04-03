@@ -1,12 +1,12 @@
 import pygame, threading, socket
 from ClientSocket import ClientSocket
 from InputHandler import InputHandler
-from Boxes import InputBox
+from Boxes import InputBox, TextBox
 from Button import Button
 from Text import Text
 
 class Scene:
-    def __init__(self, window, resolution, socket = None) -> None:
+    def __init__(self, window, resolution, socket : ClientSocket = None) -> None:
         self.userQuit = False
         self.socket = socket
 
@@ -33,7 +33,14 @@ class Scene:
         self._clock.tick()
         self._timeSinceLastBackspace += self._clock.get_time()
 
-        self.HandleInputs()
+        self._HandleInputs()
+
+        #Automatic removal of text every 50 milliseconds
+        if self._backspace and self._timeSinceLastBackspace >= 50:
+            for box in self._listOfBoxObjects:
+                if box.isActive:
+                    box.RemoveLetter(self._ctrl)
+            self._timeSinceLastBackspace = 0
 
         for buttonObject in self._listOfButtonObjects:
             if buttonObject.CheckForCollision(pygame.mouse.get_pos()):
@@ -41,9 +48,9 @@ class Scene:
             else:
                 buttonObject.SetInactive()
 
-        self.Render()
+        self._Render()
 
-    def Render(self):
+    def _Render(self):
         self._window.fill((0,0,0))
         for box in self._listOfBoxObjects:
             box.Render(self._window)
@@ -52,7 +59,7 @@ class Scene:
         for textObject in self._listOfTextObjects:
             textObject.Render(self._window)
 
-    def HandleInputs(self):
+    def _HandleInputs(self):
         self._inputHandler.CheckInputs()
         unusedInputs = []
         while self._inputHandler.inputsPriorityQueue.GetLength() != 0:
@@ -106,7 +113,7 @@ class ConnectionScreen(Scene):
         self._listOfTextObjects = [self.__textObject]
         
         #Used for connecting to server
-        self.__serverSearchThread = threading.Thread(target=self.ConnectToServer, daemon=True)
+        self.__serverSearchThread = threading.Thread(target=self.__ConnectToServer, daemon=True)
         self.__serverSearchThread.start()
 
     def main(self):
@@ -120,7 +127,7 @@ class ConnectionScreen(Scene):
                 self.__numberOfDots = 0
             self.__timeSinceLastMessageUpdate = 0
 
-    def ConnectToServer(self):
+    def __ConnectToServer(self):
         while not self.connected:
             try:
                 self.socket = ClientSocket()
@@ -168,12 +175,6 @@ class LoginScreen(Scene):
 
     def main(self):
         super().main()
-        #Automatic removal of text every 50 milliseconds
-        if self._backspace and self._timeSinceLastBackspace >= 50 and not self.__continueButton.clicked:
-            for box in self._listOfBoxObjects:
-                if box.isActive:
-                    box.RemoveLetter(self._ctrl)
-            self._timeSinceLastBackspace = 0
         if self.__continueButton.clicked:
             if not self.__detailsSent:
                 username = self.__usernameBox.text
@@ -181,9 +182,9 @@ class LoginScreen(Scene):
                 self.socket.msgsToSend.append(f"!LOGIN:{username},{password}")
                 self.__detailsSent = True
             else:
-                self.HandleMessages()
+                self.__HandleMessages()
 
-    def HandleMessages(self):
+    def __HandleMessages(self):
         unusedMessages = []
         while len(self.socket.receivedMsgs) != 0:
             message = self.socket.receivedMsgs.pop()
@@ -197,8 +198,8 @@ class LoginScreen(Scene):
                 self.__passwordBox.text = ""
                 self.__continueButton.SetText("Continue")
 
-    def HandleInputs(self):
-        super().HandleInputs()
+    def _HandleInputs(self):
+        super()._HandleInputs()
         if not self.__continueButton.clicked:
             unusedInputs = []
             while self._inputHandler.inputsPriorityQueue.GetLength() != 0:
@@ -280,13 +281,8 @@ class MainMenu(Scene):
                 else:
                     self.userChoice = button.text
 
-    def Reset(self):
-        self.userChoice = None
-        for button in self._listOfButtonObjects:
-            button.clicked = False
-
-    def HandleInputs(self):
-        super().HandleInputs()
+    def _HandleInputs(self):
+        super()._HandleInputs()
         unusedInputs = []
         while self._inputHandler.inputsPriorityQueue.GetLength() != 0:
             input = self._inputHandler.inputsPriorityQueue.Dequeue()
@@ -330,22 +326,20 @@ class MatchmakingScreen(Scene):
 
     def main(self):
         super().main()
-        self.__timeSinceLastMessageUpdate += self._clock.get_time()
-        if self.__timeSinceLastMessageUpdate >= 700:
-            self.__textToRender = "Looking for game" + "." * self.__numberOfDots
-            self.__textObject.SetText(self.__textToRender)
-            self.__numberOfDots += 1
-            if self.__numberOfDots == 4:
-                self.__numberOfDots = 0
-            self.__timeSinceLastMessageUpdate = 0
+        self.__TextAnimation()
+        self.__HandleMessages()
 
-    def Reset(self):
-        self.userClickedBackButton = False
-        for button in self._listOfButtonObjects:
-            button.clicked = False
+    def __HandleMessages(self):
+        i = 0
+        while i < len(self.socket.receivedMsgs):
+            if self.socket.receivedMsgs[i] == "!GAMEFOUND":
+                self.gameFound = True
+                self.socket.receivedMsgs.pop(i)
+            else:
+                i += 1
 
-    def HandleInputs(self):
-        super().HandleInputs()
+    def _HandleInputs(self):
+        super()._HandleInputs()
         unusedInputs = []
         while self._inputHandler.inputsPriorityQueue.GetLength() != 0:
             input = self._inputHandler.inputsPriorityQueue.Dequeue()
@@ -357,6 +351,18 @@ class MatchmakingScreen(Scene):
                         button.clicked = True
                         if button.text == "Back":
                             self.userClickedBackButton = True
+
+    def __TextAnimation(self):
+        #Used for animation of looking for game text
+        self.__timeSinceLastMessageUpdate += self._clock.get_time()
+        if self.__timeSinceLastMessageUpdate >= 700:
+            self.__textToRender = "Looking for game" + "." * self.__numberOfDots
+            self.__textObject.SetText(self.__textToRender)
+            self.__numberOfDots += 1
+            if self.__numberOfDots == 4:
+                self.__numberOfDots = 0
+            self.__timeSinceLastMessageUpdate = 0
+
 
 #Scene for timer
 class TimerScene(Scene):
@@ -380,6 +386,7 @@ class TimerScene(Scene):
         while i < len(self.socket.receivedMsgs):
             if self.socket.receivedMsgs[i][:10] == "!TIMELEFT:":
                 timeLeft = self.socket.receivedMsgs[i][10:]
+                print(f"Time left:{timeLeft}")
                 #Updates timer on screen
                 self.__UpdateTextObject(timeLeft)
                 if timeLeft == 0:
@@ -393,5 +400,141 @@ class TimerScene(Scene):
     def __UpdateTextObject(self, newText):
         textSize = self.__font.size(newText)
         textLocation = (int((self._resolution[0] * 1920 - textSize[0]) / 2), int((self._resolution[1] * 1080 - textSize[1]) / 2))
+        self.__textObject.SetText(newText)
+        self.__textObject.location = textLocation
+
+class RaceScene(Scene):
+    def __init__(self, window, resolution, previewText, socket=None) -> None:
+        super().__init__(window, resolution, socket)
+        self.playerFinished = False
+        self.gameOver = False
+        #Colours for textbox        
+        colourActive = (40,40,40)
+        colourInactive = (25,25,25)
+        previewTextColour = (160,160,160)
+        incorrectTextColour = (255,0,0)
+
+        #Main textbox
+        textBoxFont = pygame.font.SysFont("Courier New", int(42 * self._resolution[1]))
+
+        textBoxSize = (self._resolution[0] * 1920 * 2/5, 50 * self._resolution[1])
+        textBoxLocation = ((self._resolution[0] * 1920 - textBoxSize[0]) / 2, 250 * self._resolution[1])
+        textBoxRect = pygame.Rect(textBoxLocation[0], textBoxLocation[1], textBoxSize[0], textBoxSize[1])
+        self.__textBox = TextBox(textBoxRect, textBoxFont, self._resolution, colourActive, colourInactive, (38, 191, 79), previewText, previewTextColour, incorrectTextColour)
+
+        #Other player textbox
+        #Box is 250 pixels above the bottom of the screen
+        textBoxLocation = ((self._resolution[0] * 1920 - textBoxSize[0]) / 2, self._resolution[1] * 1080 - (250 + textBoxSize[1]) * self._resolution[1])
+        textBoxRect = pygame.Rect(textBoxLocation[0], textBoxLocation[1], textBoxSize[0], textBoxSize[1])
+        self.__opponentTextBox = TextBox(textBoxRect, textBoxFont, self._resolution, colourActive, colourInactive, (38, 191, 79), previewText, previewTextColour, incorrectTextColour)
+
+        self._listOfBoxObjects = [self.__textBox, self.__opponentTextBox]
+
+        #Needs to be attribute as it will be used to change text later on
+        self.timerFinished = False
+        self.__font = pygame.font.SysFont("Calibri", int(72 * self._resolution[1]))
+
+        #Text for timer
+        textSize = self.__font.size("30")
+        textLocation = (int((self._resolution[0] * 1920 - textSize[0]) / 2), int((self._resolution[1] * 1080 - textSize[1]) / 2))
+        self.__textObject = Text(self.__font, text="30", location=textLocation)
+        self._listOfTextObjects = [self.__textObject]
+
+    def main(self):
+        super().main()
+        self.__HandleMessages()
+
+    def SetPreviewText(self, previewText):
+        self.__textBox.previewText = previewText
+
+    def __HandleMessages(self):
+        #Code for receiving messages from server
+        i = 0
+        while i < len(self.socket.receivedMsgs):
+            if self.socket.receivedMsgs[i][:10] == "!TIMELEFT:":
+                timeLeft = self.socket.receivedMsgs[i][10:]
+                #Updates timer on screen
+                self.__UpdateTextObject(timeLeft)
+                if timeLeft == 0:
+                    self.timerFinished = True
+                #Removes message from list
+                self.socket.receivedMsgs.pop(i)
+            #Other player's text
+            elif self.socket.receivedMsgs[i][:17] == "!OTHERPLAYERTEXT:":
+                text = self.socket.receivedMsgs[i][17:]
+                self.__opponentTextBox.text = text
+                self.socket.receivedMsgs.pop(i)
+            #Time has run out, client has to send text
+            elif self.socket.receivedMsgs[i] == "!GAMECOMPLETE":
+                self.socket.msgsToSend.append(f"!FINALTEXT:{self.__textBox.text}")
+                self.timerFinished = True
+                self.socket.receivedMsgs.pop(i)
+            #Server received both player's final text and game has finished
+            #Emphasis on the D in completed, not the same as complete as it is for server asking for player's final text
+            elif self.socket.receivedMsgs[i] == "!GAMECOMPLETED":
+                self.gameOver = True
+                self.socket.receivedMsgs.pop(i)
+
+            else:
+                i += 1
+
+    #Updates text and location to be centred
+    def __UpdateTextObject(self, newText):
+        textSize = self.__font.size(newText)
+        textLocation = (int((self._resolution[0] * 1920 - textSize[0]) / 2), int((self._resolution[1] * 1080 - textSize[1]) / 2))
         self.__textObject.location = textLocation
         self.__textObject.SetText(newText)
+
+    def _HandleInputs(self):
+        super()._HandleInputs()
+        unusedInputs = []
+        while self._inputHandler.inputsPriorityQueue.GetLength() != 0:
+            input = self._inputHandler.inputsPriorityQueue.Dequeue()
+            if input[1][:3] == "KD_":
+                #This needs to be indented in order to still delete the input from the queue
+                if not self.playerFinished:
+                    if self.__textBox.isActive:
+                        letter = input[1][3:]
+                        self.__textBox.AddLetter(letter)
+                        self.socket.msgsToSend.append(f"!TEXT:{self.__textBox.text}")
+                        if self.__textBox.CheckIfFinished():
+                            self.playerFinished = True
+            elif input[1][:6] == "CLICK:":
+                clickLocation = input[1][6:].split(",")
+                clickLocation = (int(clickLocation[0]), int(clickLocation[1]))
+                for box in self._listOfBoxObjects:
+                    #Opponent box cannot be activated otherwise the opponent's text would also be deleted when backspace is pressed
+                    if box.CheckForCollisionWithMouse(clickLocation) and box != self.__opponentTextBox:
+                        box.SetActive()
+                    else:
+                        box.SetInactive()
+            else:
+                unusedInputs.append(input)
+
+        for input in unusedInputs:
+            self._inputHandler.inputsPriorityQueue.Enqueue(input[0], input[1])
+
+# #Used for testing
+# import ctypes, pygame
+
+# user32 = ctypes.windll.user32
+# #Prevents the screen from scaling with windows resolution scale
+# #System -> Display -> Scale and Layout
+# user32.SetProcessDPIAware()
+
+# window = pygame.display.set_mode((0,0), pygame.FULLSCREEN)
+# pygame.display.set_caption("SpeedTyper")
+# pygame.font.init()
+
+# res = pygame.display.Info()
+# res = (res.current_w / 1920, res.current_h / 1080)
+
+# text = "Hello this is a preview text"
+
+# thisRace = Race(window, res, text)
+# while not thisRace.userQuit:
+#     thisRace.main()
+#     pygame.display.update()
+
+# pygame.font.quit()
+# pygame.quit()
