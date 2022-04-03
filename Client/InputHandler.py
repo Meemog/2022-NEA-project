@@ -1,10 +1,10 @@
 import pygame
-from DataStructures import PriorityQueue
+
 #Object that stores list of inputs made by user
 class InputHandler:
     def __init__(self):
         #Priority queue for storing userinputs
-        self.inputsPriorityQueue = PriorityQueue()
+        self.inputsList = []
 
     #Checks for inputs and adds them to the priority queue
     def CheckInputs(self):
@@ -13,66 +13,66 @@ class InputHandler:
             #If the player quit
             if event.type == pygame.QUIT:
                 #High priority = front of queue
-                self.inputsPriorityQueue.Enqueue(999, "QUIT")
+                self.inputsList.append("QUIT")
             
             #If player clicks, appends the mouse location to the command that player clicked
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 mousePos = pygame.mouse.get_pos()
                 command = f"CLICK:{mousePos[0]},{mousePos[1]}"
-                self.inputsPriorityQueue.Enqueue(0, command)
+                self.inputsList.append(command)
             
             #If player stops clicking, same as clicking
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 mousePos = pygame.mouse.get_pos()
                 command = f"UNCLICK:{mousePos[0]},{mousePos[1]}"
-                self.inputsPriorityQueue.Enqueue(0, command)
+                self.inputsList.append(command)
 
             #Handling keyboard inputs
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RETURN:
-                    self.inputsPriorityQueue.Enqueue(0, "RETURNDOWN")
+                    self.inputsList.append("RETURNDOWN")
 
                 elif event.key == pygame.K_LSHIFT or event.key == pygame.K_RSHIFT:
-                    self.inputsPriorityQueue.Enqueue(0, "SHIFTDOWN")
+                    self.inputsList.append("SHIFTDOWN")
 
                 elif event.key == pygame.K_LCTRL or event.key == pygame.K_RCTRL:
-                    self.inputsPriorityQueue.Enqueue(0, "CONTROLDOWN")
+                    self.inputsList.append("CONTROLDOWN")
 
                 elif event.key == pygame.K_LALT or event.key == pygame.K_RALT:
-                    self.inputsPriorityQueue.Enqueue(0, "ALTDOWN")
+                    self.inputsList.append("ALTDOWN")
                 
                 elif event.key == pygame.K_BACKSPACE:
-                    self.inputsPriorityQueue.Enqueue(0, "BACKSPACEDOWN")
+                    self.inputsList.append("BACKSPACEDOWN")
 
                 elif event.key == pygame.K_TAB:
-                    self.inputsPriorityQueue.Enqueue(0, "TABDOWN")
+                    self.inputsList.append("TABDOWN")
 
                 else:
                     #KD = KeyDown
-                    self.inputsPriorityQueue.Enqueue(0, f"KD_{event.unicode}")
+                    self.inputsList.append(f"KD_{event.unicode}")
                 
             elif event.type == pygame.KEYUP:
                 if event.key == pygame.K_RETURN:
-                    self.inputsPriorityQueue.Enqueue(0, "RETURNUP")
+                    self.inputsList.append("RETURNUP")
 
                 elif event.key == pygame.K_LSHIFT or event.key == pygame.K_RSHIFT:
-                    self.inputsPriorityQueue.Enqueue(0, "SHIFTUP")
+                    self.inputsList.append("SHIFTUP")
 
                 elif event.key == pygame.K_LCTRL or event.key == pygame.K_RCTRL:
-                    self.inputsPriorityQueue.Enqueue(0, "CONTROLUP")
+                    self.inputsList.append("CONTROLUP")
 
                 elif event.key == pygame.K_LALT or event.key == pygame.K_RALT:
-                    self.inputsPriorityQueue.Enqueue(0, "ALTUP")
+                    self.inputsList.append("ALTUP")
 
                 elif event.key == pygame.K_BACKSPACE:
-                    self.inputsPriorityQueue.Enqueue(0, "BACKSPACEUP")
+                    self.inputsList.append("BACKSPACEUP")
 
                 elif event.key == pygame.K_TAB:
-                    self.inputsPriorityQueue.Enqueue(0, "TABUP")
+                    self.inputsList.append("TABUP")
 
                 else:
                     #KU = KeyUp
-                    self.inputsPriorityQueue.Enqueue(0, f"KU_{event.unicode}")
+                    self.inputsList.append(f"KU_{event.unicode}")
 
 # import ctypes
 # from Game import Game
@@ -90,7 +90,7 @@ class InputHandler:
 # playerQuit = False
 # while not playerQuit:
 #     inputHandler.CheckInputs()
-#     input = inputHandler.inputsPriorityQueue.Dequeue()
+#     input = inputHandler.inputsList.Dequeue()
 #     ignoredInputs = []
 #     #Goes through every input
 #     while input != []:
@@ -105,10 +105,10 @@ class InputHandler:
 #         else:
 #             ignoredInputs.append(input)
 
-#         input = inputHandler.inputsPriorityQueue.Dequeue()
+#         input = inputHandler.inputsList.Dequeue()
 
 #     #Returns unused inputs back into priority list
 #     for input in ignoredInputs:
-#         inputHandler.inputsPriorityQueue.Enqueue(input[0], input[1])
+#         inputHandler.inputsList.append(input[0], input[1])
 
 # print(text)
