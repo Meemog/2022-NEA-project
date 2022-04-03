@@ -29,6 +29,10 @@ class Scene:
         self._clock = pygame.time.Clock()
         self._inputHandler = InputHandler()
 
+        #Helps performance to have a surface object instead of filling the entire screen every frame
+        self._backgroundSurface = pygame.Surface((int(self._resolution[0] * 1920), int(self._resolution[1] * 1080)))
+        self._backgroundSurface.fill((0,0,0))
+
     def main(self):
         self._clock.tick()
         self._timeSinceLastBackspace += self._clock.get_time()
@@ -51,7 +55,7 @@ class Scene:
         self._Render()
 
     def _Render(self):
-        self._window.fill((0,0,0))
+        self._window.blit(self._backgroundSurface, (0,0))
         for box in self._listOfBoxObjects:
             box.Render(self._window)
         for button in self._listOfButtonObjects:
@@ -61,36 +65,41 @@ class Scene:
 
     def _HandleInputs(self):
         self._inputHandler.CheckInputs()
-        unusedInputs = []
-        while self._inputHandler.inputsPriorityQueue.GetLength() != 0:
-            input = self._inputHandler.inputsPriorityQueue.Dequeue()
-            
-            if input[1] == "QUIT":
+        i = 0
+        while i < len(self._inputHandler.inputsList):            
+            if self._inputHandler.inputsList[i] == "QUIT":
                 self.userQuit = True
-            elif input[1] == "SHIFTDOWN":
+                self._inputHandler.inputsList.pop(i)
+            elif self._inputHandler.inputsList[i] == "SHIFTDOWN":
                 self._shift = True
-            elif input[1] == "SHIFTUP":
+                self._inputHandler.inputsList.pop(i)
+            elif self._inputHandler.inputsList[i] == "SHIFTUP":
                 self._shift = False
-            elif input[1] == "ALTDOWN":
+                self._inputHandler.inputsList.pop(i)
+            elif self._inputHandler.inputsList[i] == "ALTDOWN":
                 self._alt = True
-            elif input[1] == "ALTUP":
+                self._inputHandler.inputsList.pop(i)
+            elif self._inputHandler.inputsList[i] == "ALTUP":
                 self._alt = False
-            elif input[1] == "CONTROLDOWN":
+                self._inputHandler.inputsList.pop(i)
+            elif self._inputHandler.inputsList[i] == "CONTROLDOWN":
                 self._ctrl = True
-            elif input[1] == "CONTROLUP":
+                self._inputHandler.inputsList.pop(i)
+            elif self._inputHandler.inputsList[i] == "CONTROLUP":
                 self._ctrl = False
-            elif input[1] == "BACKSPACEDOWN":
+                self._inputHandler.inputsList.pop(i)
+            elif self._inputHandler.inputsList[i] == "BACKSPACEDOWN":
                 self._backspace = True
                 self._timeSinceLastBackspace = -200
                 for box in self._listOfBoxObjects:
                     if box.isActive:
                         box.RemoveLetter(self._ctrl)
-            elif input[1] == "BACKSPACEUP":
+                self._inputHandler.inputsList.pop(i)
+            elif self._inputHandler.inputsList[i] == "BACKSPACEUP":
                 self._backspace = False
+                self._inputHandler.inputsList.pop(i)
             else:
-                unusedInputs.append(input)
-        for input in unusedInputs:
-            self._inputHandler.inputsPriorityQueue.Enqueue(input[0], input[1])
+                i += 1
 
 #Displays text that changes in the middle of the screen
 class ConnectionScreen(Scene):
@@ -134,6 +143,11 @@ class ConnectionScreen(Scene):
                 self.connected = True
             except socket.error:
                 pass
+
+    def _HandleInputs(self):
+        super()._HandleInputs()
+        #Empties list so inputs dont carry over to next scene
+        self._inputHandler.inputsList = []
 
 #Displays username and password input boxes
 class LoginScreen(Scene):
@@ -201,11 +215,10 @@ class LoginScreen(Scene):
     def _HandleInputs(self):
         super()._HandleInputs()
         if not self.__continueButton.clicked:
-            unusedInputs = []
-            while self._inputHandler.inputsPriorityQueue.GetLength() != 0:
-                input = self._inputHandler.inputsPriorityQueue.Dequeue()
-                if input[1][:6] == "CLICK:":
-                    clickLocation = input[1][6:].split(",")
+            i = 0
+            while i < len(self._inputHandler.inputsList):
+                if self._inputHandler.inputsList[i][:6] == "CLICK:":
+                    clickLocation = self._inputHandler.inputsList[i][6:].split(",")
                     clickLocation = (int(clickLocation[0]), int(clickLocation[1]))
                     if self.__continueButton.CheckForCollision(clickLocation):
                         self.__continueButton.clicked = True
@@ -216,27 +229,31 @@ class LoginScreen(Scene):
                                 box.SetActive()
                             else:
                                 box.SetInactive()
-                elif input[1][:3] == "KD_":
-                    key = input[1][3:]
+                    self._inputHandler.inputsList.pop(i)
+                elif self._inputHandler.inputsList[i][:3] == "KD_":
+                    key = self._inputHandler.inputsList[i][3:]
                     for box in self._listOfBoxObjects:
                         if box.isActive:
                             box.AddLetter(key)
+                    self._inputHandler.inputsList.pop(i)
                 #Sets the other box to be active than the one that is active
-                elif input[1] == "TABDOWN":
+                elif self._inputHandler.inputsList[i] == "TABDOWN":
                     if self.__usernameBox.isActive:
                         self.__usernameBox.SetInactive()
                         self.__passwordBox.SetActive()
                     elif self.__passwordBox.isActive:
                         self.__usernameBox.SetActive()
                         self.__passwordBox.SetInactive()
-                elif input[1] == "RETURNDOWN":
+                    self._inputHandler.inputsList.pop(i)
+                elif self._inputHandler.inputsList[i] == "RETURNDOWN":
                     self.__continueButton.clicked = True
                     self.__continueButton.SetText("Checking...")
-                #Returnup shouldnt be added back to queue
-                elif input[1] == "RETURNUP":
-                    pass
+                    self._inputHandler.inputsList.pop(i)
+                elif self._inputHandler.inputsList[i] == "RETURNUP":
+                    #Returnup shouldnt be added back to queue
+                    self._inputHandler.inputsList.pop(i)
                 else:
-                    unusedInputs.append(input)
+                    i += 1
 
 #Displays main menu for user to make choice what to see
 class MainMenu(Scene):
@@ -283,15 +300,17 @@ class MainMenu(Scene):
 
     def _HandleInputs(self):
         super()._HandleInputs()
-        unusedInputs = []
-        while self._inputHandler.inputsPriorityQueue.GetLength() != 0:
-            input = self._inputHandler.inputsPriorityQueue.Dequeue()
-            if input[1][:6] == "CLICK:":
-                clickLocation = input[1][6:].split(",")
+        i = 0
+        while i < len(self._inputHandler.inputsList):
+            if self._inputHandler.inputsList[i][:6] == "CLICK:":
+                clickLocation = self._inputHandler.inputsList[i][6:].split(",")
                 clickLocation = (int(clickLocation[0]), int(clickLocation[1]))
                 for button in self._listOfButtonObjects:
                     if button.CheckForCollision(clickLocation):
                         button.clicked = True
+                self._inputHandler.inputsList.pop(i)
+            else:
+                i += 1
 
 #Displays message that they are in queue
 class MatchmakingScreen(Scene):
@@ -340,17 +359,19 @@ class MatchmakingScreen(Scene):
 
     def _HandleInputs(self):
         super()._HandleInputs()
-        unusedInputs = []
-        while self._inputHandler.inputsPriorityQueue.GetLength() != 0:
-            input = self._inputHandler.inputsPriorityQueue.Dequeue()
-            if input[1][:6] == "CLICK:":
-                clickLocation = input[1][6:].split(",")
+        i = 0
+        while i < len(self._inputHandler.inputsList):
+            if self._inputHandler.inputsList[i][:6] == "CLICK:":
+                clickLocation = self._inputHandler.inputsList[i][6:].split(",")
                 clickLocation = (int(clickLocation[0]), int(clickLocation[1]))
                 for button in self._listOfButtonObjects:
                     if button.CheckForCollision(clickLocation):
                         button.clicked = True
                         if button.text == "Back":
                             self.userClickedBackButton = True
+                self._inputHandler.inputsList.pop(i)
+            else:
+                i += 1
 
     def __TextAnimation(self):
         #Used for animation of looking for game text
@@ -386,10 +407,9 @@ class TimerScene(Scene):
         while i < len(self.socket.receivedMsgs):
             if self.socket.receivedMsgs[i][:10] == "!TIMELEFT:":
                 timeLeft = self.socket.receivedMsgs[i][10:]
-                print(f"Time left:{timeLeft}")
                 #Updates timer on screen
                 self.__UpdateTextObject(timeLeft)
-                if timeLeft == 0:
+                if int(timeLeft) == 0:
                     self.timerFinished = True
                 #Removes message from list
                 self.socket.receivedMsgs.pop(i)
@@ -402,6 +422,11 @@ class TimerScene(Scene):
         textLocation = (int((self._resolution[0] * 1920 - textSize[0]) / 2), int((self._resolution[1] * 1080 - textSize[1]) / 2))
         self.__textObject.SetText(newText)
         self.__textObject.location = textLocation
+
+    def _HandleInputs(self):
+        super()._HandleInputs()
+        #Empties inputs list so they dont carry over to the next scene
+        self._inputHandler.inputsList = []
 
 class RaceScene(Scene):
     def __init__(self, window, resolution, previewText, socket=None) -> None:
@@ -487,20 +512,20 @@ class RaceScene(Scene):
 
     def _HandleInputs(self):
         super()._HandleInputs()
-        unusedInputs = []
-        while self._inputHandler.inputsPriorityQueue.GetLength() != 0:
-            input = self._inputHandler.inputsPriorityQueue.Dequeue()
-            if input[1][:3] == "KD_":
+        i = 0
+        while i < len(self._inputHandler.inputsList):
+            if self._inputHandler.inputsList[i][:3] == "KD_":
                 #This needs to be indented in order to still delete the input from the queue
                 if not self.playerFinished:
                     if self.__textBox.isActive:
-                        letter = input[1][3:]
+                        letter = self._inputHandler.inputsList[i][3:]
                         self.__textBox.AddLetter(letter)
                         self.socket.msgsToSend.append(f"!TEXT:{self.__textBox.text}")
                         if self.__textBox.CheckIfFinished():
                             self.playerFinished = True
-            elif input[1][:6] == "CLICK:":
-                clickLocation = input[1][6:].split(",")
+                self._inputHandler.inputsList.pop(i)
+            elif self._inputHandler.inputsList[i][:6] == "CLICK:":
+                clickLocation = self._inputHandler.inputsList[i][6:].split(",")
                 clickLocation = (int(clickLocation[0]), int(clickLocation[1]))
                 for box in self._listOfBoxObjects:
                     #Opponent box cannot be activated otherwise the opponent's text would also be deleted when backspace is pressed
@@ -508,11 +533,9 @@ class RaceScene(Scene):
                         box.SetActive()
                     else:
                         box.SetInactive()
+                self._inputHandler.inputsList.pop(i)
             else:
-                unusedInputs.append(input)
-
-        for input in unusedInputs:
-            self._inputHandler.inputsPriorityQueue.Enqueue(input[0], input[1])
+                i += 1
 
 # #Used for testing
 # import ctypes, pygame

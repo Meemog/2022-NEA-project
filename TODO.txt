@@ -1,12 +1,12 @@
-Make game work with one player
-make server side work for matchmaking
+Client cannot type
+Make game show opponent's progress
+Make server side work for matchmaking
+	ELO system
+	Score calculator 
 Allow user to register
-	Make it store password correctly
 Finish settings menu
 Sounds
-Score calculator 
 Stats section
-ELO system
 
 Make text to say information is incorrect on loginscreen
 
@@ -19,3 +19,5 @@ Add try except to disconnect from server in case of crash
 
 Command to find number of lines:
 dir -Recurse *.py | Get-Content | Measure-Object -Line
+
+Could improve program by using pickle to send a textrender of the previewtext in order to prevent cheating but not a priority

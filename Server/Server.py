@@ -32,8 +32,10 @@ class Server:
 
             #Creates game if there is more than 1 player in queue
             while len(self.playersInMatchmaking) >= 2:
-                player1 = self.playersInMatchmaking.pop(0)
-                player2 = self.playersInMatchmaking.pop(0)
+                player1 : Player = self.playersInMatchmaking.pop(0)
+                player2 : Player = self.playersInMatchmaking.pop(0)
+                player1.msgsToSend.Enqueue("!GAMEFOUND")
+                player2.msgsToSend.Enqueue("!GAMEFOUND")
                 self.playersInGame.append(player1)
                 self.playersInGame.append(player2)
                 self.currentGames.append(Game(player1, player2))
