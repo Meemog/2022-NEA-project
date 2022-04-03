@@ -22,7 +22,7 @@ class InputHandler:
                 self.inputsList.append(command)
             
             #If player stops clicking, same as clicking
-            elif event.type == pygame.MOUSEBUTTONDOWN:
+            elif event.type == pygame.MOUSEBUTTONUP:
                 mousePos = pygame.mouse.get_pos()
                 command = f"UNCLICK:{mousePos[0]},{mousePos[1]}"
                 self.inputsList.append(command)
