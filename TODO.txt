@@ -1,6 +1,4 @@
-Game super laggy in race
-	Problem lies in Rendering textbox
-Make game show opponent's progress
+Make post game screen
 Make server side work for matchmaking
 	ELO system
 	Score calculator 
