@@ -138,7 +138,7 @@ class Race(Stage):
             if message[:6] == "!TEXT:":
                 text = message[6:]
                 self._player2.textWritten = text
-                self._player2.msgsToSend.Enqueue(f"!OTHERPLAYERTEXT:{self._player2.textWritten}")
+                self._player1.msgsToSend.Enqueue(f"!OTHERPLAYERTEXT:{self._player2.textWritten}")
             elif message[:11] == "!FINALTEXT:":
                 self.__player2FinalText = message[11:]
             else:
