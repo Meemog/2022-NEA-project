@@ -1,4 +1,4 @@
-import pygame
+import pygame, math
 
 #A class box that is used for textboxes and inputboxes
 class Box:
@@ -55,6 +55,25 @@ class TextBox(Box):
         self._previewTextColour = previewTextColour
         self._incorrectTextColour = incorrectTextColour
 
+        self.__textRenderLocation = None
+        self.__previewTextRender = None
+        self.__correctTextRender = None
+        self.__incorrectTextRender = None
+
+        self.UpdateRender()
+
+    def AddLetter(self, letter):
+        super().AddLetter(letter)
+        self.UpdateRender()
+    
+    def RemoveLetter(self, control):
+        super().RemoveLetter(control)
+        self.UpdateRender()
+
+    def SetText(self, newText):
+        self.text = newText
+        self.UpdateRender()
+
     def CheckIfFinished(self):
         if len(self.text) == len(self.previewText):
             return True
@@ -62,22 +81,42 @@ class TextBox(Box):
 
     def Render(self, window):
         super().Render(window)
+        #Draws surface objects onto window
+        window.blit(self.__previewTextRender, self.__textRenderLocation)
+        window.blit(self.__correctTextRender, self.__textRenderLocation)
+        window.blit(self.__incorrectTextRender, self.__textRenderLocation)
 
+    def UpdateRender(self):
         #Copies text so that it can be changed
         text = self.text
-        #Cuts text so that it is at most halfway through the box 
         previewText = self.previewText
-        while self._font.size(text)[0] > (self._rect.width - 10 * self._resolution[0]) / 2:
-            #Splices text for everything after the first letter
-            text = text[1:]
-            previewText = previewText[1:]
+
+        spaceAvailable = int(self._rect.width - 10 * self._resolution[0])
+
+        #TODO fix text not being cut when it reaches halfway
+        #Prevents division by 0
+        if text != "":
+            #Cuts text so that it is at most halfway through the box 
+            textWidth = self._font.size(text)[0]
+            characterWidth = textWidth / len(text)
+            #Only does this if text is longer than the middle of the textbox
+            if textWidth > spaceAvailable / 2:
+                #Divided by 2 as spaceAvailable is the entire box - 10 pixels
+                spaceDifference = textWidth - spaceAvailable / 2
+                charactersToRemove = int(math.ceil(spaceDifference / characterWidth))
+                #Removes enough characters from front so that it reaches the middle
+                text = text[charactersToRemove:]
+                previewText = previewText[charactersToRemove:]
             
-        #Cuts end of previewText out until it fits in the box
-        while self._font.size(previewText)[0] > self._rect.width - 10 * self._resolution[0]:
-            previewText = previewText[:-1]
-        
-        #Convert to list to assign individual letters
-        text = list(text)
+        previewTextWidth = self._font.size(previewText)[0]
+        characterWidth = previewTextWidth / len(previewText)
+        #Does same but to make sure previewtext remains in the box
+        if spaceAvailable < previewTextWidth:
+            spaceDifference = previewTextWidth - spaceAvailable
+        charactersToRemove = int(math.ceil(spaceDifference / characterWidth))
+        #Removes it from the back of previewtext
+        previewText = previewText[:-charactersToRemove]
+
         #Makes string of correct and incorrect text
         correctText = []
         incorrectText = []
@@ -93,15 +132,11 @@ class TextBox(Box):
         incorrectText = "".join(incorrectText)
 
         #Location is textbox (x + 5, y + 5)
-        textRenderLocation = (int(self._rect.left + 5 * self._resolution[0]), int(self._rect.top + 5 * self._resolution[1]))
+        self.__textRenderLocation = (int(self._rect.left + 5 * self._resolution[0]), int(self._rect.top + 5 * self._resolution[1]))
         #Converts text to surface objects
-        previewText = self._font.render(previewText, True, self._previewTextColour)
-        correctText = self._font.render(correctText, True, self.textColour)
-        incorrectText = self._font.render(incorrectText, True, self._incorrectTextColour)
-        #Draws surface objects onto window
-        window.blit(previewText, textRenderLocation)
-        window.blit(correctText, textRenderLocation)
-        window.blit(incorrectText, textRenderLocation)
+        self.__previewTextRender = self._font.render(previewText, True, self._previewTextColour)
+        self.__correctTextRender = self._font.render(correctText, True, self.textColour)
+        self.__incorrectTextRender = self._font.render(incorrectText, True, self._incorrectTextColour)
 
 class InputBox(Box):
     def __init__(self, rect, font, resolution, colourActive, colourInactive, textColour, text, hashed = False) -> None:

@@ -1,4 +1,5 @@
-Client cannot type
+Game super laggy in race
+	Problem lies in Rendering textbox
 Make game show opponent's progress
 Make server side work for matchmaking
 	ELO system

@@ -465,43 +465,52 @@ class RaceScene(Scene):
         self.__textObject = Text(self.__font, text="30", location=textLocation)
         self._listOfTextObjects = [self.__textObject]
 
+    #Override for performance improvements
     def main(self):
-        super().main()
+        self._clock.tick()
+        self._timeSinceLastBackspace += self._clock.get_time()
+
+        self._HandleInputs()
+
+        #Automatic removal of text every 50 milliseconds
+        if self._backspace and self._timeSinceLastBackspace >= 50 and self.__textBox.isActive:
+            self.__textBox.RemoveLetter(self._ctrl)
+            self._timeSinceLastBackspace = 0
+
+        self._Render()
         self.__HandleMessages()
+
+    def _Render(self):
+        self._window.blit(self._backgroundSurface, (0,0))
+        self.__textBox.Render(self._window)
+        self.__opponentTextBox.Render(self._window)
+        self.__textObject.Render(self._window)
 
     def SetPreviewText(self, previewText):
         self.__textBox.previewText = previewText
 
     def __HandleMessages(self):
         #Code for receiving messages from server
-        i = 0
-        while i < len(self.socket.receivedMsgs):
-            if self.socket.receivedMsgs[i][:10] == "!TIMELEFT:":
-                timeLeft = self.socket.receivedMsgs[i][10:]
+        while self.socket.receivedMsgs != []:
+            message = self.socket.receivedMsgs.pop(0)
+            if message[:10] == "!TIMELEFT:":
+                timeLeft = message[10:]
                 #Updates timer on screen
                 self.__UpdateTextObject(timeLeft)
                 if timeLeft == 0:
                     self.timerFinished = True
-                #Removes message from list
-                self.socket.receivedMsgs.pop(i)
             #Other player's text
-            elif self.socket.receivedMsgs[i][:17] == "!OTHERPLAYERTEXT:":
-                text = self.socket.receivedMsgs[i][17:]
-                self.__opponentTextBox.text = text
-                self.socket.receivedMsgs.pop(i)
+            elif message[:17] == "!OTHERPLAYERTEXT:":
+                text = message[17:]
+                self.__opponentTextBox.SetText(text)
             #Time has run out, client has to send text
-            elif self.socket.receivedMsgs[i] == "!GAMECOMPLETE":
+            elif message == "!GAMECOMPLETE":
                 self.socket.msgsToSend.append(f"!FINALTEXT:{self.__textBox.text}")
                 self.timerFinished = True
-                self.socket.receivedMsgs.pop(i)
             #Server received both player's final text and game has finished
             #Emphasis on the D in completed, not the same as complete as it is for server asking for player's final text
-            elif self.socket.receivedMsgs[i] == "!GAMECOMPLETED":
+            elif message == "!GAMECOMPLETED":
                 self.gameOver = True
-                self.socket.receivedMsgs.pop(i)
-
-            else:
-                i += 1
 
     #Updates text and location to be centred
     def __UpdateTextObject(self, newText):
@@ -511,31 +520,38 @@ class RaceScene(Scene):
         self.__textObject.SetText(newText)
 
     def _HandleInputs(self):
-        super()._HandleInputs()
-        i = 0
-        while i < len(self._inputHandler.inputsList):
-            if self._inputHandler.inputsList[i][:3] == "KD_":
-                #This needs to be indented in order to still delete the input from the queue
-                if not self.playerFinished:
+        #Inputs can be handled directly in this, as there is no need to keep certain inputs to deal with in child classes
+        for event in pygame.event.get():
+            #If the player quit
+            if event.type == pygame.QUIT:
+                self.userQuit = True
+
+            #If player clicks
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                mousePos = pygame.mouse.get_pos()
+                if self.__textBox.CheckForCollisionWithMouse(mousePos):
+                    self.__textBox.SetActive()
+                else:
+                    self.__textBox.SetInactive()
+
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_BACKSPACE:
+                    self._backspace = True
+                    self._timeSinceLastBackspace = -200
                     if self.__textBox.isActive:
-                        letter = self._inputHandler.inputsList[i][3:]
-                        self.__textBox.AddLetter(letter)
+                        self.__textBox.RemoveLetter(self._ctrl)
+                elif event.key == pygame.K_LCTRL or event.key == pygame.K_RCTRL:
+                    self._ctrl = True
+                else:
+                    if self.__textBox.isActive and (event.unicode.isalpha() or event.unicode == " " or event.unicode == "-"):
+                        self.__textBox.AddLetter(event.unicode)
                         self.socket.msgsToSend.append(f"!TEXT:{self.__textBox.text}")
-                        if self.__textBox.CheckIfFinished():
-                            self.playerFinished = True
-                self._inputHandler.inputsList.pop(i)
-            elif self._inputHandler.inputsList[i][:6] == "CLICK:":
-                clickLocation = self._inputHandler.inputsList[i][6:].split(",")
-                clickLocation = (int(clickLocation[0]), int(clickLocation[1]))
-                for box in self._listOfBoxObjects:
-                    #Opponent box cannot be activated otherwise the opponent's text would also be deleted when backspace is pressed
-                    if box.CheckForCollisionWithMouse(clickLocation) and box != self.__opponentTextBox:
-                        box.SetActive()
-                    else:
-                        box.SetInactive()
-                self._inputHandler.inputsList.pop(i)
-            else:
-                i += 1
+
+            elif event.type == pygame.KEYUP:
+                if event.key == pygame.K_BACKSPACE:
+                    self._backspace = False
+                elif event.key == pygame.K_LCTRL or event.key == pygame.K_RCTRL:
+                    self._ctrl = False
 
 # #Used for testing
 # import ctypes, pygame
