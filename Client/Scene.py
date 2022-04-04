@@ -492,6 +492,7 @@ class RaceScene(Scene):
         self.__textBox.previewText = previewText
 
     def __HandleMessages(self):
+        unusedMessages = []
         #Code for receiving messages from server
         while self.socket.receivedMsgs != []:
             message = self.socket.receivedMsgs.pop(0)
@@ -513,6 +514,11 @@ class RaceScene(Scene):
             #Emphasis on the D in completed, not the same as complete as it is for server asking for player's final text
             elif message == "!GAMECOMPLETED":
                 self.gameOver = True
+            else:
+                unusedMessages.append(message)
+
+        for message in unusedMessages:
+            self.socket.receivedMsgs.append(message)
 
     #Updates text and location to be centred
     def __UpdateTextObject(self, newText):
@@ -558,27 +564,63 @@ class RaceScene(Scene):
                 elif event.key == pygame.K_LCTRL or event.key == pygame.K_RCTRL:
                     self._ctrl = False
 
-# #Used for testing
-# import ctypes, pygame
+class PostGame(Scene):
+    def __init__(self, window, resolution, winloss, winmargin, ELodiff, socket: ClientSocket = None) -> None:
+        super().__init__(window, resolution, socket)
+        
+        colourActive = (40,40,40)
+        colourInactive = (25,25,25)
 
-# user32 = ctypes.windll.user32
-# #Prevents the screen from scaling with windows resolution scale
-# #System -> Display -> Scale and Layout
-# user32.SetProcessDPIAware()
+        #For button objects
+        self.menuButtonPressed = False
+        menuButtonSize = (int(560 * self._resolution[0]), int(130 * self._resolution[1]))
+        menuButtonLocation = (int((self._resolution[0] * 1920 - menuButtonSize[0]) / 2), int(800 * self._resolution[1]))
+        menuButtonRect = pygame.Rect(menuButtonLocation[0], menuButtonLocation[1], menuButtonSize[0], menuButtonSize[1])
+        self.__menuButton = Button(menuButtonRect, colourActive, colourInactive, (255,255,255), text="Main Menu")
 
-# window = pygame.display.set_mode((0,0), pygame.FULLSCREEN)
-# pygame.display.set_caption("SpeedTyper")
-# pygame.font.init()
+        self._listOfButtonObjects = [self.__menuButton]
 
-# res = pygame.display.Info()
-# res = (res.current_w / 1920, res.current_h / 1080)
+        #For text objects
+        self.__font = pygame.font.SysFont("Calibri", int(72 * self._resolution[1]))
+        winlossTextSize = self.__font.size(winloss)
+        winlossTextLocation = (int((self._resolution[0] * 1920 - winlossTextSize[0]) / 2), int(140 * self._resolution[1]))
 
-# text = "Hello this is a preview text"
+        self.__winlossText = Text(self.__font, text=winloss, location=winlossTextLocation)
+        
+        if winloss == "WIN":
+            infoText1 = f"Win margin: {winmargin} letters"
+            infoText2 = f"ELo gained: {ELodiff}"
+        elif winloss == "LOSS":
+            infoText1 = f"Loss margin: {winmargin} letters"
+            infoText2 = f"ELo lost: {ELodiff}"
+        else:
+            infoText1 = f"Win margin: {winmargin} letters"
+            infoText2 = f"ELo gained: {ELodiff}"
 
-# thisRace = Race(window, res, text)
-# while not thisRace.userQuit:
-#     thisRace.main()
-#     pygame.display.update()
+        infoText1Location = (int(250 * self._resolution[0]), int(400 * self._resolution[1]))
+        infoText2Location = (int(250 * self._resolution[0]), int(400 * self._resolution[1]))
+        self.__infoText1 = Text(self.__font, text=infoText1, location=infoText1Location)
+        self.__infoText2 = Text(self.__font, text=infoText2, location=infoText2Location)
 
-# pygame.font.quit()
-# pygame.quit()
+        self._listOfTextObjects = [self.__winlossText, self.__infoText]
+
+    def main(self):
+        super().main()
+
+    def _Render(self):
+        super()._Render()
+        print("Rendered postscreen")
+
+    def _HandleInputs(self):
+        super()._HandleInputs()
+        i = 0
+        while i < len(self._inputHandler.inputsList):
+            if self._inputHandler.inputsList[i][:6] == "CLICK:":
+                clickLocation = self._inputHandler.inputsList[i][6:].split(",")
+                clickLocation = (int(clickLocation[0]), int(clickLocation[1]))
+                if self.__menuButton.CheckForCollision(clickLocation):
+                    self.menuButtonPressed = True
+                    self.__menuButton.clicked = True
+                self._inputHandler.inputsList.pop(i)
+            else:
+                i += 1

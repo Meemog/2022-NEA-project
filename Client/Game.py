@@ -1,5 +1,5 @@
 import pygame, threading
-from Scene import Scene, ConnectionScreen, LoginScreen, MainMenu, MatchmakingScreen, TimerScene, RaceScene
+from Scene import Scene, ConnectionScreen, LoginScreen, MainMenu, MatchmakingScreen, TimerScene, RaceScene, PostGame
 
 class Game:
     def __init__(self, window):
@@ -20,9 +20,11 @@ class Game:
         self.__matchmakingScreen : MatchmakingScreen = None
         self.__timerScene : TimerScene = None
         self.__raceScene : RaceScene = None
+        self.__postGameScreen : PostGame = None
 
         self.__timerStarted = False
         self.__textToWrite = None
+        self.__matchResults = None
 
     def main(self):
         #Connects to server
@@ -44,6 +46,9 @@ class Game:
             self.__timerScene = TimerScene(self.__window, self.__resolution, self.socket)
             self.__timerStarted = False
             self.__textToWrite = None
+            self.__results = None
+            self.__margin = None
+            self.__ELodiff = None
 
             #Goes to main menu to get choice from user
             self.GetChoiceFromUser()
@@ -78,6 +83,15 @@ class Game:
                     self.PlayGame()
                     if self.__userQuit:
                         return 0
+
+                    self.WaitForMatchResult()
+
+                    #Goes to post game screen
+                    self.__postGameScreen = PostGame(self.__window, self.__resolution, self.__results, self.__margin, self.__ELodiff, self.socket)
+                    self.PostGame()
+                    if self.__userQuit:
+                        return 0
+
             elif userChoice == "Statistics":
                 #!TEMPORARY
                 pass
@@ -157,15 +171,50 @@ class Game:
                 return 0
             pygame.display.update()
 
+    def WaitForMatchResult(self):
+        while self.__results is None or self.__margin is None or self.__ELodiff is None:
+            self.CheckMessages()
+            print(f"results = {self.__results}")
+            print(f"margin = {self.__margin}")
+            print(f"ELodiff = {self.__ELodiff}")
+
+    def PostGame(self):
+        #!Temp
+        gothere = False
+        while not self.__postGameScreen.menuButtonPressed:
+            self.__postGameScreen.main()
+            if not gothere:
+                print("Gothere")
+                gothere = True
+            if self.__postGameScreen.userQuit:
+                self.__userQuit= True
+                return 0
+            pygame.display.update()
+
     def CheckMessages(self):
         i = 0
         while i < len(self.socket.receivedMsgs):
+            #!Temporary
+            print(f"Message being checked: {self.socket.receivedMsgs[i]}")
             #If new phase started
             if self.socket.receivedMsgs[i][:11] == "!STARTTIMER":
                 self.__timerStarted = True
                 self.socket.receivedMsgs.pop(i)
             elif self.socket.receivedMsgs[i][:13] == "!TEXTTOWRITE:":
                 self.__textToWrite = self.socket.receivedMsgs[i][13:]
+                self.socket.receivedMsgs.pop(i)
+            elif self.socket.receivedMsgs[i][:14] == "!MATCHOUTCOME:":
+                self.__results = self.socket.receivedMsgs[i][14:]
+                print(f"socketmessage = {self.socket.receivedMsgs[i][14:]}")
+                if self.socket.receivedMsgs[i][14:] == "DRAW":
+                    self.__margin = 0
+                    self.__ELodiff = 0
+                self.socket.receivedMsgs.pop(i)
+            elif self.socket.receivedMsgs[i][:5] == "!ELO:":
+                self.__ELodiff = self.socket.receivedMsgs[i][5:]
+                self.socket.receivedMsgs.pop(i)
+            elif self.socket.receivedMsgs[i][:8] == "!MARGIN:":
+                self.__margin = self.socket.receivedMsgs[i][8:]
                 self.socket.receivedMsgs.pop(i)
             else:
                 i += 1
