@@ -200,7 +200,7 @@ class Race(Stage):
             loserGamesLost = loser.gamesPlayed - loser.gamesWon
             EloDiff = loser.Elo - (loser.sumOfOpponentsElo + 400 * (loser.gamesWon - loserGamesLost)) / loser.gamesPlayed
             loser.msgsToSend.Enqueue(f"!ELO:{EloDiff}")
-            loser.Elo += EloDiff
+            loser.Elo -= EloDiff
         else:
             self._SendMessageToBothPlayers("!MATCHOUTCOME:DRAW")
 
