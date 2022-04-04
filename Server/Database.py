@@ -1,6 +1,6 @@
-import sqlite3
+import sqlite3, random
 from PasswordHandling import CheckPW, GenHash
-import random
+from Player import Player
 
 #An object that will be able to handle all the operations needed related to the database
 class DatabaseHandler:
@@ -51,6 +51,25 @@ class DatabaseHandler:
         self.__connection.commit()
         self.__connection.close()
 
+    def LoadUser(self, player : Player):
+        params = (player.username,)
+        command = """
+        SELECT * FROM Users
+        WHERE Username = (?)
+        """
+        self.__cursor.execute(command, params)
+        data = self.__cursor.fetchall()[0]
+        player.wordsTyped = int(data[2])
+        player.timePlayed = int(data[3])
+        player.Elo = int(data[4])
+        player.highestElo = int(data[5])
+        player.gamesWon = int(data[6])
+        player.gamesPlayed = int(data[7])
+        player.longestStreak = int(data[8])
+        player.largestWinMargin = float(data[9])
+        player.lettersTyped = int(data[10])
+        player.lettersTypedCorrectly = int(data[11])
+
     def CreateNewUser(self, username, password):
         password = GenHash(password).decode("utf-8")
         wordsTyped = 0
@@ -71,7 +90,7 @@ class DatabaseHandler:
         """
         self.__cursor.execute(command, params)
 
-    #Used for testing
+    #!Used for testing
     def CreateRandomUser(self, username, password):
         password = GenHash(password)
         wordsTyped = random.randint(0,1000000)
@@ -117,8 +136,9 @@ class DatabaseHandler:
         return CheckPW(password, correctPasswordHash)
 
 # dbHandler = DatabaseHandler()
+# player = Player(None, None)
+# player.username = "Username0"
 
-# for i in range(50):
-#     dbHandler.CreateRandomUser(f"{i}", f"{i}")
+# dbHandler.LoadUser(player)
 
 # dbHandler.Close()
