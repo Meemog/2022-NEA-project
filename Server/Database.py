@@ -6,8 +6,9 @@ from Player import Player
 class DatabaseHandler:
     def __init__(self):
         #Connects to database 
-        self.__connection = sqlite3.connect("db.db")
-        self.__cursor = self.__connection.cursor()
+        self.__connection = None
+        self.__cursor = None
+        self.Open()
 
         #Creates the tables needed if they do not exist
         command = """
@@ -25,34 +26,22 @@ class DatabaseHandler:
             LargestWinMargin FLOAT, 
             LettersTyped INTEGER,
             LettersTypedCorrectly INTEGER,
-            SumOfOpponentsELo INTEGER
+            SumOfOpponentsELo INTEGER,
+            CurrentWinstreak INTEGER
             )"""
         self.__cursor.execute(command)
-
-        command = """
-        CREATE TABLE IF NOT EXISTS
-        GamesPlayed(
-            Username TEXT, 
-            GameID INTEGER, 
-            Position INTEGER, 
-            TimeTaken FLOAT, 
-            PRIMARY KEY(Username, GameID)
-            )"""
-        self.__cursor.execute(command)
-
-        command = """
-        CREATE TABLE IF NOT EXISTS
-        Games(
-            GameID INTEGER PRIMARY KEY, 
-            Margin FLOAT)
-            """
-        self.__cursor.execute(command)
+        self.Close()
 
     def Close(self):
         self.__connection.commit()
         self.__connection.close()
 
+    def Open(self):
+        self.__connection = sqlite3.connect("db.db")
+        self.__cursor = self.__connection.cursor()
+
     def LoadUser(self, player : Player):
+        self.Open()
         params = (player.username,)
         command = """
         SELECT * FROM Users
@@ -70,9 +59,50 @@ class DatabaseHandler:
         player.largestWinMargin = float(data[9])
         player.lettersTyped = int(data[10])
         player.lettersTypedCorrectly = int(data[11])
-        player.sumOfOpponentsELo = int(data[12])
+        player.sumOfOpponentsElo = int(data[12])
+        player.currentWinstreak = int(data[13])
+        self.Close()
+
+    def SaveUser(self, player : Player):
+        self.Open()
+
+        wordsTyped = player.wordsTyped
+        timePlayed = player.timePlayed
+        Elo = player.Elo
+        highestElo = player.highestElo
+        gamesWon = player.gamesWon
+        gamesPlayed = player.gamesPlayed
+        longestStreak = player.longestStreak
+        largestWinMargin = player.largestWinMargin
+        lettersTyped = player.lettersTyped
+        lettersTypedCorrectly = player.lettersTypedCorrectly
+        sumOfOpponentsElo = player.sumOfOpponentsElo
+        currentWinstreak = player.currentWinstreak
+
+        params = (wordsTyped, timePlayed, Elo, highestElo, gamesWon, gamesPlayed, longestStreak, largestWinMargin, lettersTyped, lettersTypedCorrectly, sumOfOpponentsElo, currentWinstreak, player.username)
+        command = """
+        UPDATE Users
+        SET WordsTyped = (?), 
+            TimePlayed = (?), 
+            Elo = (?), 
+            HighestElo = (?), 
+            GamesWon = (?), 
+            GamesPlayed = (?), 
+            LongestStreak = (?), 
+            LargestWinMargin = (?), 
+            LettersTyped = (?),
+            LettersTypedCorrectly = (?),
+            SumOfOpponentsELo = (?),
+            CurrentWinstreak = (?)
+        WHERE Username = (?)
+        """
+        self.__cursor.execute(command, params)
+
+        self.Close()
 
     def CreateNewUser(self, username, password):
+        self.Open()
+
         password = GenHash(password)
         wordsTyped = 0
         timePlayed = 0
@@ -85,16 +115,21 @@ class DatabaseHandler:
         lettersTyped = 0
         lettersTypedCorrectly = 0
         sumOfOpponentsElo = 0
+        currentWinstreak = 0
 
-        params = (username, password, wordsTyped, timePlayed, Elo, highestElo, gamesWon, gamesPlayed, longestStreak, largestWinMargin, lettersTyped, lettersTypedCorrectly, sumOfOpponentsElo)
+        params = (username, password, wordsTyped, timePlayed, Elo, highestElo, gamesWon, gamesPlayed, longestStreak, largestWinMargin, lettersTyped, lettersTypedCorrectly, sumOfOpponentsElo, currentWinstreak)
         command = """
         INSERT INTO Users
-        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)
         """
         self.__cursor.execute(command, params)
+        
+        self.Close()
 
     #!Used for testing
     def CreateRandomUser(self, username, password):
+        self.Open()
+
         password = GenHash(password)
         wordsTyped = random.randint(0,1000000)
         timePlayed = random.randint(0,999999999)
@@ -107,26 +142,37 @@ class DatabaseHandler:
         lettersTyped = random.randint(0, 99999999999999)
         lettersTypedCorrectly = random.randint(0, lettersTyped)
         sumOfOpponentsELo = random.randint(0, 9999999999999999)
+        currentWinstreak = random.randint(0, longestStreak)
 
-        params = (username, password, wordsTyped, timePlayed, Elo, highestElo, gamesWon, gamesPlayed, longestStreak, largestWinMargin, lettersTyped, lettersTypedCorrectly, sumOfOpponentsELo)
+        params = (username, password, wordsTyped, timePlayed, Elo, highestElo, gamesWon, gamesPlayed, longestStreak, largestWinMargin, lettersTyped, lettersTypedCorrectly, sumOfOpponentsELo, currentWinstreak)
         command = """
         INSERT INTO Users
-        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)
         """
         self.__cursor.execute(command, params)
 
+        self.Close()
+
     def CheckIfUsernameInDB(self, username):
+        self.Open()
+
         params = (username,)
         command = """SELECT * FROM Users WHERE Username = ?"""
 
         self.__cursor.execute(command, params)
-        if self.__cursor.fetchall() == []:
+        fetchResults = self.__cursor.fetchall()
+
+        self.Close()
+
+        if fetchResults == []:
             return False
 
         else:
             return True
-            
+
     def CheckPassword(self, username, password):
+        self.Open()
+
         params = (username,)
         command = """
         SELECT Password FROM Users 
@@ -136,16 +182,16 @@ class DatabaseHandler:
         fetchResult = self.__cursor.fetchall()
         correctPasswordHash = fetchResult[0][0]
 
+        self.Close()
+
         #Uses bcrypt library to check password against hash
         return CheckPW(password, correctPasswordHash)
 
-dbHandler = DatabaseHandler()
-# player = Player(None, None)
-# player.username = "Username0"
+# dbHandler = DatabaseHandler()
+# # player = Player(None, None)
+# # player.username = "Username0"
 
-# dbHandler.LoadUser(player)
+# # dbHandler.LoadUser(player)
 
-for i in range(20):
-    dbHandler.CreateRandomUser(f"username{i}", f"password{i}")
-
-dbHandler.Close()
+# for i in range(20):
+#     dbHandler.CreateNewUser(f"{i}", f"{i}")

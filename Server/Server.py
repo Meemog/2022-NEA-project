@@ -59,6 +59,7 @@ class Server:
 
             self.GetMsgs(self.playersInGame)
             self.SendMessageToPlayers(self.playersInGame)
+        self.dbHandler.Close()
 
     #Made to be used in a seperate thread
     #Checks each player for a message being sent

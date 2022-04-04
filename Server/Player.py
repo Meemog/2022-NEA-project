@@ -21,6 +21,7 @@ class Player:
         self.lettersTyped = 0
         self.lettersTypedCorrectly = 0
         self.sumOfOpponentsElo = 0
+        self.currentWinstreak = 0
 
         self.textWritten = ""
 

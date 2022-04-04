@@ -545,7 +545,10 @@ class RaceScene(Scene):
                 else:
                     if self.__textBox.isActive and (event.unicode.isalpha() or event.unicode == " " or event.unicode == "-"):
                         self.__textBox.AddLetter(event.unicode)
-                        self.socket.msgsToSend.append(f"!TEXT:{self.__textBox.text}")
+                        if self.__textBox.CheckIfFinished():
+                            self.socket.msgsToSend.append(f"!FINALTEXT:{self.__textBox.text}")
+                        else: 
+                            self.socket.msgsToSend.append(f"!TEXT:{self.__textBox.text}")
 
             elif event.type == pygame.KEYUP:
                 if event.key == pygame.K_BACKSPACE:
