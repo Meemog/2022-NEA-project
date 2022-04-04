@@ -1,0 +1,174 @@
+USING pygame, math
+
+CLASS BOX
+    SUBROUTINE init(self, rectangleObject, font, resolution, colourActive, colourInactive, textColour, text = "")
+        self.rect <-- rectangleObject
+        self.font <-- font
+        self.resolution <-- resolution
+        self.activeColour <-- colourActive
+        self.inactiveColour <-- colourInactive
+        self.isActive <-- False
+        self._colour <-- colourInactive
+        self.text <-- text
+        self.textColour <-- textColour
+    ENDSUBROUTINE
+
+    SUBROUTINE UpdateRender(self)
+        Do nothing since this is just for inheritance
+    ENDSUBROUTINE
+
+    SUBROUTINE Render(self, window)
+        Draw the rectangle object with self.colour
+    ENDSUBROUTINE
+
+    SUBROUTINE AddLetter(self, letter)
+        Concatenate self.text and letter
+        self.UpdateRender()
+    ENDSUBROUTINE
+
+    SUBROUTINE RemoveLetter(self, control)
+        IF self.text <> "" THEN
+            IF control THEN
+                Remove trailing spaces in self.text
+                Remove letters until the last letter is (not "") or " "
+            ELSE
+                Remove a letter from self.text
+            ENDIF
+        ENDIF
+        self.UpdateRender()
+    ENDSUBROUTINE
+
+    SUBROUTINE SetActive(self)
+        self.isActive <-- True
+        self.colour <-- self.activeColour
+        self.UpdateRender()
+    ENDSUBROUTINE
+
+    SUBROUTINE SetInactive(self)
+        self.isActive <-- False
+        self.colour <-- self.inactiveColour
+        self.UpdateRender()
+    ENDSUBROUTINE
+
+    SUBROUTINE CheckForCollisionWithMouse(self, mouseLocation)
+        IF mouseLocation is in self.rect THEN
+            RETURN True
+        ENDIF
+        RETURN False
+    ENDSUBROUTINE
+ENDCLASS
+
+CLASS TextBox(Box)
+    SUBROUTINE init(self, rectangleObject, font, resolution, colourActive, colourInactive, textColour, previewText, previewTextColour, incorrectTextColour)
+        Inherit from Box
+        self.previewText <-- previewText
+        self.previewTextColour <-- previewTextColour
+        self.incorrectTextColour <-- incorrectTextColour
+
+        self.textRenderLocation <-- None
+        self.previewTextRender <-- None
+        self.correctTextRender <-- None
+        self.incorrectTextRender <--
+        self.UpdateRender()
+    ENDSUBROUTINE
+
+    SUBROUTINE SetText(self, newText)
+        self.text <-- newText
+        self.UpdateRender()
+    ENDSUBROUTINE
+
+    SUBROUTINE CheckIfFinished(self)
+        IF LEN(self.text) = LEN(self.previewText) THEN
+            RETURN True
+        ENDIF
+        RETURN False
+    ENDSUBROUTINE
+
+    SUBROUTINE Render(self, window)
+        Inherit from Box
+        Draw self.previewTexxtRender on window
+        Draw self.correctTextRender on window
+        Draw self.incorrectTextRender on window
+    ENDSUBROUTINE
+
+    SUBROUTINE UpdateRender(self)
+        text <-- self.text
+        previewText <-- self.previewText
+
+        #self.resolution is resolution scale and not actual pixels
+        spaceAvailable <-- FLOAT_TO_INT(self.rect.width - 10 * self.resolution[0])
+
+        IF text <> "" THEN
+            textWidth <-- get size of text when it is rendered with self.font
+            characterWidth <-- textWidth / LEN(text)
+
+            IF textWidth > spaceAvailable / 2 THEN
+                spaceDifference <-- textWidth - spaceAvailable / 2
+                charactersToRemove <-- spaceDifference / characterWidth rounded UP to nearest integer
+                Remove charactersToRemove number of letters from the start of text
+                Remove charactersToRemove number of letters from the start of previewText
+            ENDIF
+        ENDIF
+
+        previewTextWidth <-- get size of previewText when it is rendered with self.font
+        characterWidth <-- previewTextWidth / LEN(previewText)
+        IF spaceAvailable < previewTextWidth THEN
+            spaceDifference <-- previewTextWidth - spaceAvailable
+        ENDIF
+        charactersToRemove <-- spaceDifference / characterWidth rounded UP to nearest integer
+        Remove charactersToRemove number of letters from end of previewText
+        
+        correctText <-- []
+        incorrectText <-- []
+
+        FOR i <-- RANGE(LEN(text))
+            IF text[i] = previewText[i] THEN
+                add previewText[i] to correctText
+                add " " to incorrectText
+            ELSE
+                add " " to correctText
+                add previewText[i] to incorrectText
+            ENDIF
+        ENDFOR
+
+        Convert correctText to string from list
+        Convert incorrectText to string from list
+
+        self.textRenderLocation <-- textbox's x + 5 and textbox's y + 5
+        self.previewTextRender <-- render previewText with font and self.previewTextColour
+        self.correctTextRender <-- render correctText with font and self.textColour
+        self.incorrectTextRender <-- render incorrectText with font and self.incorrectTextColour
+    ENDSUBROUTINE
+ENDCLASS
+
+CLASS InputBox(Box)
+    SUBROUTINE init(self, rectangleObject, font, resolution, colourActive, colourInactive, textColour, text, hashed = False)
+        Inherit from Box
+        self.hashed <-- hashed
+        self.textLocation <-- None
+        self.textRender <-- None
+    ENDSUBROUTINE
+
+    SUBROUTINE Render(self, window)
+        Inherit from Box
+        Draw self.textRender on window at self.textLocation
+    ENDSUBROUTINE
+
+    SUBROUTINE UpdateRender(self)
+        IF self.hashed THEN
+            textToRender <-- LEN(self.text) * "*"
+        ELSE
+            textToRender <-- self.text
+        ENDIF
+
+        textSize <-- size of textToRender when rendered with self.font[0]
+        characterWidth <-- textSize / LEN(self.textToRender)
+        spaceAvailable <-- width of self.rect - 10
+        IF spaceAvailable < textSize THEN
+            charactersToRemove <-- (textSize - spaceAvailable) / characterWidth
+            Remove charactersToRemove number of letters from the front of textToRender
+        ENDIF
+        self.textRender <-- render textToRender with self.textColour
+        self.textLocation  <-- self.rect's x + 5 and y + 10
+    ENDSUBROUTINE
+ENDCLASS

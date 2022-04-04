@@ -15,11 +15,15 @@ class Box:
         self.text = text
         self.textColour = textColour
 
+    def UpdateRender(self):
+        pass
+
     def Render(self, window):
         pygame.draw.rect(window, self._colour, self._rect)
 
     def AddLetter(self, letter):
         self.text += letter
+        self.UpdateRender()
 
     def RemoveLetter(self, control):
         if self.text != "":
@@ -33,14 +37,17 @@ class Box:
 
             else:
                 self.text = self.text[:-1]
+        self.UpdateRender()
 
     def SetActive(self):
         self.isActive = True
         self._colour = self._activeColour
+        self.UpdateRender()
 
     def SetInactive(self):
         self.isActive = False
         self._colour = self._inactiveColour
+        self.UpdateRender()
 
     def CheckForCollisionWithMouse(self, mouseLocation):
         if self._rect.collidepoint(mouseLocation):
@@ -60,14 +67,6 @@ class TextBox(Box):
         self.__correctTextRender = None
         self.__incorrectTextRender = None
 
-        self.UpdateRender()
-
-    def AddLetter(self, letter):
-        super().AddLetter(letter)
-        self.UpdateRender()
-    
-    def RemoveLetter(self, control):
-        super().RemoveLetter(control)
         self.UpdateRender()
 
     def SetText(self, newText):
@@ -141,10 +140,14 @@ class InputBox(Box):
     def __init__(self, rect, font, resolution, colourActive, colourInactive, textColour, text, hashed = False) -> None:
         super().__init__(rect, font, resolution, colourActive, colourInactive, textColour, text)
         self.__hashed = hashed
+        self.__textLocation = None
+        self.__textRender = None
 
     def Render(self, window):
         super().Render(window)
+        window.blit(self.__textRender, self.__textLocation)
 
+    def UpdateRender(self):
         if self.__hashed:
             #Makes hashed string
             textToRender = len(self.text) * "*"
@@ -158,6 +161,5 @@ class InputBox(Box):
             textToRender = textToRender[1:]
             textSize = self._font.size(textToRender)
 
-        textRender = self._font.render(textToRender, True, self.textColour)
-        textLocation = (self._rect.left + 5 * self._resolution[0], self._rect.top + 10 * self._resolution[1])
-        window.blit(textRender, textLocation)
+        self.__textRender = self._font.render(textToRender, True, self.textColour)
+        self.__textLocation = (self._rect.left + 5 * self._resolution[0], self._rect.top + 10 * self._resolution[1])
