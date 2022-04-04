@@ -20,6 +20,7 @@ class Player:
         self.largestWinMargin = 0
         self.lettersTyped = 0
         self.lettersTypedCorrectly = 0
+        self.sumOfOpponentsElo = 0
 
         self.textWritten = ""
 

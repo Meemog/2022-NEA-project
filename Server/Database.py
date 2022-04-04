@@ -24,7 +24,8 @@ class DatabaseHandler:
             LongestStreak INTEGER, 
             LargestWinMargin FLOAT, 
             LettersTyped INTEGER,
-            LettersTypedCorrectly INTEGER
+            LettersTypedCorrectly INTEGER,
+            SumOfOpponentsELo INTEGER
             )"""
         self.__cursor.execute(command)
 
@@ -69,9 +70,10 @@ class DatabaseHandler:
         player.largestWinMargin = float(data[9])
         player.lettersTyped = int(data[10])
         player.lettersTypedCorrectly = int(data[11])
+        player.sumOfOpponentsELo = int(data[12])
 
     def CreateNewUser(self, username, password):
-        password = GenHash(password).decode("utf-8")
+        password = GenHash(password)
         wordsTyped = 0
         timePlayed = 0
         Elo = 1000
@@ -82,11 +84,12 @@ class DatabaseHandler:
         largestWinMargin = 0
         lettersTyped = 0
         lettersTypedCorrectly = 0
+        sumOfOpponentsElo = 0
 
-        params = (username, password, wordsTyped, timePlayed, Elo, highestElo, gamesWon, gamesPlayed, longestStreak, largestWinMargin, lettersTyped, lettersTypedCorrectly)
+        params = (username, password, wordsTyped, timePlayed, Elo, highestElo, gamesWon, gamesPlayed, longestStreak, largestWinMargin, lettersTyped, lettersTypedCorrectly, sumOfOpponentsElo)
         command = """
         INSERT INTO Users
-        VALUES (?,?,?,?,?,?,?,?,?,?,?,?)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
         """
         self.__cursor.execute(command, params)
 
@@ -103,11 +106,12 @@ class DatabaseHandler:
         largestWinMargin = random.randint(0, 100)
         lettersTyped = random.randint(0, 99999999999999)
         lettersTypedCorrectly = random.randint(0, lettersTyped)
+        sumOfOpponentsELo = random.randint(0, 9999999999999999)
 
-        params = (username, password, wordsTyped, timePlayed, Elo, highestElo, gamesWon, gamesPlayed, longestStreak, largestWinMargin, lettersTyped, lettersTypedCorrectly)
+        params = (username, password, wordsTyped, timePlayed, Elo, highestElo, gamesWon, gamesPlayed, longestStreak, largestWinMargin, lettersTyped, lettersTypedCorrectly, sumOfOpponentsELo)
         command = """
         INSERT INTO Users
-        VALUES (?,?,?,?,?,?,?,?,?,?,?,?)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
         """
         self.__cursor.execute(command, params)
 
@@ -135,10 +139,13 @@ class DatabaseHandler:
         #Uses bcrypt library to check password against hash
         return CheckPW(password, correctPasswordHash)
 
-# dbHandler = DatabaseHandler()
+dbHandler = DatabaseHandler()
 # player = Player(None, None)
 # player.username = "Username0"
 
 # dbHandler.LoadUser(player)
 
-# dbHandler.Close()
+for i in range(20):
+    dbHandler.CreateRandomUser(f"username{i}", f"password{i}")
+
+dbHandler.Close()
