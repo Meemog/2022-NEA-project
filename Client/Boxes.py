@@ -142,6 +142,7 @@ class InputBox(Box):
         self.__hashed = hashed
         self.__textLocation = None
         self.__textRender = None
+        self.UpdateRender()
 
     def Render(self, window):
         super().Render(window)

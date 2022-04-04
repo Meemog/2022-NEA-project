@@ -1,5 +1,3 @@
-USING pygame, math
-
 CLASS BOX
     SUBROUTINE init(self, rectangleObject, font, resolution, colourActive, colourInactive, textColour, text = "")
         self.rect <-- rectangleObject
