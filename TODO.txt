@@ -1,7 +1,4 @@
-Make server side work for matchmaking
-	
-	ELO system
-	Score calculator
+Test matchmaking
 Allow user to register
 Finish settings menu
 Sounds
