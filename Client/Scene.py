@@ -587,6 +587,8 @@ class PostGame(Scene):
 
         self.__winlossText = Text(self.__font, text=winloss, location=winlossTextLocation)
         
+        self.__infoFont = pygame.font.SysFont("Calibri", int(48 * self._resolution[1]))
+
         if winloss == "WIN":
             infoText1 = f"Win margin: {winmargin} letters"
             infoText2 = f"ELo gained: {ELodiff}"
@@ -599,8 +601,8 @@ class PostGame(Scene):
 
         infoText1Location = (int(250 * self._resolution[0]), int(400 * self._resolution[1]))
         infoText2Location = (int(250 * self._resolution[0]), int(480 * self._resolution[1]))
-        self.__infoText1 = Text(self.__font, text=infoText1, location=infoText1Location)
-        self.__infoText2 = Text(self.__font, text=infoText2, location=infoText2Location)
+        self.__infoText1 = Text(self.__infoFont, text=infoText1, location=infoText1Location)
+        self.__infoText2 = Text(self.__infoFont, text=infoText2, location=infoText2Location)
 
         self._listOfTextObjects = [self.__winlossText, self.__infoText1, self.__infoText2]
 
