@@ -211,6 +211,8 @@ class LoginScreen(Scene):
                 self.__usernameBox.text = ""
                 self.__passwordBox.text = ""
                 self.__continueButton.SetText("Continue")
+        for box in self._listOfBoxObjects:
+            box.UpdateRender()
 
     def _HandleInputs(self):
         super()._HandleInputs()

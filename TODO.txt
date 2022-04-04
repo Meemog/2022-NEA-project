@@ -1,5 +1,3 @@
-Test if database gets updated at the end of a game
-Client won't update that the password or username is incorrect until the user clicks the screen
 Make server side post game calculations
 Make post game screen
 Make server side work for matchmaking
