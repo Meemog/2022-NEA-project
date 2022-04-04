@@ -138,6 +138,7 @@ class Server:
                             if self.dbHandler.CheckPassword(username, password):
                                 player.loggedIn = True
                                 player.username = username
+                                self.dbHandler.LoadUser(player)
                                 player.msgsToSend.Enqueue("!PASSWORDCORRECT")
                             else:
                                 player.msgsToSend.Enqueue("!PASSWORDINCORRECT")
