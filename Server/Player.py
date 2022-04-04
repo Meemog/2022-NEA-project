@@ -9,6 +9,9 @@ class Player:
         self.msgsReceived = Queue()
         self.loggedIn = False
 
+        self.gameFinished = False
+        self.playerQuit = False
+
         self.username = ""
         self.wordsTyped = 0
         self.timePlayed = 0

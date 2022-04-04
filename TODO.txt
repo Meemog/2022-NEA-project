@@ -1,5 +1,5 @@
-Make server side post game calculations
 Make post game screen
+Fix elo calc being broken
 Make server side work for matchmaking
 	ELO system
 	Score calculator

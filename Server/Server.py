@@ -58,6 +58,7 @@ class Server:
             self.SendMessageToPlayers(self.playersInMatchmaking)
 
             self.GetMsgs(self.playersInGame)
+            self.CheckIfPlayerFinishedGame()
             self.SendMessageToPlayers(self.playersInGame)
         self.dbHandler.Close()
 
@@ -173,6 +174,22 @@ class Server:
             #Linear search returns None if item is not in list
             if listIndex is not None:
                 self.playersInMatchmaking.pop(listIndex)
+
+    def CheckIfPlayerFinishedGame(self):
+        playersQuit = []
+        for player in self.playersInGame:
+            if player.gameFinished:
+                playersQuit.append(player)
+                self.players.append(player)
+            elif player.playerQuit:
+                playersQuit.append(player)
+        
+        #Removes players who quit from the list of players
+        for player in playersQuit:
+            listIndex = LinearSearch(player, self.playersInGame)
+            #Linear search returns None if item is not in list
+            if listIndex is not None:
+                self.playersInGame.pop(listIndex)
 
 server = Server()
 server.Run()

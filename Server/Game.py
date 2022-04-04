@@ -44,7 +44,8 @@ class Stage:
             while player.msgsReceived.GetLength() != 0:
                 message = player.msgsReceived.Dequeue()
                 if message == "!DISCONNECT":
-                    player.connected = False
+                    player.playerQuit = True
+
                     #TODO implement abandon penalty
                 else:
                     unusedMessages.append(message)
@@ -174,6 +175,9 @@ class Race(Stage):
             winner.msgsToSend.Enqueue("!MATCHOUTCOME:WIN")
             loser.msgsToSend.Enqueue("!MATCHOUTCOME:LOSS")
 
+            winner.msgsToSend.Enqueue(f"!MARGIN:{winMargin}")
+            loser.msgsToSend.Enqueue(f"!MARGIN:{winMargin}")
+
             winner.gamesWon += 1
             winner.gamesPlayed += 1
             winner.currentWinstreak += 1
@@ -187,18 +191,25 @@ class Race(Stage):
             loser.sumOfOpponentsElo += winner.Elo
 
             winnerGamesLost = winner.gamesPlayed - winner.gamesWon
-            winner.Elo += (winner.sumOfOpponentsElo + 400 * (winner.gamesWon - winnerGamesLost)) / winner.gamesPlayed
+            EloDiff = (winner.sumOfOpponentsElo + 400 * (winner.gamesWon - winnerGamesLost)) / winner.gamesPlayed - winner.Elo
+            winner.msgsToSend.Enqueue(f"!ELO:{EloDiff}")
+            winner.Elo += EloDiff
             if winner.Elo > winner.highestElo:
                 winner.highestElo = winner.Elo
 
             loserGamesLost = loser.gamesPlayed - loser.gamesWon
-            loser.Elo += (loser.sumOfOpponentsElo + 400 * (loser.gamesWon - loserGamesLost)) / loser.gamesPlayed
+            EloDiff = loser.Elo - (loser.sumOfOpponentsElo + 400 * (loser.gamesWon - loserGamesLost)) / loser.gamesPlayed
+            loser.msgsToSend.Enqueue(f"!ELO:{EloDiff}")
+            loser.Elo += EloDiff
         else:
             self._SendMessageToBothPlayers("!MATCHOUTCOME:DRAW")
 
         #Updates database
-        self.__dbHandler.SaveUser(winner)
-        self.__dbHandler.SaveUser(loser)
+        self.__dbHandler.SaveUser(self._player1)
+        self.__dbHandler.SaveUser(self._player2)
+
+        self._player1.gameFinished = True
+        self._player2.gameFinished = True
 
     def _HandleMessages(self):
         super()._HandleMessages()
