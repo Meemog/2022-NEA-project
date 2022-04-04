@@ -93,7 +93,6 @@ class TextBox(Box):
 
         spaceAvailable = int(self._rect.width - 10 * self._resolution[0])
 
-        #TODO fix text not being cut when it reaches halfway
         #Prevents division by 0
         if text != "":
             #Cuts text so that it is at most halfway through the box 
