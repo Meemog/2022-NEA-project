@@ -1,4 +1,4 @@
-import socket
+import socket, pygame
 from Game import Game
 from Player import Player
 from Database import DatabaseHandler
@@ -23,22 +23,38 @@ class Server:
         self.server.bind(self.ADDRESS)
         self.dbHandler = DatabaseHandler()
         print("[SERVER STARTED]")
+        self.__clock = pygame.time.Clock
 
     def Run(self):
         self.server.listen() #Looks for connections
         while self.running:
+            self.__clock.tick()
+
+            for player in self.playersInMatchmaking:
+                player.timeWaited += self.__clock.get_time()
+
             self.CheckForNewPlayers()
             self.PrintPlayers()
 
             #Creates game if there is more than 1 player in queue
+            playersGameNotFound = []
             while len(self.playersInMatchmaking) >= 2:
+                #Loop through each player
+                #Check if any other players are within their elo range
                 player1 : Player = self.playersInMatchmaking.pop(0)
-                player2 : Player = self.playersInMatchmaking.pop(0)
-                player1.msgsToSend.Enqueue("!GAMEFOUND")
-                player2.msgsToSend.Enqueue("!GAMEFOUND")
-                self.playersInGame.append(player1)
-                self.playersInGame.append(player2)
-                self.currentGames.append(Game(player1, player2))
+                gameMade = False
+                for i in range(len(self.playersInMatchmaking)):
+                    if player1.Elo - player1.matchmakingRange < self.playersInMatchmaking[i] < player1.Elo + player1.matchmakingRange:
+                        player2 = self.playersInMatchmaking.pop(i)
+                        player1.msgsToSend.Enqueue("!GAMEFOUND")
+                        player2.msgsToSend.Enqueue("!GAMEFOUND")
+                        self.playersInGame.append(player1)
+                        self.playersInGame.append(player2)
+                        self.currentGames.append(Game(player1, player2))
+                        gameMade = True
+                        break
+                if not gameMade:
+                    playersGameNotFound.append(player1)
 
             #Checks if any players in game have disconnected
             i = 0
@@ -61,6 +77,10 @@ class Server:
             self.CheckIfPlayerFinishedGame()
             self.SendMessageToPlayers(self.playersInGame)
         self.dbHandler.Close()
+
+    def CreateGame(self):
+        player1 : Player = self.playersInMatchmaking.pop(0)
+        player2 : Player = self.playersInMatchmaking.pop(0)
 
     #Made to be used in a seperate thread
     #Checks each player for a message being sent
@@ -128,6 +148,7 @@ class Server:
                 elif player.loggedIn and message == "!QUEUE":
                     playersQuit.append(player)
                     self.playersInMatchmaking.append(player)
+                    self.player.timeWaited = 0
 
                 elif message[:7] == "!LOGIN:":
                     if not player.loggedIn:

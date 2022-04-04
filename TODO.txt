@@ -1,12 +1,13 @@
-Make post game screen
-Fix elo calc being broken
 Make server side work for matchmaking
+	
 	ELO system
 	Score calculator
 Allow user to register
 Finish settings menu
 Sounds
 Stats section
+
+Implement abandon penalty
 
 Make text to say information is incorrect on loginscreen
 

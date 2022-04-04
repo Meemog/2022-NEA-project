@@ -9,6 +9,9 @@ class Player:
         self.msgsReceived = Queue()
         self.loggedIn = False
 
+        self.timeWaited = 0
+        self.matchmakingRange = 400
+
         self.gameFinished = False
         self.playerQuit = False
 
