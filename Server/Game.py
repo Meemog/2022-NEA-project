@@ -183,6 +183,9 @@ class Race(Stage):
             loser.gamesPlayed += 1
             loser.currentWinstreak = 0
 
+            winner.sumOfOpponentsElo += loser.Elo
+            loser.sumOfOpponentsElo += winner.Elo
+
             winnerGamesLost = winner.gamesPlayed - winner.gamesWon
             winner.Elo += (winner.sumOfOpponentsElo + 400 * (winner.gamesWon - winnerGamesLost)) / winner.gamesPlayed
             if winner.Elo > winner.highestElo:
