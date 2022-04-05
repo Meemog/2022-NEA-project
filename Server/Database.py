@@ -14,7 +14,7 @@ class DatabaseHandler:
         command = """
         CREATE TABLE IF NOT EXISTS
         Users(
-            Username TEXT PRIMARY KEY, 
+            Username TEXT PRIMARY KEY,
             Password BLOB, 
             WordsTyped INTEGER, 
             TimePlayed INTEGER, 
@@ -62,6 +62,7 @@ class DatabaseHandler:
         player.sumOfOpponentsElo = int(data[12])
         player.currentWinstreak = int(data[13])
         self.Close()
+        return data
 
     def SaveUser(self, player : Player):
         self.Open()

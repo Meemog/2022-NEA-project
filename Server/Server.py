@@ -1,4 +1,4 @@
-import socket, pygame
+import socket, pygame, pickle
 from Game import Game
 from Player import Player
 from Database import DatabaseHandler
@@ -118,14 +118,23 @@ class Server:
                 message = player.msgsToSend.Dequeue()
                 try:
                     conn = player.connection
-                    encMessage = message.encode(self.FORMAT) #encodes msg with utf-8
-                    msgLen = len(encMessage)
-                    msgLen = str(msgLen).encode(self.FORMAT) 
-                    msgLen += b' ' * (self.HEADER - len(msgLen)) #makes the message length be 8 bytes long so the server recognises it
-                    #b' ' means the byte representation of a space
-                    conn.send(msgLen)
-                    conn.send(encMessage)
-                    print(f"Message sent:{message}")
+                    try:
+                        encMessage = message.encode(self.FORMAT) #encodes msg with utf-8
+                        msgLen = len(encMessage)
+                        msgLen = str(msgLen).encode(self.FORMAT) 
+                        msgLen += b' ' * (self.HEADER - len(msgLen)) #makes the message length be 8 bytes long so the server recognises it
+                        #b' ' means the byte representation of a space
+                        conn.send(msgLen)
+                        conn.send(encMessage)
+                        print(f"Message sent:{message}")
+                    #There will be an error if the message is a pickle as you cant encode a pickle
+                    except:
+                        msgLen = len(message)
+                        msgLen = str(msgLen).encode(self.FORMAT) 
+                        msgLen += b' ' * (self.HEADER - len(msgLen)) #makes the message length be 8 bytes long so the server recognises it
+                        #b' ' means the byte representation of a space
+                        conn.send(msgLen)
+                        conn.send(message)    
                 except socket.error:
                     player.msgsToSend.Enqueue(message)
             player.connection.setblocking(True)
@@ -182,10 +191,16 @@ class Server:
                     player.username = details[0]
                     try:
                         self.dbHandler.CreateNewUser(details[0], details[1])
-                        self.dbHandler.LoadUser(player)
+                        data = self.dbHandler.LoadUser(player)
                         player.msgsToSend.Enqueue("!REGISTEREDSUCCESFULLY")
+                        #TODO make it send pickle of data to player
+                        player.msgsTosend.Enqueue(pickle.dumps(data))
                     except:
                         player.msgsToSend.Enqueue("!ANERROROCCURRED")
+                elif message == "!STATISTICS":
+                    data = self.dbHandler.LoadUser(player)
+                    player.msgsToSend.Enqueue(pickle.dumps(data))
+                    print("Pickle sent")
                         
         #Removes players who quit from the list of players
         for player in playersQuit:

@@ -1,5 +1,5 @@
-import pygame, threading
-from Scene import Scene, ConnectionScreen, LoginScreen, RegisterScreen, MainMenu, SettingsScreen, MatchmakingScreen, TimerScene, RaceScene, PostGame
+import pygame, threading, pickle
+from Scene import *
 
 class Game:
     def __init__(self, window, settings):
@@ -20,6 +20,7 @@ class Game:
         self.__registerScreen : RegisterScreen = None
         self.__mainMenu : MainMenu = None
         self.__settingsScreen : SettingsScreen = None
+        self.__statisticsScreen : StatisticsScreen = None
         self.__matchmakingScreen : MatchmakingScreen = None
         self.__timerScene : TimerScene = None
         self.__raceScene : RaceScene = None
@@ -59,6 +60,7 @@ class Game:
             self.__results = None
             self.__margin = None
             self.__ELodiff = None
+            self.__stats = None
 
             #Goes to main menu to get choice from user
             self.GetChoiceFromUser()
@@ -103,8 +105,9 @@ class Game:
                         return 0
 
             elif userChoice == "Statistics":
-                #!TEMPORARY
-                pass
+                self.WaitForData()
+                self.ShowStatistics()
+
             elif userChoice == "Settings":
                 self.Settings()
                 if self.__userQuit:
@@ -193,6 +196,20 @@ class Game:
                 return 0
             pygame.display.update()
 
+    def WaitForData(self):
+        self.socket.msgsToSend.append("!STATISTICS")
+        while self.__stats is None:
+            self.CheckMessages()
+
+    def ShowStatistics(self):
+        self.__statisticsScreen = StatisticsScreen(self.__window, self.__resolution, self.__stats, self.socket)
+        while not self.__statisticsScreen.backButtonPressed:
+            self.__statisticsScreen.main()
+            if self.__statisticsScreen.userQuit:
+                self.__userQuit = True
+                return 0
+            pygame.display.update()
+
     def PlayGame(self):
         while not self.__raceScene.gameOver:
             self.__raceScene.main()
@@ -217,26 +234,31 @@ class Game:
         i = 0
         while i < len(self.socket.receivedMsgs):
             #If new phase started
-            if self.socket.receivedMsgs[i][:11] == "!STARTTIMER":
-                self.__timerStarted = True
+            try: 
+                self.__stats = pickle.loads(self.socket.receivedMsgs[i])
+                print("Pickle acquired")
                 self.socket.receivedMsgs.pop(i)
-            elif self.socket.receivedMsgs[i][:13] == "!TEXTTOWRITE:":
-                self.__textToWrite = self.socket.receivedMsgs[i][13:]
-                self.socket.receivedMsgs.pop(i)
-            elif self.socket.receivedMsgs[i][:14] == "!MATCHOUTCOME:":
-                self.__results = self.socket.receivedMsgs[i][14:]
-                if self.socket.receivedMsgs[i][14:] == "DRAW":
-                    self.__margin = 0
-                    self.__ELodiff = 0
-                self.socket.receivedMsgs.pop(i)
-            elif self.socket.receivedMsgs[i][:5] == "!ELO:":
-                self.__ELodiff = self.socket.receivedMsgs[i][5:]
-                self.socket.receivedMsgs.pop(i)
-            elif self.socket.receivedMsgs[i][:8] == "!MARGIN:":
-                self.__margin = self.socket.receivedMsgs[i][8:]
-                self.socket.receivedMsgs.pop(i)
-            else:
-                i += 1
+            except:
+                if self.socket.receivedMsgs[i][:11] == "!STARTTIMER":
+                    self.__timerStarted = True
+                    self.socket.receivedMsgs.pop(i)
+                elif self.socket.receivedMsgs[i][:13] == "!TEXTTOWRITE:":
+                    self.__textToWrite = self.socket.receivedMsgs[i][13:]
+                    self.socket.receivedMsgs.pop(i)
+                elif self.socket.receivedMsgs[i][:14] == "!MATCHOUTCOME:":
+                    self.__results = self.socket.receivedMsgs[i][14:]
+                    if self.socket.receivedMsgs[i][14:] == "DRAW":
+                        self.__margin = 0
+                        self.__ELodiff = 0
+                    self.socket.receivedMsgs.pop(i)
+                elif self.socket.receivedMsgs[i][:5] == "!ELO:":
+                    self.__ELodiff = self.socket.receivedMsgs[i][5:]
+                    self.socket.receivedMsgs.pop(i)
+                elif self.socket.receivedMsgs[i][:8] == "!MARGIN:":
+                    self.__margin = self.socket.receivedMsgs[i][8:]
+                    self.socket.receivedMsgs.pop(i)
+                else:
+                    i += 1
 
     #Handles getting and sending of messages
     #Necessary as if there are 2 threads then they will mistime the blocking settings

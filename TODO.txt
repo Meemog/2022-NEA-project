@@ -1,7 +1,4 @@
-Finish settings menu
 Sounds
-Stats section
-
 Make text to say information is incorrect on loginscreen
 
 Testing for game (client)

@@ -44,7 +44,11 @@ class ClientSocket:
             msgLen = int(msgLen)
             if msgLen > 0:
                 self.__client.setblocking(True)
-                msg = self.__client.recv(msgLen).decode(self.__FORMAT) #Waits for a message with length msgLen to be received
+                msg = self.__client.recv(msgLen)
+                try:
+                    msg = msg.decode(self.__FORMAT) #Waits for a message with length msgLen to be received
+                except:
+                    pass
                 self.receivedMsgs.append(msg)
                 print(f"Message Received:{msg}")
         except:

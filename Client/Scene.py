@@ -568,6 +568,145 @@ class SettingsScreen(Scene):
             else:
                 i += 1
 
+class StatisticsScreen(Scene):
+    def __init__(self, window, resolution, data, socket: ClientSocket = None) -> None:
+        super().__init__(window, resolution, socket)
+        # These are here for reference as to what is in data, it has been copied from the generation of the database
+        # Username TEXT PRIMARY KEY, 0
+        # Password BLOB, 1
+        # WordsTyped INTEGER, 2 
+        # TimePlayed INTEGER, 3
+        # Elo INTEGER, 4
+        # HighestElo INTEGER, 5
+        # GamesWon INTEGER, 6
+        # GamesPlayed INTEGER, 7
+        # LongestStreak INTEGER, 8
+        # LargestWinMargin FLOAT, 9
+        # LettersTyped INTEGER, 10
+        # LettersTypedCorrectly INTEGER, 11
+        # SumOfOpponentsELo INTEGER, 12
+        # CurrentWinstreak INTEGER 13
+
+        #Find WPM
+        wordsTyped = data[2]
+        timePlayed = data[3]
+        avgWPM = round(wordsTyped / timePlayed, 2)
+
+        #Winrate
+        gamesWon = data[6]
+        gamesPlayed = data[7]
+        winrate = round(gamesWon / gamesPlayed * 100, 2)
+
+        #Just data
+        longestStreak = data[8]
+        currentStreak = data[13]
+        
+        currentELo = round(data[4], 2)
+        highestELo = round(data[5], 2)
+
+        largestWinMargin = int(data[9])
+
+        self.__font = pygame.font.SysFont("Courier New", int(36 * self._resolution[1]), bold=True)
+        maxTextHeight = self.__font.size("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")[1]
+        thingsToRender = [avgWPM, gamesPlayed, gamesWon, winrate, longestStreak, currentStreak, currentELo, highestELo, largestWinMargin]
+
+        #Dimensions for area text is rendered in
+        textBoxTopLeft = (int(140 * self._resolution[0]), int(260 * self._resolution[0]))
+        maxWidth = self._resolution[0] * 1920 - 2 * textBoxTopLeft[0]
+        charWidth = self.__font.size("a")[0]
+        maxTextWidth = int(maxWidth / charWidth)
+
+        text = "Average WPM (Words Per Minute):"
+        lenText = len(text)
+        avgWPM = text + "{info:>{width}}".format(info = avgWPM, width = maxTextWidth - lenText)
+
+        text = "Games played:"
+        lenText = len(text)
+        gamesPlayed = text + "{info:>{width}}".format(info = gamesPlayed, width = maxTextWidth - lenText)
+
+        text = "Games won:"
+        lenText = len(text)
+        gamesWon = text + "{info:>{width}}".format(info = gamesWon, width = maxTextWidth - lenText)
+
+        text = "Winrate (%):"
+        lenText = len(text)
+        winrate = text + "{info:>{width}}".format(info = winrate, width = maxTextWidth - lenText)
+
+        text = "Longest winstreak:"
+        lenText = len(text)
+        longestStreak = text + "{info:>{width}}".format(info = longestStreak, width = maxTextWidth - lenText)
+
+        text = "Current winstreak:"
+        lenText = len(text)
+        currentStreak = text + "{info:>{width}}".format(info = currentStreak, width = maxTextWidth - lenText)
+
+        text = "Current ELo:"
+        lenText = len(text)
+        currentELo = text + "{info:>{width}}".format(info = currentELo, width = maxTextWidth - lenText)
+
+        text = "Highest ELo:"
+        lenText = len(text)
+        highestELo = text + "{info:>{width}}".format(info = highestELo, width = maxTextWidth - lenText)
+
+        text = "Largest win margin:"
+        lenText = len(text)
+        largestWinMargin = text + "{info:>{width}}".format(info = largestWinMargin, width = maxTextWidth - lenText)
+
+        textToRender = [avgWPM, gamesPlayed, gamesWon, winrate, longestStreak, currentStreak, currentELo, highestELo, largestWinMargin]
+
+        textX = textBoxTopLeft[0]
+        textY = textBoxTopLeft[1]
+        #Make background black
+        self._window.fill((0,0,0))
+        
+        #Render title text
+        titleFont = pygame.font.SysFont("Calibri", int(108 * self._resolution[1]))
+        titleRender = titleFont.render("Statistics", True, (255,255,255))
+        titleSize = titleRender.get_size()
+        titleLocation = (int((self._resolution[0] * 1920 - titleSize[0]) / 2), int(75 * self._resolution[1]))
+        self._window.blit(titleRender, titleLocation)
+
+        #Render information on screen
+        for i in range(len(textToRender)):
+            textRender = self.__font.render(textToRender[i], True, (255,255,255))
+            renderLocation = (textX, textY + (maxTextHeight + 5) * i)
+            self._window.blit(textRender, renderLocation)
+
+        #For back button
+        self.backButtonPressed = False
+        backButtonSize = (int(500 * self._resolution[0]), int(130 * self._resolution[1]))
+        backButtonLocation = (int(250 * self._resolution[0]), int(850 * self._resolution[1]))
+        backRect = pygame.Rect(backButtonLocation, backButtonSize)
+        self.__backButton = Button(backRect, (40,40,40), (25,25,25), (255,255,255), text="Back")
+
+    def main(self):
+        self._HandleInputs()
+
+        if self.__backButton.CheckForCollision(pygame.mouse.get_pos()):
+            self.__backButton.SetActive()
+        else:
+            self.__backButton.SetInactive()
+
+        self._Render()
+
+    def _Render(self):
+        #Override to prevent background fill
+        self.__backButton.Render(self._window)
+
+    def _HandleInputs(self):
+        super()._HandleInputs()
+        i = 0
+        while i < len(self._inputHandler.inputsList):
+            if self._inputHandler.inputsList[i][:6] == "CLICK:":
+                clickLocation = self._inputHandler.inputsList[i][6:].split(",")
+                clickLocation = (int(clickLocation[0]), int(clickLocation[1]))
+                if self.__backButton.CheckForCollision(clickLocation):
+                    self.backButtonPressed = True
+                    self.__backButton.clicked = True
+                self._inputHandler.inputsList.pop(i)
+            else:
+                i += 1
+
 #Displays message that they are in queue
 class MatchmakingScreen(Scene):
     def __init__(self, window, resolution, socket=None) -> None:
