@@ -1,0 +1,28 @@
+CLASS WordGenerator
+    SUBROUTINE __GetWords(self)
+        listOfWords <-- None
+        WHILE listOfWords = None
+            listOfWords <-- get random words from library
+        ENDWHILE
+        x <-- 0
+        WHILE x < LEN(listOfWords)
+            erroneousFound <-- False
+            check if listOfWords[i] is a letter of the alphabet
+            if it is then remove it from the list 
+        ENDWHILE
+        RETURN listOfWords
+    ENDSUBROUTINE
+
+    SUBROUTINE __MakeWordsCorrectLength(self, words, length)
+        newWords = []
+        copyOfWords <-- words
+        WHILE LEN(newWords) < length
+            newWords.APPEND(copyOfWords.POP())                
+            ENDIF
+        ENDWHILE
+    ENDSUBROUTINE
+
+    SUBROUTINE GetWordsForProgram(self, length)
+        RETURN self.__MakeWordsCorrectLength(self.__GetWords(), length)
+    ENDSUBROUTINE
+ENDCLASS
