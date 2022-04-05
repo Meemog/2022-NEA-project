@@ -23,15 +23,20 @@ class Server:
         self.server.bind(self.ADDRESS)
         self.dbHandler = DatabaseHandler()
         print("[SERVER STARTED]")
-        self.__clock = pygame.time.Clock
+        self.__clock = pygame.time.Clock()
 
     def Run(self):
         self.server.listen() #Looks for connections
         while self.running:
             self.__clock.tick()
 
+            #Update how long a player has been in queue
             for player in self.playersInMatchmaking:
                 player.timeWaited += self.__clock.get_time()
+                #If player has waited 20 seconds in queue, their mmr range will increase
+                #Player's mmr range increases by 50% every 20 seconds
+                if player.timeWaited >= 20000:
+                    player.matchmakingRange *= 1.5 ** (player.timeWaited // 20000)
 
             self.CheckForNewPlayers()
             self.PrintPlayers()
@@ -44,7 +49,7 @@ class Server:
                 player1 : Player = self.playersInMatchmaking.pop(0)
                 gameMade = False
                 for i in range(len(self.playersInMatchmaking)):
-                    if player1.Elo - player1.matchmakingRange < self.playersInMatchmaking[i] < player1.Elo + player1.matchmakingRange:
+                    if player1.Elo - player1.matchmakingRange < self.playersInMatchmaking[i].Elo < player1.Elo + player1.matchmakingRange:
                         player2 = self.playersInMatchmaking.pop(i)
                         player1.msgsToSend.Enqueue("!GAMEFOUND")
                         player2.msgsToSend.Enqueue("!GAMEFOUND")
@@ -55,6 +60,9 @@ class Server:
                         break
                 if not gameMade:
                     playersGameNotFound.append(player1)
+
+            for player in playersGameNotFound:
+                self.playersInMatchmaking.append(player)
 
             #Checks if any players in game have disconnected
             i = 0
@@ -148,7 +156,7 @@ class Server:
                 elif player.loggedIn and message == "!QUEUE":
                     playersQuit.append(player)
                     self.playersInMatchmaking.append(player)
-                    self.player.timeWaited = 0
+                    player.timeWaited = 0
 
                 elif message[:7] == "!LOGIN:":
                     if not player.loggedIn:

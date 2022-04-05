@@ -117,7 +117,7 @@ class DatabaseHandler:
         sumOfOpponentsElo = 0
         currentWinstreak = 0
 
-        params = (username, password, wordsTyped, timePlayed, Elo, highestElo, gamesWon, gamesPlayed, longestStreak, largestWinMargin, lettersTyped, lettersTypedCorrectly, sumOfOpponentsElo, currentWinstreak)
+        params = (str(username), password, wordsTyped, timePlayed, Elo, highestElo, gamesWon, gamesPlayed, longestStreak, largestWinMargin, lettersTyped, lettersTypedCorrectly, sumOfOpponentsElo, currentWinstreak)
         command = """
         INSERT INTO Users
         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)
@@ -187,11 +187,13 @@ class DatabaseHandler:
         #Uses bcrypt library to check password against hash
         return CheckPW(password, correctPasswordHash)
 
+# players = [200,400,600,800,1000,1200,1400,1600,1800,2000,2200]
+
 # dbHandler = DatabaseHandler()
-# # player = Player(None, None)
-# # player.username = "Username0"
+# # # player = Player(None, None)
+# # # player.username = "Username0"
 
-# # dbHandler.LoadUser(player)
+# # # dbHandler.LoadUser(player)
 
-# for i in range(20):
-#     dbHandler.CreateNewUser(f"{i}", f"{i}")
+# for player in players:
+#     dbHandler.CreateNewUser(player, f"{player}")
