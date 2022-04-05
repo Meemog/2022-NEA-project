@@ -24,7 +24,7 @@ class Game:
         self.__matchmakingScreen : MatchmakingScreen = None
         self.__timerScene : TimerScene = None
         self.__raceScene : RaceScene = None
-        self.__postGameScreen : __PostGame = None
+        self.__postGameScreen : PostGame = None
 
         self.__timerStarted = False
         self.__textToWrite = None
@@ -99,7 +99,7 @@ class Game:
                     self.__WaitForMatchResult()
 
                     #Goes to post game screen
-                    self.__postGameScreen = __PostGame(self.__window, self.__resolution, self.__results, self.__margin, self.__ELodiff, self.socket)
+                    self.__postGameScreen = PostGame(self.__window, self.__resolution, self.__results, self.__margin, self.__ELodiff, self.socket)
                     self.__PostGame()
                     if self.__userQuit:
                         return 0
