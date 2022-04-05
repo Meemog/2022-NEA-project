@@ -24,7 +24,7 @@ class Game:
         self.__matchmakingScreen : MatchmakingScreen = None
         self.__timerScene : TimerScene = None
         self.__raceScene : RaceScene = None
-        self.__postGameScreen : PostGame = None
+        self.__postGameScreen : __PostGame = None
 
         self.__timerStarted = False
         self.__textToWrite = None
@@ -32,7 +32,7 @@ class Game:
 
     def main(self):
         #Connects to server
-        self.ConnectToServer()
+        self.__ConnectToServer()
         #I couldn't come up with a more readable solution for having to end the game after any of these scenes than to simply check after every one
         #I previously had a solution with an activescene attribute but that was unreadable and provided no real benefit
         if self.__userQuit:
@@ -40,11 +40,11 @@ class Game:
 
         while not self.__loggedIn:
             #Goes to loginscreen
-            self.Login()
+            self.__Login()
             if self.__userQuit:
                 return 0
             elif self.__loginScreen.userWantsToCreateAccount:
-                self.Register()
+                self.__Register()
                 if self.__userQuit:
                     return 0
                 if self.__registerScreen.registered:
@@ -63,14 +63,14 @@ class Game:
             self.__stats = None
 
             #Goes to main menu to get choice from user
-            self.GetChoiceFromUser()
+            self.__GetChoiceFromUser()
             if self.__userQuit:
                 return 0
             userChoice = self.__mainMenu.userChoice
 
             if userChoice == "Play":
                 #Goes to matchmaking screen
-                self.WaitForGame()
+                self.__WaitForGame()
                 #If user quit during matchmaking
                 #Disconnecting from server is done in Play.py
                 #If the user disconnects from server while in queue, server will automatically dequeue them
@@ -82,38 +82,38 @@ class Game:
                     #Loop starts again and user goes to main menu
                 #If game was found
                 elif self.__matchmakingScreen.gameFound:
-                    self.PreGameTimer()
+                    self.__PreGameTimer()
                     if self.__userQuit:
                         return 0
                     #Waits for previewtext from server
-                    self.WaitForText()
+                    self.__WaitForText()
                     if self.__userQuit:
                         return 0
 
                     #Plays game while timer is more than 0
                     self.__raceScene = RaceScene(self.__window, self.__resolution, self.__textToWrite, self.socket)
-                    self.PlayGame()
+                    self.__PlayGame()
                     if self.__userQuit:
                         return 0
 
-                    self.WaitForMatchResult()
+                    self.__WaitForMatchResult()
 
                     #Goes to post game screen
-                    self.__postGameScreen = PostGame(self.__window, self.__resolution, self.__results, self.__margin, self.__ELodiff, self.socket)
-                    self.PostGame()
+                    self.__postGameScreen = __PostGame(self.__window, self.__resolution, self.__results, self.__margin, self.__ELodiff, self.socket)
+                    self.__PostGame()
                     if self.__userQuit:
                         return 0
 
             elif userChoice == "Statistics":
-                self.WaitForData()
-                self.ShowStatistics()
+                self.__WaitForData()
+                self.__ShowStatistics()
 
-            elif userChoice == "Settings":
-                self.Settings()
+            elif userChoice == "__Settings":
+                self.__Settings()
                 if self.__userQuit:
                     return 0
 
-    def ConnectToServer(self):
+    def __ConnectToServer(self):
         #Before client has connected to the server
         self.__connectionScreen = ConnectionScreen(self.__window, self.__resolution)
         while self.socket is None:
@@ -129,7 +129,7 @@ class Game:
                     return 0
                 pygame.display.update()
 
-    def Login(self):
+    def __Login(self):
         #Before user has logged in
         self.__loginScreen = LoginScreen(self.__window, self.__resolution, self.socket)
         while not self.__loggedIn and not self.__loginScreen.userWantsToCreateAccount:
@@ -142,7 +142,7 @@ class Game:
                     return 0
                 pygame.display.update()
 
-    def Register(self):
+    def __Register(self):
         #When user wants to create account
         self.__registerScreen = RegisterScreen(self.__window, self.__resolution, self.socket)
         while not self.__registerScreen.backbuttonPressed and not self.__registerScreen.registered:
@@ -152,7 +152,7 @@ class Game:
                 return 0
             pygame.display.update()
 
-    def GetChoiceFromUser(self):
+    def __GetChoiceFromUser(self):
         #Waits for choice from user
         while self.__mainMenu.userChoice is None:
             self.__mainMenu.main()
@@ -161,7 +161,7 @@ class Game:
                 return 0
             pygame.display.update()
 
-    def WaitForGame(self):
+    def __WaitForGame(self):
         self.socket.msgsToSend.append("!QUEUE")
         #Wait until game is found or user cancels game being found
         #While no game is found and user hasn't quit the queue
@@ -172,10 +172,10 @@ class Game:
                 return 0
             pygame.display.update()
 
-    def PreGameTimer(self):
+    def __PreGameTimer(self):
         #Waits for server to start the timer
         while not self.__timerStarted:
-            self.CheckMessages()
+            self.__CheckMessages()
         while not self.__timerScene.timerFinished:
             self.__timerScene.main()
             if self.__timerScene.userQuit:
@@ -183,11 +183,11 @@ class Game:
                 return 0
             pygame.display.update()
 
-    def WaitForText(self):
+    def __WaitForText(self):
         while self.__textToWrite is None:
-            self.CheckMessages()
+            self.__CheckMessages()
 
-    def Settings(self):
+    def __Settings(self):
         self.__settingsScreen = SettingsScreen(self.__window, self.__resolution, self.settings, self.socket)
         while not self.__settingsScreen.backButtonPressed:
             self.__settingsScreen.main()
@@ -196,12 +196,12 @@ class Game:
                 return 0
             pygame.display.update()
 
-    def WaitForData(self):
+    def __WaitForData(self):
         self.socket.msgsToSend.append("!STATISTICS")
         while self.__stats is None:
-            self.CheckMessages()
+            self.__CheckMessages()
 
-    def ShowStatistics(self):
+    def __ShowStatistics(self):
         self.__statisticsScreen = StatisticsScreen(self.__window, self.__resolution, self.__stats, self.socket)
         while not self.__statisticsScreen.backButtonPressed:
             self.__statisticsScreen.main()
@@ -210,7 +210,7 @@ class Game:
                 return 0
             pygame.display.update()
 
-    def PlayGame(self):
+    def __PlayGame(self):
         while not self.__raceScene.gameOver:
             self.__raceScene.main()
             if self.__raceScene.userQuit:
@@ -218,11 +218,11 @@ class Game:
                 return 0
             pygame.display.update()
 
-    def WaitForMatchResult(self):
+    def __WaitForMatchResult(self):
         while self.__results is None or self.__margin is None or self.__ELodiff is None:
-            self.CheckMessages()
+            self.__CheckMessages()
 
-    def PostGame(self):
+    def __PostGame(self):
         while not self.__postGameScreen.menuButtonPressed:
             self.__postGameScreen.main()
             if self.__postGameScreen.userQuit:
@@ -230,7 +230,7 @@ class Game:
                 return 0
             pygame.display.update()
 
-    def CheckMessages(self):
+    def __CheckMessages(self):
         i = 0
         while i < len(self.socket.receivedMsgs):
             #If new phase started
