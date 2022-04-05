@@ -72,6 +72,8 @@ class TimerStage(Stage):
         self.__wordGenerator = WordGenerator()
         self.textForPlayersToType = self.__wordGenerator.GetWordsForProgram(500)
 
+        self._clock.tick()
+
     #Runs every frame in Game.main() while timerfinished is false
     def main(self):
         super().main()

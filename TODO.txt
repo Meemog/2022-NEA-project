@@ -1,4 +1,3 @@
-Test matchmaking
 Allow user to register
 Finish settings menu
 Sounds
