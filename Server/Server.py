@@ -177,7 +177,16 @@ class Server:
                             player.msgsToSend.Enqueue("!USERNAMENOTFOUND")
                     else:
                         player.msgsToSend.Enqueue("!ALREADYLOGGEDIN")
-
+                elif message[:10] == "!REGISTER:":
+                    details = message[10:].split(",")
+                    player.username = details[0]
+                    try:
+                        self.dbHandler.CreateNewUser(details[0], details[1])
+                        self.dbHandler.LoadUser(player)
+                        player.msgsToSend.Enqueue("!REGISTEREDSUCCESFULLY")
+                    except:
+                        player.msgsToSend.Enqueue("!ANERROROCCURRED")
+                        
         #Removes players who quit from the list of players
         for player in playersQuit:
             listIndex = LinearSearch(player, self.players)

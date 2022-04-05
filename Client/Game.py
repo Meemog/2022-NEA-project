@@ -1,5 +1,5 @@
 import pygame, threading
-from Scene import Scene, ConnectionScreen, LoginScreen, MainMenu, MatchmakingScreen, TimerScene, RaceScene, PostGame
+from Scene import Scene, ConnectionScreen, LoginScreen, RegisterScreen, MainMenu, MatchmakingScreen, TimerScene, RaceScene, PostGame
 
 class Game:
     def __init__(self, window):
@@ -16,6 +16,7 @@ class Game:
 
         self.__connectionScreen : ConnectionScreen = None
         self.__loginScreen : LoginScreen = None
+        self.__registerScreen : RegisterScreen = None
         self.__mainMenu : MainMenu = None
         self.__matchmakingScreen : MatchmakingScreen = None
         self.__timerScene : TimerScene = None
@@ -24,7 +25,7 @@ class Game:
 
         self.__timerStarted = False
         self.__textToWrite = None
-        self.__matchResults = None
+        self.__results = None
 
     def main(self):
         #Connects to server
@@ -34,10 +35,17 @@ class Game:
         if self.__userQuit:
             return 0
 
-        #Goes to loginscreen
-        self.Login()
-        if self.__userQuit:
-            return 0
+        while not self.__loggedIn:
+            #Goes to loginscreen
+            self.Login()
+            if self.__userQuit:
+                return 0
+            elif self.__loginScreen.userWantsToCreateAccount:
+                self.Register()
+                if self.__userQuit:
+                    return 0
+                if self.__registerScreen.registered:
+                    self.__loggedIn = True
 
         #Main loop where player goes to main menu and back#
         while True:
@@ -118,7 +126,7 @@ class Game:
     def Login(self):
         #Before user has logged in
         self.__loginScreen = LoginScreen(self.__window, self.__resolution, self.socket)
-        while not self.__loggedIn:
+        while not self.__loggedIn and not self.__loginScreen.userWantsToCreateAccount:
             if self.__loginScreen.loggedIn:
                 self.__loggedIn = True
             else:
@@ -127,6 +135,16 @@ class Game:
                     self.__userQuit = True
                     return 0
                 pygame.display.update()
+
+    def Register(self):
+        #When user wants to create account
+        self.__registerScreen = RegisterScreen(self.__window, self.__resolution, self.socket)
+        while not self.__registerScreen.backbuttonPressed and not self.__registerScreen.registered:
+            self.__registerScreen.main()
+            if self.__registerScreen.userQuit:
+                self.__userQuit = True
+                return 0
+            pygame.display.update()
 
     def GetChoiceFromUser(self):
         #Waits for choice from user

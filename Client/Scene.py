@@ -154,6 +154,7 @@ class LoginScreen(Scene):
     def __init__(self, window, resolution, socket=None) -> None:
         super().__init__(window, resolution, socket)
         self.loggedIn = False
+        self.userWantsToCreateAccount = False
         self.__detailsSent = False
 
         inputBoxFont = pygame.font.SysFont("Courier New", int(36 * self._resolution[1]))
@@ -168,23 +169,29 @@ class LoginScreen(Scene):
         self.__usernameBox = InputBox(usernameRect, inputBoxFont, self._resolution, (40,40,40), (25,25,25), (255,255,255), "")
         self.__passwordBox = InputBox(passwordRect, inputBoxFont, self._resolution, (40,40,40), (25,25,25), (255,255,255), "", hashed=True)
 
-        continueButtonSize = (400 * self._resolution[0], 60 * self._resolution[1])
+        #Button size for continue and register buttons
+        buttonSize = (400 * self._resolution[0], 60 * self._resolution[1])
         #Button needs to be centred and 680 pixels down
-        continueButtonLocation = ((self._resolution[0] * 1920 - continueButtonSize[0]) / 2, 680 * self._resolution[1])
-        continueButtonRect = pygame.Rect(continueButtonLocation[0], continueButtonLocation[1], continueButtonSize[0], continueButtonSize[1])
+        continueButtonLocation = (int((self._resolution[0] * 1920 - buttonSize[0]) / 2), int(680 * self._resolution[1]))
+        continueButtonRect = pygame.Rect(continueButtonLocation[0], continueButtonLocation[1], buttonSize[0], buttonSize[1])
         self.__continueButton = Button(continueButtonRect, (40,40,40), (25,25,25), (255,255,255), text="Continue")
+        
+        #Need register button same size as continue button
+        registerButtonLocation = (int(1400 * self._resolution[0]), int(950 * self._resolution[1]))
+        resgisterButtonRect = pygame.Rect(registerButtonLocation, buttonSize)
+        self.__registerButton = Button(resgisterButtonRect, (40,40,40), (25,25,25), (255,255,255), text="Register")
 
         #Text needs to be 5 pixels to the right of the corresponding box and needs to be 25 pixels above (so 25 pixels and the height of the text itself)
         usernameTextSize = inputBoxFont.size("Username")
-        usernameTextLocation = (usernameBoxLocation[0] + 5 * self._resolution[0], usernameBoxLocation[1] - 25 * self._resolution[1] - usernameTextSize[1])
+        usernameTextLocation = (int(usernameBoxLocation[0] + 5 * self._resolution[0]), int(usernameBoxLocation[1] - 25 * self._resolution[1] - usernameTextSize[1]))
         self.__usernameText = Text(inputBoxFont, text="Username", location=usernameTextLocation)
         passwordTextSize = inputBoxFont.size("Password")
-        passwordTextLocation = (passwordBoxLocation[0] + 5 * self._resolution[0], passwordBoxLocation[1] - 25 * self._resolution[1] - passwordTextSize[1])
+        passwordTextLocation = (int(passwordBoxLocation[0] + 5 * self._resolution[0]), int(passwordBoxLocation[1] - 25 * self._resolution[1] - passwordTextSize[1]))
         self.__passwordText = Text(inputBoxFont, text="Password", location=passwordTextLocation)
 
         #These lists are used to render things on the screen, they are iterated through
         self._listOfBoxObjects = [self.__usernameBox, self.__passwordBox]
-        self._listOfButtonObjects = [self.__continueButton]
+        self._listOfButtonObjects = [self.__continueButton, self.__registerButton]
         self._listOfTextObjects = [self.__usernameText, self.__passwordText]
 
     def main(self):
@@ -225,6 +232,9 @@ class LoginScreen(Scene):
                     if self.__continueButton.CheckForCollision(clickLocation):
                         self.__continueButton.clicked = True
                         self.__continueButton.SetText("Checking...")
+                    elif self.__registerButton.CheckForCollision(clickLocation):
+                        self.__registerButton.clicked = True
+                        self.userWantsToCreateAccount = True
                     else:
                         for box in self._listOfBoxObjects:
                             if box.CheckForCollisionWithMouse(clickLocation):
@@ -256,6 +266,135 @@ class LoginScreen(Scene):
                     self._inputHandler.inputsList.pop(i)
                 else:
                     i += 1
+
+class RegisterScreen(Scene):
+    def __init__(self, window, resolution, socket: ClientSocket = None) -> None:
+        super().__init__(window, resolution, socket)
+
+        self.backbuttonPressed = False
+        self.registered = False
+        self.__submitButtonPressed = False
+
+        boxFont = pygame.font.SysFont("Courier New", int(28 * self._resolution[1]))
+        boxColourActive = (40,40,40)
+        boxColourInactive = (25,25,25)
+
+        boxRectSize = (int(625 * self._resolution[0]), int(60 * self._resolution[1]))
+        
+        #Usernamebox
+        usernameRectLocation = (int((self._resolution[0] * 1920 - boxRectSize[0]) / 2), int(400 * self._resolution[1]))
+        usernameRect = pygame.Rect(usernameRectLocation, boxRectSize)
+        self.__usernameBox = InputBox(usernameRect, boxFont, self._resolution, boxColourActive, boxColourInactive, (255,255,255), "")
+        
+        #Passwordbox
+        passwordRectLocation = (int((self._resolution[0] * 1920 - boxRectSize[0]) / 2), int(570 * self._resolution[1]))
+        passwordRect = pygame.Rect(passwordRectLocation, boxRectSize)
+        self.__passwordBox = InputBox(passwordRect, boxFont, self._resolution, boxColourActive, boxColourInactive, (255,255,255), "")
+
+        #Password confirm box
+        confirmRectLocation = (int((self._resolution[0] * 1920 - boxRectSize[0]) / 2), int(740 * self._resolution[1]))
+        confirmRect = pygame.Rect(confirmRectLocation, boxRectSize)
+        self.__confirmBox = InputBox(confirmRect, boxFont, self._resolution, boxColourActive, boxColourInactive, (255,255,255), "")
+
+        self._listOfBoxObjects = [self.__usernameBox, self.__passwordBox, self.__confirmBox]
+
+        buttonSize = (int(300 * self._resolution[0]), int(60 * self._resolution[1]))
+
+        #Back button
+        backButtonLocation = (int(650 * self._resolution[0]), int(830 * self._resolution[1]))
+        backButtonRect = pygame.Rect(backButtonLocation, buttonSize)
+        self.__backButton = Button(backButtonRect, boxColourActive, boxColourInactive, (255,255,255), text="Back")
+
+        #Submit button
+        submitButtonLocation = (int(980 * self._resolution[0]), int(830 * self._resolution[1]))
+        submitButtonRect = pygame.Rect(submitButtonLocation, buttonSize)
+        self.__submitButton = Button(submitButtonRect, boxColourActive, boxColourInactive, (255,255,255), text="Submit")
+
+        self._listOfButtonObjects = [self.__backButton, self.__submitButton]
+
+        #Username text
+        textFont = pygame.font.SysFont("Courier New", int(36 * self._resolution[1]))
+        self.__usernameText = Text(textFont, text="Username", location=(int(655 * self._resolution[0]), int(350 * self._resolution[1])))
+        self.__passwordText = Text(textFont, text="Password", location=(int(655 * self._resolution[0]), int(520 * self._resolution[1])))
+        self.__confirmText = Text(textFont, text="Confirm password", location=(int(655 * self._resolution[0]), int(690 * self._resolution[1])))
+
+        self._listOfTextObjects = [self.__usernameText, self.__passwordText, self.__confirmText]
+
+    def main(self):
+        super().main()
+
+        #Checks if buttons were pressed
+        for button in self._listOfButtonObjects:
+            if button.clicked:
+                if button == self.__backButton:
+                    self.backbuttonPressed = True
+                elif button == self.__submitButton:
+                    if self.__passwordBox.text == self.__confirmBox.text and self.__passwordBox.text != "":
+                        self.socket.msgsToSend.append(f"!REGISTER:{self.__usernameBox.text},{self.__passwordBox.text}")
+                        self.__submitButtonPressed = True
+                    else:
+                        self.__submitButton.clicked = False
+                        button.clicked = False
+                        for box in self._listOfBoxObjects:
+                            box.text = ""
+
+        while self.__submitButtonPressed and not self.registered:
+            self.__HandleMessages()
+
+    def __HandleMessages(self):
+        i = 0
+        while i < len(self.socket.receivedMsgs):
+            if self.socket.receivedMsgs[i] == "!REGISTEREDSUCCESFULLY":
+                self.registered = True
+                self.socket.receivedMsgs.pop(i)
+            elif self.socket.receivedMsgs[i] == "!ANERROROCCURRED":
+                self.__submitButtonPressed = False
+                self.__submitButton.clicked = False
+                self.socket.receivedMsgs.pop(i)
+            else:
+                i += 1
+
+    def _HandleInputs(self):
+        super()._HandleInputs()
+        #Need to check for clicks, tab or keys being pressed
+        i = 0
+        while i < len(self._inputHandler.inputsList):
+            if self._inputHandler.inputsList[i][:6] == "CLICK:":
+                clickLocation = self._inputHandler.inputsList[i][6:].split(",")
+                clickLocation = (int(clickLocation[0]), int(clickLocation[1]))
+                for box in self._listOfBoxObjects:
+                    #If clicked on box
+                    if box.CheckForCollisionWithMouse(clickLocation):
+                        box.SetActive()
+                    else:
+                        box.SetInactive()
+                for button in self._listOfButtonObjects:
+                    if button.CheckForCollision(clickLocation):
+                        button.clicked = True
+                self._inputHandler.inputsList.pop(i)
+            #Adds letters to textbox
+            elif self._inputHandler.inputsList[i][:3] == "KD_":
+                key = self._inputHandler.inputsList[i][3:]
+                #Checks if the key is a letter and not a special character
+                if key.isalpha():
+                    for box in self._listOfBoxObjects:
+                        if box.isActive:
+                            box.AddLetter(key)
+                self._inputHandler.inputsList.pop(i)
+            #Switches active textbox
+            elif self._inputHandler.inputsList[i] == "TABDOWN":
+                if self.__usernameBox.isActive:
+                    self.__usernameBox.SetInactive()
+                    self.__passwordBox.SetActive()
+                elif self.__passwordBox.isActive:
+                    self.__passwordBox.SetInactive()
+                    self.__confirmBox.SetActive()
+                elif self.__confirmBox.isActive:
+                    self.__confirmBox.SetInactive
+                    self.__usernameBox.SetActive()
+                self._inputHandler.inputsList.pop(i)
+            else:
+                i += 1
 
 #Displays main menu for user to make choice what to see
 class MainMenu(Scene):
