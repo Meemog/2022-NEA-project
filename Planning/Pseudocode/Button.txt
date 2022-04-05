@@ -1,0 +1,44 @@
+CLASS Button
+    SUBROUTINE Initialise(self, rect, colourActive, colourInactive, textColour, text <-- "")
+        self.text <-- text
+        self.__rect <-- rect
+        self.__activeColour <-- colourActive
+        self.__inactiveColour <-- colourInactive
+        self.__colour <-- colourInactive
+        
+        self.clicked <-- False
+        self.textColour <-- textColour
+
+        find largest text size that fits in the box and create a pygame.Font object set to self.__font
+        self.textObject <-- Text(self.__font, self.textColour, self.text, location text needs to be)
+    ENDSUBROUTINE
+
+    SUBROUTINE Render(self, window)
+        draw self.rect rectangle
+        use self.textObject's Render() method
+    ENDSUBROUTINE
+
+    SUBROUTINE SetText(self, newText)
+        self.text <-- newText
+        set self.textObject's text to newText with SetText()
+    ENDSUBROUTINE
+
+    SUBROUTINE SetFont(self, newFont)
+        self.__font <-- newFont
+        set textObject's font to newFont
+        textLocation <-- Centre of self.rect
+        set self.textObject's location to textLocation
+    ENDSUBROUTINE
+
+    SUBROUTINE SetActive(self)
+        self.__colour <-- self.__colourActive
+    ENDSUBROUTINE
+
+    SUBROUTINE SetInactive(self)
+        self.colour <-- self.__colourInactive
+    ENDSUBROUTINE
+
+    SUBROUTINE CheckForCollision(self, mouseLocation)
+        check if mouseLocation is inside self.rect
+    ENDSUBROUTINE
+ENDCLASS

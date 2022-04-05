@@ -1,0 +1,33 @@
+CLASS Text
+    SUBROUTINE init(self, font, colour, text, location)
+        self.__font <-- font
+        self.__colour <-- colour
+        self.__text <-- text
+        self.__location <-- location
+
+        self.__textRender <-- render self.__text
+    ENDSUBROUTINE
+
+    SUBROUTINE UpdateRender(self)
+        self.__textRender <-- render self.__text
+    ENDSUBROUTINE
+
+    SUBROUTINE SetText(self, newText)
+        self.__text <-- newText
+        self.UpdateRender()
+    ENDSUBROUTINE
+
+    SUBROUTINE SetColour(self, newColour)
+        self.__colour <-- newColour
+        self.UpdateRender()
+    ENDSUBROUTINE
+
+    SUBROUTINE SetFont(self, newFont)
+        self.__font <-- newFont
+        self.UpdateRender()
+    ENDSUBROUTINE
+
+    SUBROUTINE Render(self, window)
+        draw self.textRender on window
+    ENDSUBROUTINE
+ENDCLASS

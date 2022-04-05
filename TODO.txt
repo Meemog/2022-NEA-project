@@ -1,5 +1,6 @@
-Sounds
-Make text to say information is incorrect on loginscreen
+Documentation
+    testing for Text
+    Scene
 
 Testing for game (client)
 Testing for LoginScreen
@@ -7,6 +8,9 @@ Testing for Main Menu
 Testing for Database
 
 Add try except to disconnect from server in case of crash
+
+Sounds
+Make text to say information is incorrect on loginscreen
 
 Command to find number of lines:
 dir -Recurse *.py | Get-Content | Measure-Object -Line
