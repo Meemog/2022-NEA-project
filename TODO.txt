@@ -2,8 +2,6 @@ Finish settings menu
 Sounds
 Stats section
 
-Implement abandon penalty
-
 Make text to say information is incorrect on loginscreen
 
 Testing for game (client)
@@ -17,3 +15,7 @@ Command to find number of lines:
 dir -Recurse *.py | Get-Content | Measure-Object -Line
 
 Could improve program by using pickle to send a textrender of the previewtext in order to prevent cheating but not a priority
+Could add abandon penalty
+Could add message for user getting details wrong
+Could add message for user passwords not matching in registration
+Could add message to say that user needs to restart to apply new settings

@@ -1,9 +1,10 @@
 import pygame, threading
-from Scene import Scene, ConnectionScreen, LoginScreen, RegisterScreen, MainMenu, MatchmakingScreen, TimerScene, RaceScene, PostGame
+from Scene import Scene, ConnectionScreen, LoginScreen, RegisterScreen, MainMenu, SettingsScreen, MatchmakingScreen, TimerScene, RaceScene, PostGame
 
 class Game:
-    def __init__(self, window):
+    def __init__(self, window, settings):
         self.socket = None
+        self.settings = settings
         self.__loggedIn = False
         self.__window = window
         self.__userQuit = False
@@ -18,6 +19,7 @@ class Game:
         self.__loginScreen : LoginScreen = None
         self.__registerScreen : RegisterScreen = None
         self.__mainMenu : MainMenu = None
+        self.__settingsScreen : SettingsScreen = None
         self.__matchmakingScreen : MatchmakingScreen = None
         self.__timerScene : TimerScene = None
         self.__raceScene : RaceScene = None
@@ -104,8 +106,9 @@ class Game:
                 #!TEMPORARY
                 pass
             elif userChoice == "Settings":
-                #!TEMPORARY
-                pass
+                self.Settings()
+                if self.__userQuit:
+                    return 0
 
     def ConnectToServer(self):
         #Before client has connected to the server
@@ -180,6 +183,15 @@ class Game:
     def WaitForText(self):
         while self.__textToWrite is None:
             self.CheckMessages()
+
+    def Settings(self):
+        self.__settingsScreen = SettingsScreen(self.__window, self.__resolution, self.settings, self.socket)
+        while not self.__settingsScreen.backButtonPressed:
+            self.__settingsScreen.main()
+            if self.__settingsScreen.userQuit:
+                self.__userQuit = True
+                return 0
+            pygame.display.update()
 
     def PlayGame(self):
         while not self.__raceScene.gameOver:

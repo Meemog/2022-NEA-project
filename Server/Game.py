@@ -45,8 +45,6 @@ class Stage:
                 message = player.msgsReceived.Dequeue()
                 if message == "!DISCONNECT":
                     player.playerQuit = True
-
-                    #TODO implement abandon penalty
                 else:
                     unusedMessages.append(message)
 

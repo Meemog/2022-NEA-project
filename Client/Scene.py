@@ -1,4 +1,4 @@
-import pygame, threading, socket
+import pygame, threading, socket, json
 from ClientSocket import ClientSocket
 from InputHandler import InputHandler
 from Boxes import InputBox, TextBox
@@ -289,12 +289,12 @@ class RegisterScreen(Scene):
         #Passwordbox
         passwordRectLocation = (int((self._resolution[0] * 1920 - boxRectSize[0]) / 2), int(570 * self._resolution[1]))
         passwordRect = pygame.Rect(passwordRectLocation, boxRectSize)
-        self.__passwordBox = InputBox(passwordRect, boxFont, self._resolution, boxColourActive, boxColourInactive, (255,255,255), "")
+        self.__passwordBox = InputBox(passwordRect, boxFont, self._resolution, boxColourActive, boxColourInactive, (255,255,255), "", hashed=True)
 
         #Password confirm box
         confirmRectLocation = (int((self._resolution[0] * 1920 - boxRectSize[0]) / 2), int(740 * self._resolution[1]))
         confirmRect = pygame.Rect(confirmRectLocation, boxRectSize)
-        self.__confirmBox = InputBox(confirmRect, boxFont, self._resolution, boxColourActive, boxColourInactive, (255,255,255), "")
+        self.__confirmBox = InputBox(confirmRect, boxFont, self._resolution, boxColourActive, boxColourInactive, (255,255,255), "", hashed=True)
 
         self._listOfBoxObjects = [self.__usernameBox, self.__passwordBox, self.__confirmBox]
 
@@ -449,6 +449,121 @@ class MainMenu(Scene):
                 for button in self._listOfButtonObjects:
                     if button.CheckForCollision(clickLocation):
                         button.clicked = True
+                self._inputHandler.inputsList.pop(i)
+            else:
+                i += 1
+
+class SettingsScreen(Scene):
+    def __init__(self, window, resolution, settings, socket: ClientSocket = None) -> None:
+        super().__init__(window, resolution, socket)
+        self.__settings = settings
+        self.backButtonPressed = False
+
+        textColour = (255,255,255)
+        activeColour = (40,40,40)
+        inactiveColour = (25,25,25)
+
+        #Settings title text
+        titleFont = pygame.font.SysFont("Calibri", int(108 * self._resolution[1]))
+        titleSize = titleFont.size("Settings")
+        titleLocation = (int((self._resolution[0] * 1920 - titleSize[0]) / 2), int(105 * self._resolution[1]))
+        self.__titleText = Text(titleFont, text="Settings", location=titleLocation)
+
+        infoTextFont = pygame.font.SysFont("Calibri", int(48 * self._resolution[1]))
+        
+        #Volume text
+        volumeLocation = (int(225 * self._resolution[0]), int(315 * self._resolution[1]))
+        self.__volumeText = Text(infoTextFont, text=f'Volume(current value = {self.__settings["Volume"]}):', location=volumeLocation)
+        #Resolution text
+        resLocation = (int(235 * self._resolution[0]), int(390 * self._resolution[1]))
+        self.__resolutionText = Text(infoTextFont, text="Resolution(seperated by x):", location=resLocation)
+
+        self._listOfTextObjects = [self.__titleText, self.__volumeText, self.__resolutionText]
+
+        #Boxes
+        boxSize = (int(450 * self._resolution[0]), int(60 * self._resolution[1]))
+        boxTextFont = pygame.font.SysFont("Courier New", int(48 * self._resolution[1]))
+        
+        volumeBoxLocation = (int(1000 * self._resolution[0]), int(305 * self._resolution[1]))
+        volumeRect = pygame.Rect(volumeBoxLocation, boxSize)
+        self.__volumeBox = InputBox(volumeRect, boxTextFont, self._resolution, activeColour, inactiveColour, textColour, "")
+
+        resBoxLocation = (int(1000 * self._resolution[0]), int(385 * self._resolution[1]))
+        resRect = pygame.Rect(resBoxLocation, boxSize)
+        self.__resBox = InputBox(resRect, boxTextFont, self._resolution, activeColour, inactiveColour, textColour, "")
+
+        self._listOfBoxObjects = [self.__volumeBox, self.__resBox]
+
+        #Buttons
+        buttonSize = (int(500 * self._resolution[0]), int(130 * self._resolution[1]))
+        backButtonLocation = (int(446 * self._resolution[0]), int(840 * self._resolution[1])) 
+        backButtonRect = pygame.Rect(backButtonLocation, buttonSize)
+        self.__backButton = Button(backButtonRect, activeColour, inactiveColour, textColour, text="Back to main menu")
+    
+        saveButtonLocation = (int(980 * self._resolution[0]), int(840 * self._resolution[1]))
+        saveButtonRect = pygame.Rect(saveButtonLocation, buttonSize)
+        self.__saveButton = Button(saveButtonRect, activeColour, inactiveColour, textColour, text=("Save(restart to apply)"))
+
+        self._listOfButtonObjects = [self.__backButton, self.__saveButton]
+
+    def main(self):
+        super().main()
+
+        if self.__saveButton.clicked:
+            try:
+                newVolume = int(self.__volumeBox.text)
+            except:
+                newVolume = self.__settings["Volume"]
+            try:
+                newRes = self.__resBox.text.split("x")
+                int(newRes[0])
+                int(newRes[1])
+                newRes = f"{newRes[0]}x{newRes[1]}"
+            except:
+                newRes = self.__settings["Resolution"]
+            
+            self.__settings["Volume"] = newVolume
+            self.__settings["Resolution"] = newRes
+
+            file = open("settings.json", "w")
+            jsonsettings = json.dumps(self.__settings)
+            file.write(jsonsettings)
+            file.close()
+            self.__saveButton.clicked = False
+
+    def _HandleInputs(self):
+        super()._HandleInputs()
+        i = 0
+        while i < len(self._inputHandler.inputsList):
+            if self._inputHandler.inputsList[i][:6] == "CLICK:":
+                clickLocation = self._inputHandler.inputsList[i][6:].split(",")
+                clickLocation = (int(clickLocation[0]), int(clickLocation[1]))
+                if self.__saveButton.CheckForCollision(clickLocation):
+                    self.__saveButton.clicked = True
+                elif self.__backButton.CheckForCollision(clickLocation):
+                    self.__backButton.clicked = True
+                    self.backButtonPressed = True
+                else:
+                    for box in self._listOfBoxObjects:
+                        if box.CheckForCollisionWithMouse(clickLocation):
+                            box.SetActive()
+                        else:
+                            box.SetInactive()
+                self._inputHandler.inputsList.pop(i)
+            elif self._inputHandler.inputsList[i][:3] == "KD_":
+                key = self._inputHandler.inputsList[i][3:]
+                for box in self._listOfBoxObjects:
+                    if box.isActive:
+                        box.AddLetter(key)
+                self._inputHandler.inputsList.pop(i)
+            #Sets the other box to be active than the one that is active
+            elif self._inputHandler.inputsList[i] == "TABDOWN":
+                if self.__volumeBox.isActive:
+                    self.__volumeBox.SetInactive()
+                    self.__resBox.SetActive()
+                elif self.__resBox.isActive:
+                    self.__volumeBox.SetActive()
+                    self.__resBox.SetInactive()
                 self._inputHandler.inputsList.pop(i)
             else:
                 i += 1
