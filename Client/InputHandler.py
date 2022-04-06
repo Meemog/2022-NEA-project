@@ -3,16 +3,14 @@ import pygame
 #Object that stores list of inputs made by user
 class InputHandler:
     def __init__(self):
-        #Priority queue for storing userinputs
         self.inputsList = []
 
-    #Checks for inputs and adds them to the priority queue
+    #Checks for inputs and adds them to the list
     def CheckInputs(self):
         #For event in events that happened
         for event in pygame.event.get():
             #If the player quit
             if event.type == pygame.QUIT:
-                #High priority = front of queue
                 self.inputsList.append("QUIT")
             
             #If player clicks, appends the mouse location to the command that player clicked
