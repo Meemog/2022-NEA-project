@@ -1,0 +1,11 @@
+IF message [:10] = "!REGISTER:" THEN
+    details <-- split message
+    player.username <-- username from details
+    TRY
+        self.dbHandler.CreateNewUser(username, password)
+        data <-- self.dbHandler.LoadUser(player)
+        player.msgsToSend.Enqueue("!REGISTEREDSUCCESFULLY")
+        player.msgsToSend.Enqueue(data)
+    EXCEPT
+        player.msgsToSend.Enqueue("!ANERROROCCURRED")
+ENDIF

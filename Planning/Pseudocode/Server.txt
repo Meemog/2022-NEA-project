@@ -1,0 +1,163 @@
+CLASS Server
+    SUBROUTINE init(self)
+        self.HEADER <-- 8
+        self.PORT <-- 5000
+        self.SERVER <-- local ip address
+        self.ADDRESS <-- (self.SERVER, self.ADDRESS)
+        self.FORMAT <-- 'utf-8'
+
+        self.running <-- True
+        self.players <-- []
+        self.playersInMatchmaking <-- []
+        self.playersInGame <-- []
+
+        self.currentGames <-- []
+        
+        self.server <-- socket object
+        self.dbHandler <-- DatabaseHandler object
+        OUTPUT "[SERVER STARTED]"
+        self.__clock <-- pygame clock object
+    ENDSUBROUTINE
+
+    SUBROUTINE Run(self)
+        WHILE self.running
+            tick clock
+            FOR player IN self.playersInMatchmaking
+                player.timeWaited <-- player.timeWaited + time since last frame
+                IF player.timeWaited >= 200000 then
+                    player.matchmakingRange <-- player.matchmakingRange * 1.5 ^ player.timeWaited // 20000
+                ENDIF
+            ENDFOR
+            self.CheckForNewPlayers()
+            self.PrintPlayers()
+
+            IF 2 players in self.playersInMatchmaking in each other's ELo range then
+                self.CreateGame()
+            ENDIF
+
+            remove disconnected players from all lists 
+            
+            self.GetMsgs(self.players)
+            self.HandleMessagesForPlayersNotInQueue()
+            self.SendMessageToPlayers(self.players)
+
+            self.GetMsgs(self.playersInMatchmaking)
+            self.HandleMessagesForPlayersInQueue()
+            self.SendMessageToPlayers(self.playersInMatchmaking)
+
+            self.GetMsgs(self.playersInGame)
+            self.CheckIfPlayerFinishedGame()
+            self.SendMessageToPlayers(self.playersInGame)
+        ENDWHILE
+        self.dbHandler.Close()
+    ENDSUBROUTINE
+
+    SUBROUTINE GetMsgs(self, players)
+        FOR player IN players
+            try to get message from player
+        ENDFOR
+    ENDSUBROUTINE
+
+    SUBROUTINE SendMessageToPlayers(self, players)
+        FOR player IN players
+            try to send message to players
+        ENDFOR
+    ENDSUBROUTINE
+
+    SUBROUTINE CheckForNewPlayers(self)
+        try to accept a connection
+    ENDSUBROUTINE
+
+    #Displays list of players to console
+    SUBROUTINE PrintPlayers(self)
+        OUTPUT 3 lists of players
+    ENDSUBROUTINE
+
+    SUBROUTINE HandleMessagesForPlayersInQueue(self)
+        playersQuit <-- []
+        FOR player IN self.players
+            WHILE player.msgsReceived.GetLength() <> 0
+                message <-- player.msgsReceived.Dequeue()
+                IF message  = "!DISCONNECT" THEN
+                    playersQuit.APPEND(player)
+                ELSE IF player.loggedIn AND message = "!QUEUE" THEN
+                    playersQuit.APPEND(player)
+                    self.playersInMatchmaking.APPPEND(player)
+                    player.timeWaited <-- 0
+                ELSE IF message[:7] = "!LOGIN:" THEN
+                    IF NOT player.loggedIn THEN
+                        details <-- split message with ","
+                        username <-- details[0]
+                        password <-- details[1]
+
+                        IF self.dbHandler.CheckIfUsernameInDB(username) THEN
+                            IF self.dbHandler.CheckPassword(username, password) THEN
+                                player.loggedIn <-- True
+                                player.username <-- username
+                                self.dbHandler.LoadUser(player)
+                                player.msgsToSend.Enqueue("!PASSWORDCORRECT")
+                            ELSE
+                                player.msgsToSend.Enqueue("!PASSWORDINCORRECT")
+                            ENDIF
+                        ELSE
+                            player.msgsToSend.Enqueue("!USERNAMENOTFOUND")
+                        ENDIF
+                    ELSE    
+                        player.msgsToSend.Enqueue("!ALREADYLOGGEDIN")
+                    ENDIF
+                ELSE IF message[:10] = "REGISTER:" THEN
+                    details <-- split message with ","
+                    player.usename <-- details[0]
+                    TRY 
+                        self.dbHandler.CreateNewUser(details[0], details[1])
+                        data <-- self.dbHandler.LoadUser(player)
+                        player.msgsToSend.Enqueue("!REGISTEREDSUCCESFULLY")
+                        player.msgsToSend.Enqueue(data)
+                    EXCEPT
+                        #Username was in database already
+                        player.msgsToSend.Enqueue("!ANERROROCCURRED")
+                ELSE IF message = "!STATISTICS" THEN
+                    data <-- self.dbHandler.LoadUser(player)
+                    player.msgsToSend.Enqueue(data)
+                    OUTPUT "Data sent"
+                ENDIF
+            ENDWHILE
+        ENDFOR
+
+        FOR player in playersQuit
+            listIndex <-- LinearSearch(player, self.players)
+            IF listIndex <> None THEN
+                self.players.POP(listIndex)
+            ENDIF
+        ENDFOR
+    ENDSUBROUTINE
+
+    SUBROUTINE HandleMessagesForPlayersNotInQueue(self)
+        playersQuit <-- []
+        FOR player IN self.playersInMatchmaking
+            WHILE player.msgsReceived.GetLength() <> 0
+                message <-- player.msgsReceived.Dequeue()
+                OUTPUT message
+
+                IF message = "!DISCONNECT" THEN
+                    playersQuit.APPEND(player)
+                ELSE IF message = "!DEQUEUE" THEN 
+                    playersQuit.APPEND(player)
+                    self.players.APPEND(player)
+                ENDIF
+            ENDWHILE
+        ENDFOR
+
+        FOR player IN playersQuit
+            listIndex <-- LinearSearch(player, self.playersInMatchmaking)
+
+            IF listIndex <> None THEN
+                self.playersInMatchmaking.POP(listIndex)
+            ENDIF
+        ENDFOR
+    ENDSUBROUTINE
+
+    SUBROUTINE CheckIfPlayerFinishedGame(self)
+        check if any players have disconnected
+    ENDSUBROUTINE
+ENDCLASS

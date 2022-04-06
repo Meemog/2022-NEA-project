@@ -1,6 +1,20 @@
 Documentation
     testing for Text
+    Account creation server stuff
     Scene
+        Need pseudocode for this
+        Need testing
+
+testing for database handler in general
+testing for Text
+testing for password hashing
+testing for account creation
+
+
+Test Game at the end of the document
+
+Consider breaking the client UML diagram into smaller ones and only show the parent object 
+connecting to Game
 
 Testing for game (client)
 Testing for LoginScreen

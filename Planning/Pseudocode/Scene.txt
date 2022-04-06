@@ -1,0 +1,211 @@
+CLASS Scene
+    SUBROUTINE init(self, window, resolution, socket <-- None)
+        self.userQuit <-- False
+        self.socket <-- socket
+
+        self._shift <-- False
+        self._alt <-- False
+        self._ctrl <-- False
+        self._backspace <-- False
+
+        self._timeSinceLastBackspace <-- 0
+
+        self._listOfBoxObjects <-- []
+        self._listOfButtonObjects <-- []
+        self._listOfTextObjects <-- []
+
+        self._window <-- window
+        self._resolution <-- resolution
+
+        self._clock <-- pygame Clock object
+        self._inputHandler <-- InputHandler object
+
+        self._backgroundSurface <-- Black surface object which is the full screen in dimensions
+        draw self._backgroundSurface onto self._window
+    ENDSUBROUTINE
+
+    SUBROUTINE main(self)
+        self._timeSinceLastBackspace <-- self._timeSinceLastBackspace + time since last frame
+        
+        self._HandleInputs()
+
+        IF self._backspace AND self._timeSinceLastBackspace ><-- 50 THEN
+            FOR box IN self._listOfBoxObjects
+                IF box.isActive THEN
+                    box.RemoveLetter(self._ctrl)
+                ENDIF
+            ENDFOR
+            self._timeSinceLastBackspace <-- 0
+        ENDIF 
+
+        FOR button in self._listOfButtonObjects
+            IF button.CheckForCollision(mouse location) THEN
+                button.SetActive()
+            ELSE
+                button.SetInactive()
+            ENDIF
+        ENDFOR
+    
+        self._Render()
+    ENDSUBROUTINE
+
+    SUBROUTINE _Render(self)
+        draw self._backgroundSurface on self._window
+        FOR box in self._listOfBoxObjects
+            box.Render(self._window)
+        ENDFOR
+
+        FOR button in self._listOfButtonObjects
+            button.Render(self._window)
+        ENDFOR
+        
+        FOR text in self._listOfTextObjects
+            text.Render(self._window)
+        ENDFOR
+    ENDSUBROUTINE
+
+    SUBROUTINE _HandleInputs(self)
+        self._inputHandler.CheckInputs()
+        i <-- 0
+        WHILE i < LEN(self.InputHandler.inputsList)
+            IF self._inputHandler.inputsList[i] = "QUIT" THEN
+                self.userQuit <-- True
+                self._inputHandler.inputsList.POP(i)
+            ELSE IF self._inputHandler.inputsList[i] = "SHIFTDOWN" THEN
+                self._shift <-- True
+                self._inputHandler.inputsList.POP(i)
+            ELSE IF self._inputHandler.inputsList[i] = "SHIFTUP" THEN
+                self._shift <-- False
+                self._inputHandler.inputsList.POP(i)
+            ELSE IF self._inputHandler.inputsList[i] = "ALTDOWN" THEN
+                self._alt <-- True
+                self._inputHandler.inputsList.POP(i)
+            ELSE IF self._inputHandler.inputsList[i] = "ALTUP" THEN
+                self._alt <-- False
+                self._inputHandler.inputsList.POP(i)
+            ELSE IF self._inputHandler.inputsList[i] = "CONTROLDOWN" THEN
+                self._ctrl <-- True
+                self._inputHandler.inputsList.POP(i)
+            ELSE IF self._inputHandler.inputsList[i] = "CONTROLUP" THEN
+                self._ctrl <-- False
+                self._inputHandler.inputsList.POP(i)
+            ELSE IF self._inputHandler.inputsList[i] = "BACKSPACEDOWN" THEN
+                self._backspace <-- True
+                self._timeSinceLastBackspace <-- -200
+                FOR box IN self._listOfBoxObjects THEN
+                    IF box.isActive THEN
+                        box.RemoveLetter(self._ctrl)
+                ENDFOR
+                self._inputHandler.inputsList.POP(i)
+            ELSE IF self._inputHandler.inputsList[i] = "BACKSPACEUP" THEN
+                self._backspace <-- False
+                self._inputHandler.inputsList.POP(i)
+            ELSE THEN
+                i <-- i + 1
+            ENDIF
+        ENDWHILE
+    ENDSUBROUTINE
+ENDCLASS
+
+CLASS ResgisterScreen(Scene)
+    SUBROUTINE init(self, window, resolution, socket <-- None)
+        self.backbuttonPressed <-- False
+        self.registered <-- False
+        self.__submitButtonPressed <-- False
+
+        boxFont <-- pygame font object size 36
+        boxColourActive <-- (40,40,40)
+        boxColourInactive <-- (25,25,25)
+
+        boxRectSize <-- (625, 60)
+        
+        self.__usernameBox <-- InputBox object
+        self.__passwordBox <-- InputBox object
+        self.__confirmBox <-- InputBox object
+
+        self._listOfBoxObjects <-- [self.__usernameBox, self.__passwordBox, self.__confirmBox]
+
+        buttonSize <-- (300,60)
+
+        self.__backButton <-- Button object
+        self.__submitButton <-- Button object
+
+        self._listOfButtonObjects = [self.__backButton, self.__submitButton]
+
+        #Username text
+        textFont <-- pygame font object with size 36
+        self.__usernameText <-- Text object
+        self.__passwordText <-- Text object
+        self.__confirmText <-- Text object
+
+        self._listOfTextObjects <-- [self.__usernameText, self.__passwordText, self.__confirmText]
+    ENDSUBROUTINE
+
+    SUBROUTINE main()
+        FOR button IN self._listOfButtonObjects
+            IF button.clicked THEN
+                IF button = self.__backButton THEN
+                    self.backbuttonPressed <-- True
+                ELSE IF button = self.__submitButton THEN
+                    IF self.__passwordBox.text = self.__confirmBox.text THEN
+                        self.socket.msgsToSend.APPEND("!REGISTER:" + self.__usernameBox.text + "," + self.__passwordBox.text)
+                        self.self.__submitButtonPressed <-- True
+                    ELSE
+                        self.__submitButtonPressed <-- False
+                        button.clicked <-- False
+                        FOR box IN self._listOfBoxObjects
+                            box.text <-- ""
+                        ENDFOR
+                    ENDIF
+                ENDIF
+            ENDIF
+        ENDFOR
+
+        WHILE self.__submitButtonPressed AND NOT self.registered
+            self.__HandleMessages()
+        ENDWHILE
+    ENDSUBROUTINE
+
+    SUBROUTINE __HandleMessages(self)
+        i <-- 0
+        WHILE i < LEN(self.socket.receivedMsgs)
+            IF self.socket.receivedMsgs[i] = "!REGISTEREDSUCCESFULLY" THEN
+                self.registered <-- True
+                self.socket.receivedMsgs.POP(i)
+            ELSE IF self.socket.receivedMsgs[i] = "!ANERROROCCURRED" THEN
+                reset scene so that it waits for user to try again            
+            ELSE
+                i <-- i + 1
+            ENDIF
+        ENDWHILE
+    ENDSUBROUTINE
+
+    SUBROUTINE _HandleInputs(self)
+        inherit from Scene
+        i <-- 0
+        WHILE i < LEN(self._inputHandler.inputsList)
+            IF input is a click THEN
+                IF click location is in a box THEN
+                    set box to active
+                ELSE
+                    set box to inactive
+                ENDIF
+                IF click location is in a button THEN
+                    set button to clicked
+                ENDIF
+                remove input from list of inputs
+            ELSE IF input is a keypress THEN
+                IF key is a normal letter THEN 
+                    IF a box is active THEN
+                        add letter to active box
+                    ENDIF
+                ENDIF
+                remove input from list of inputs
+            ELSE IF input is the tab key THEN
+                change activetext to the next one down or the first if the active box is the bottom one
+            ELSE
+                i <-- i + 1
+            ENDIF
+        ENDWHILE
+    ENDSUBROUTINE
+ENDCLASS

@@ -1,0 +1,97 @@
+CLASS Game
+    SUBROUTINE init(self, window, settings)
+        self.socket <-- None
+        self.settings <-- settings
+        self.__loggedIn <-- False
+        self.__window <-- window
+        self.__userQuit <-- False
+
+        self.__socketHandleThread <-- None
+
+        self.__resolution <-- resolution divided by 1920 and 1080 to get scale
+
+        self.__connectionScreen <-- None
+        self.__loginScreen <-- None
+        self.__registerScreen <-- None
+        self.__mainMenu <-- None
+        self.__settingsScreen <-- None
+        self.__statisticsScreen <-- None
+        self.__matchmakingScreen <-- None
+        self.__timerScene <-- None
+        self.__raceScene <-- None
+        self.__postGameScreen <-- None
+
+        self.__timerStarted <-- False
+        self.__textToWrite <-- None
+        self.__results <-- None   
+    ENDSUBROUTINE
+
+    SUBROUTINE main(self)
+        self.__ConnectToServer()
+        IF self.__userQuit THEN RETURN 0
+        ENDIF
+        
+        WHILE NOT self.__loggedIn
+            self.__Login()
+            IF self.__userQuit THEN RETURN 0
+            ELSE IF self.loginscreen.userWantsToCreateAccount THEN
+                self.__Register()
+                IF self.__userQuit THEN RETURN 0
+                ELSE IF self.__registerScreen.registered THEN self.loggedIn <-- True
+                ENDIF
+            ENDIF
+        ENDWHILE
+
+        WHILE True
+            self.__mainMenu <-- MainMenu object
+            self.__matchmakingScreen <-- MatchmakingScreen object
+            self.__timerScene <-- TimerScene object
+            self.__timerStarted <-- False
+            self.__textToWrite <-- None
+            self.__results <-- None
+            self.__margin <-- None
+            self.__ELodiff <-- None
+            self.__stats <-- None
+
+            self.__GetChoiceFromUser()
+            IF self.__userQuit THEN RETURN 0
+            ENDIF
+            userChoice <-- self.__mainMenu.userChoice
+
+            IF userChoice = "Play" THEN
+                self.__WaitForGame()
+                IF self.__userQuit THEN RETURN 0
+                ELSE IF self.__matchmakingScreen.userClickedBackButton THEN
+                    self.socket.msgsToSend.APPEND("!DEQUEUE")
+                ELSE IF self.__matchmakingScreen.gameFound THEN
+                    self.__PreGameTimer()
+                    IF self.__userQuit THEN RETURN 0
+                    ENDIF
+                    
+                    self.__WaitForText()
+                    IF self.__userQuit THEN RETURN 0
+                    ENDIF
+
+                    self.__raceScene <-- RaceScene object
+                    self.__PlayGame()
+                    IF self.__userQuit THEN RETURN 0
+                    ENDIF
+                    self.__WaitForMatchResult()
+                    
+                    self.__postGameScreen = PostGame object
+                    self.__PostGame()
+                    IF self.__userQuit THEN RETURN 0
+                    ENDIF
+                ENDIF
+            ELSE IF userChoice = "Statistics" THEN
+                self.__WaitForData()
+                self.__ShowStatistics()
+            ELSE IF userChoice = "Settings" THEN
+                self.__Settings()
+                IF self.__userQuit THEN RETURN 0
+                ENDIF
+            ENDIF
+        ENDWHILE
+    ENDSUBROUTINE
+
+ENDCLASS

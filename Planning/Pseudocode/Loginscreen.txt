@@ -1,0 +1,117 @@
+CLASS
+    SUBROUTINE init(self, window, resolution, socket <-- None)
+        inherit from Scene
+        self.loggedIn <-- False
+        self.userWantsToCreateAccount <-- False
+        self.__detailsSent <-- False
+
+        inputBoxFont <-- pygame Font object
+
+        #Need 2 inputboxes, 2 text and 1 button
+        inputBoxSize <-- (625, 60)
+        usernameBoxLocation <--  centred and 400 pixels down
+        passwordBoxLocation <-- centred and 540 pixels down
+        usernameRect <-- pygame Rect object 
+        passwordRect <-- pygame Rect object
+        self.__usernameBox <-- InputBox object
+        self.__passwordBox <-- InputBox object
+
+        #Button size for continue and register buttons
+        buttonSize <-- (400,60)
+        continueButtonLocation <-- centred and 680 pixels down
+        continueButtonRect <-- pygame Rect object
+        self.__continueButton <-- Button object
+        
+        #Need register button same size as continue button
+        registerButtonLocation <-- (1400,950)
+        resgisterButtonRect <-- pygame Rect object
+        self.__registerButton <-- Button
+
+        #Text needs to be 5 pixels to the right of the corresponding box and needs to be 25 pixels above (so 25 pixels and the height of the text itself)
+        usernameTextSize <-- size of "Username" when it is rendered
+        usernameTextLocation <-- slightly above usernameBox
+        self.__usernameText <-- Text object
+        passwordTextSize <-- size of "Password" when it is rendered
+        passwordTextLocation <-- slightly above passwordBox
+        self.__passwordText <-- Text object
+
+        #These lists are used to render things on the screen, they are iterated through
+        self._listOfBoxObjects <-- [self.__usernameBox, self.__passwordBox]
+        self._listOfButtonObjects <-- [self.__continueButton, self.__registerButton]
+        self._listOfTextObjects <-- [self.__usernameText, self.__passwordText]
+    ENDSUBROUTINE
+
+    SUBROUTINE main(self)
+        inherit from Scene
+        IF self.__continueButton.clicked THEN
+            IF NOT self.__detailsSent THEN
+                username <-- self.usernameBox.text
+                password <-- self.__passwordBox.text
+                send login message to server
+                self.__detailsSent <-- True
+            ELSE
+                self.__HandleMessages()
+            ENDIF
+        ENDIF
+    ENDSUBROUTINE
+
+    SUBROUTINE __HandleMessages(self)
+        unusedMessages <-- []
+        WHILE self.socket.receivedMsgs != []
+            message <-- self.socket.receivedMsgs.POP()
+            IF message = "!PASSWORDCORRECT" OR message = "ALREADYLOGGEDIN" THEN
+                OUTPUT "Logged in"
+                self.loggedIn <-- True
+            ELSE IF message = "!PASSWORDINCORRECT" or message = "!USERNAMENOTFOUND" THEN
+                self.__continueButton.clicked <-- True
+                self.__detailsSent <-- False
+                self.__usernameBox.text <-- ""
+                self.__passwordBox.text <-- ""
+                self.__continueButton.SetText("Continue")
+            ENDIF
+        ENDWHILE
+        FOR box in self._listOfBoxObjects
+            box.UpdateRender()
+        ENDFOR
+    ENDSUBROUTINE
+
+    SUBROUTINE _HandleInputs(self)
+        inherit from Scene
+        IF NOT self.__continueButton.clicked THEN
+            i <-- 0
+            WHILE i < LEN(self._inputHandler.inputsList)
+                IF input is click THEN
+                    IF button is continue THEN
+                        self.__continueButton.clicked <-- True
+                        self.__continueButton.SetText("Checking...")
+                        self._inputHandler.inputsList.POP(i)
+                    ELSE IF button is register THEN
+                        self.__registerButton.clicked <-- True
+                        self.userWantsToCreateAccount <-- True
+                        self._inputHandler.inputsList.POP(i)
+                    ELSE IF click is on box THEN
+                        box.SetActive()
+                        self._inputHandler.inputsList.POP(i)
+                    ELSE
+                        box.SetInactive()    
+                        self._inputHandler.inputsList.POP(i)
+                    ENDIF
+                ELSE IF input is keypress THEN
+                    IF box is active THEN
+                        box.AddLetter(keypress)
+                    ENDIF
+                    self._inputHandler.inputsList.POP(i)
+                ELSE IF input is tab key THEN
+                    set next box to active and set every other box to inactive
+                    self._inputHandler.inputsList.POP(i)
+                ELSE IF input is return key THEN 
+                    self.__continueButton.clicked <-- True
+                    self.__continueButton.SetText("Checking...")
+                    self._inputHandler.inputsList.POP(i)
+                ELSE
+                    i += 1
+                ENDIF
+            ENDWHILE
+        ENDIF
+    ENDSUBROUTINE
+ENDCLASS

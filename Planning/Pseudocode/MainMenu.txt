@@ -1,0 +1,62 @@
+CLASS MainMenu(Scene)
+    SUBROUTINE init(self, window, resolution, socket)
+        inherit from Scene
+        #This is how this object gives a value to Game object for userChoice
+        self.userChoice <-- None
+
+        colourActive <-- (40,40,40)
+        colourInactive <-- (25,25,25)
+        textColour <-- (255,255,255)
+
+        self.__titleFont <-- pygame Font object
+
+        boxSize <-- 2/5 the screen width and 150 pixels tall
+        boxX <-- correct x value so that it is centred
+
+        playButtonRect <-- pygame Rect object
+        statisticsButtonRect <-- pygame Rect object
+        settingsButtonRect <-- pygame Rect object
+        quitButtonRect <-- pygame Rect object
+
+        self.__playButton <-- Button object
+        self.__statisticsButton <-- Button object
+        self.__settingsButton <-- Button object
+        self.__quitButton <-- Button object
+        
+        self._listOfButtonObjects <-- [self.__playButton, self.__statisticsButton, self.__settingsButton, self.__quitButton]
+
+        titleSize <-- size of "SpeedTyper" when rendered with self.__titleFont
+        titleLocation <-- centred and on y = 160
+        self.__titleText <-- Text object
+    ENDSUBROUTINE
+
+    SUBROUTINE main(self)
+        inherit from Scene
+
+        FOR button IN self._listOfButtonObjects
+            IF button.clicked THEN
+                IF button.text = "Quit" THEN
+                    self.userQuit <-- True
+                ELSE
+                    self.userChoice <-- button.text
+                ENDIF
+            ENDIF
+        ENDFOR
+    ENDSUBROUTINE
+
+    SUBROUTINE _HandleInputs(self)
+        inherit from Scene
+        i <-- 0
+        WHILE i < LEN(self._inputHandler.inputsList)
+            IF self._inputHandler.inputsList[i][:6] = "CLICK:" THEN
+                FOR button IN self._listOfButtonObjects
+                    IF button is clicked THEN
+                        button.clicked <-- True
+                    ENDIF
+                ENDFOR
+            ELSE
+                i <-- i + 1
+            ENDIF
+        ENDWHILE
+    ENDSUBROUTINE
+ENDCLASS
