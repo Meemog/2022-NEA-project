@@ -163,7 +163,7 @@ class LoginScreen(Scene):
         inputBoxSize = (int(625 * self._resolution[0]), int(60 * self._resolution[1]))
         #Button needs to be centred and 400 pixels down
         usernameBoxLocation = (int((self._resolution[0] * 1920 - inputBoxSize[0]) / 2), int(400 * self._resolution[1]))
-        passwordBoxLocation = (int((self._resolution[1] * 1920 - inputBoxSize[0]) / 2), int(540 * self._resolution[1]))
+        passwordBoxLocation = (int((self._resolution[0] * 1920 - inputBoxSize[0]) / 2), int(540 * self._resolution[1]))
         usernameRect = pygame.Rect(usernameBoxLocation[0], usernameBoxLocation[1], inputBoxSize[0], inputBoxSize[1])
         passwordRect = pygame.Rect(passwordBoxLocation[0], passwordBoxLocation[1], inputBoxSize[0], inputBoxSize[1])
         self.__usernameBox = InputBox(usernameRect, inputBoxFont, self._resolution, (40,40,40), (25,25,25), (255,255,255), "")
@@ -512,6 +512,10 @@ class SettingsScreen(Scene):
         if self.__saveButton.clicked:
             try:
                 newVolume = int(self.__volumeBox.text)
+                if newVolume > 100:
+                    newVolume = 100
+                elif newVolume < 0:
+                    newVolume = 0
             except:
                 newVolume = self.__settings["Volume"]
             try:
@@ -521,7 +525,7 @@ class SettingsScreen(Scene):
                 newRes = f"{newRes[0]}x{newRes[1]}"
             except:
                 newRes = self.__settings["Resolution"]
-            
+
             self.__settings["Volume"] = newVolume
             self.__settings["Resolution"] = newRes
 

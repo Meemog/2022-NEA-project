@@ -108,7 +108,7 @@ class Game:
                 self.__WaitForData()
                 self.__ShowStatistics()
 
-            elif userChoice == "__Settings":
+            elif userChoice == "Settings":
                 self.__Settings()
                 if self.__userQuit:
                     return 0
