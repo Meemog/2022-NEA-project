@@ -14,6 +14,9 @@ class Game:
         self.__gameThread = threading.Thread(target=self.__Run)
         self.__gameThread.start()
 
+        self.__timerStage : TimerStage = None
+        self.__raceStage : Race  = None
+
     def __Run(self):
         #Databasehandler creates SQLITE object that can only be used in thread it was created in
         self.__dbHandler = DatabaseHandler()
