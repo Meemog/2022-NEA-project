@@ -15,7 +15,7 @@ class Box:
         self.text = text
         self.textColour = textColour
 
-    def __UpdateRender(self):
+    def UpdateRender(self):
         pass
 
     def Render(self, window):
@@ -23,7 +23,7 @@ class Box:
 
     def AddLetter(self, letter):
         self.text += letter
-        self.__UpdateRender()
+        self.UpdateRender()
 
     def RemoveLetter(self, control):
         if self.text != "":
@@ -37,17 +37,17 @@ class Box:
 
             else:
                 self.text = self.text[:-1]
-        self.__UpdateRender()
+        self.UpdateRender()
 
     def SetActive(self):
         self.isActive = True
         self._colour = self._activeColour
-        self.__UpdateRender()
+        self.UpdateRender()
 
     def SetInactive(self):
         self.isActive = False
         self._colour = self._inactiveColour
-        self.__UpdateRender()
+        self.UpdateRender()
 
     def CheckForCollisionWithMouse(self, mouseLocation):
         if self._rect.collidepoint(mouseLocation):
@@ -67,11 +67,11 @@ class TextBox(Box):
         self.__correctTextRender = None
         self.__incorrectTextRender = None
 
-        self.__UpdateRender()
+        self.UpdateRender()
 
     def SetText(self, newText):
         self.text = newText
-        self.__UpdateRender()
+        self.UpdateRender()
 
     def CheckIfFinished(self):
         if len(self.text) == len(self.previewText):
@@ -85,7 +85,7 @@ class TextBox(Box):
         window.blit(self.__correctTextRender, self.__textRenderLocation)
         window.blit(self.__incorrectTextRender, self.__textRenderLocation)
 
-    def __UpdateRender(self):
+    def UpdateRender(self):
         #Copies text so that it can be changed
         text = self.text
         previewText = self.previewText
@@ -142,13 +142,13 @@ class InputBox(Box):
         self.__hashed = hashed
         self.__textLocation = None
         self.__textRender = None
-        self.__UpdateRender()
+        self.UpdateRender()
 
     def Render(self, window):
         super().Render(window)
         window.blit(self.__textRender, self.__textLocation)
 
-    def __UpdateRender(self):
+    def UpdateRender(self):
         if self.__hashed:
             #Makes hashed string
             textToRender = len(self.text) * "*"
