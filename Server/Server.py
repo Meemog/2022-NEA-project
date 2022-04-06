@@ -193,7 +193,6 @@ class Server:
                         self.dbHandler.CreateNewUser(details[0], details[1])
                         data = self.dbHandler.LoadUser(player)
                         player.msgsToSend.Enqueue("!REGISTEREDSUCCESFULLY")
-                        #TODO make it send pickle of data to player
                         player.msgsTosend.Enqueue(pickle.dumps(data))
                     except:
                         player.msgsToSend.Enqueue("!ANERROROCCURRED")
@@ -201,7 +200,7 @@ class Server:
                     data = self.dbHandler.LoadUser(player)
                     player.msgsToSend.Enqueue(pickle.dumps(data))
                     print("Pickle sent")
-                        
+                            
         #Removes players who quit from the list of players
         for player in playersQuit:
             listIndex = LinearSearch(player, self.players)
