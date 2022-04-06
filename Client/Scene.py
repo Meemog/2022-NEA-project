@@ -783,7 +783,6 @@ class MatchmakingScreen(Scene):
                 self.__numberOfDots = 0
             self.__timeSinceLastMessageUpdate = 0
 
-
 #Scene for timer
 class TimerScene(Scene):
     def __init__(self, window, resolution, socket=None) -> None:
