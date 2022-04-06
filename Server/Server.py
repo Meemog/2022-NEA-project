@@ -86,10 +86,6 @@ class Server:
             self.SendMessageToPlayers(self.playersInGame)
         self.dbHandler.Close()
 
-    def CreateGame(self):
-        player1 : Player = self.playersInMatchmaking.pop(0)
-        player2 : Player = self.playersInMatchmaking.pop(0)
-
     #Made to be used in a seperate thread
     #Checks each player for a message being sent
     #If a message is received it is appended to the list player.msgsReceived
