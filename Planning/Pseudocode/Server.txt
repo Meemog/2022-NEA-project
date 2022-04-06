@@ -73,7 +73,7 @@ CLASS Server
         OUTPUT 3 lists of players
     ENDSUBROUTINE
 
-    SUBROUTINE HandleMessagesForPlayersInQueue(self)
+    SUBROUTINE HandleMessagesForPlayersNotInQueue(self)
         playersQuit <-- []
         FOR player IN self.players
             WHILE player.msgsReceived.GetLength() <> 0
@@ -132,7 +132,7 @@ CLASS Server
         ENDFOR
     ENDSUBROUTINE
 
-    SUBROUTINE HandleMessagesForPlayersNotInQueue(self)
+    SUBROUTINE HandleMessagesForPlayersInQueue(self)
         playersQuit <-- []
         FOR player IN self.playersInMatchmaking
             WHILE player.msgsReceived.GetLength() <> 0

@@ -1,0 +1,112 @@
+CLASS SettingsScreen(Scene)
+    SUBROUTINE init(self, window, resolution, settings, socket)
+        inherit from Scene
+        self.__settings <-- settings
+        self.backbuttonPressed <-- False
+
+        textColour <-- (255,255,255)
+        activeColour <-- (40,40,40)
+        inactiveColour <-- (25,25,25)
+
+        #Settings title text
+        titleFont <-- pygame Font object
+        titleSize <-- size of "Settings" when rendered
+        titleLocation <-- centred on x and y <-- 140
+        self.__titleText <-- Text object
+
+        infoTextFont <-- pygame Font object
+        
+        #Volume text
+        volumeLocation <-- (255, 315)
+        self.__volumeText <-- Text object
+        #Resolution text
+        resLocation <-- (235, 390)
+        self.__resolutionText <-- Text object
+
+        self._listOfTextObjects <-- [self.__titleText, self.__volumeText, self.__resolutionText]
+
+        #Boxes
+        boxSize <-- (450, 60)
+        boxTextFont <-- pygame Font object
+        
+        volumeBoxLocation <-- (1000,305)
+        volumeRect <-- pygame Rect object
+        self.__volumeBox <-- InputBox object
+
+        resBoxLocation <-- (1000,385)
+        resRect <-- pygame Rect object
+        self.__resBox <-- InputBox object
+
+        self._listOfBoxObjects <-- [self.__volumeBox, self.__resBox]
+
+        #Buttons
+        buttonSize <-- (500,130)
+        backButtonLocation <-- (446,840)
+        backButtonRect <-- pygame Rect object
+        self.__backButton <-- Button object
+    
+        saveButtonLocation <-- (980,840)
+        saveButtonRect <-- pygame Rect object
+        self.__saveButton <-- Button object
+
+        self._listOfButtonObjects <-- [self.__backButton, self.__saveButton]
+    ENDSUBROUTINE
+
+    SUBROUTINE main(self)
+        Inherit from Scene
+
+        IF self.__saveButton.clicked THEN
+            TRY
+                newVolume <-- STRING_TO_INT(self.__volumeText.text)
+                IF newVolume > 100 THEN
+                    newVolume <-- 100
+                ELSE IF newVolume < 0 THEN
+                    newVolume <-- 0
+                ENDIF
+            EXCEPT
+                newVolume <-- self.__settings["Volume"]
+
+            TRY
+                newRes <-- split self.__resBox.text with "x"
+                STRING_TO_INT(newRes[0])
+                STRING_TO_INT(newRes[1])
+                newRes <-- newRes[0] + "x" + newRes[1]
+            EXCEPT
+                newRes <-- self.__settings["Resolution"]
+            self.__settings["Volume"] <-- newVolume
+            self.__settings["Resolution"] <-- newRes
+
+            turn self.__settings to json
+            save self.__settings to file
+        ENDIF
+    ENDSUBROUTINE
+
+    SUBROUTINE _HandleInputs(self)
+        inherit from Scene
+        i <-- 0
+        WHILE i < LEN(self._inputHandler.inputsList)
+            IF input is a click THEN
+                IF click location is in a box THEN
+                    set box to active
+                ELSE
+                    set box to inactive
+                ENDIF
+                IF click location is in a button THEN
+                    set button to clicked
+                ENDIF
+                remove input from list of inputs
+            ELSE IF input is a keypress THEN
+                IF key is a normal letter THEN 
+                    IF a box is active THEN
+                        add letter to active box
+                    ENDIF
+                ENDIF
+                remove input from list of inputs
+            ELSE IF input is the tab key THEN
+                change activetext to the next one down or the first if the active box is the bottom one
+            ELSE
+                i <-- i + 1
+            ENDIF
+        ENDWHILE
+    ENDSUBROUTINE
+ENDCLASS

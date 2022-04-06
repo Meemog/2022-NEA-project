@@ -1,0 +1,72 @@
+CLASS MatchmakingScreen(Scene)
+    SUBROUTINE init(self, window, resolution, socket)
+        self.gameFound <-- False
+        self.userClickedBackButton <-- False
+
+        self.__timeSinceLastMessageUpdate <-- 0
+        self.__numberOfDots <-- 0
+        self.__font <-- pygame Font object
+
+        textSize <-- size for text "Looking for game..."
+        textLocation <-- centred x and y
+        
+        self.__textToRender <-- "Looking for game"
+        self.__textObject <-- Text object
+        self._listOfTextObjects <-- [self.__textObject]
+
+        backButtonSize <-- (400,60)
+        backButtonLocation <-- centred x and y = 680
+        backButtonRect <-- pygame Rect object
+        self.backButton <-- Button object
+        self._listOfButtonObjects <-- [self.backButton]
+    ENDSUBROUTINE
+
+    SUBROUTINE main(self)
+        Inherit from Scene
+        self.__TextAnimation()
+        self.__HandleMessages()
+    ENDSUBROUTINE
+
+    SUBROUTINE __HandleMessages(self)
+        i <-- 0
+        WHILE i < LEN(self.socket.receivedMsgs)
+            IF self.socket.receivedMsgs[i] = "!GAMEFOUND" THEN
+                self.gameFound <-- True
+                self.socket.receivedMsgs.POP(i)
+            ELSE
+            i <-- i + 1
+            ENDIF
+        ENDWHILE
+    ENDSUBROUTINE
+
+    SUBROUTINE _HandleInputs(self)
+        Inherit from Scene
+
+        i <-- 0
+        WHILE i < LEN(self._inputHandler.inputsList)
+            IF self._inputHandler.inputsList[i][:6] = "CLICK:" THEN
+                clickLocation <-- mouse location
+                IF self.backButton.CheckForCollision(clickLocation) THEN
+                    self.backbuttonPressed <-- True
+                    self.backButton.clicked <-- True
+                ENDIF
+                self._inputHandler.inputsList.POP(i)
+            ELSE
+                i <-- i + 1
+            ENDIF
+        ENDWHILE
+    ENDSUBROUTINE
+
+    SUBROUTINE __TextAnimation(self)
+        add time since last frame to self.__timeSinceLastMessageUpdate
+        IF self.__timeSinceLastMessageUpdate >= 700 THEN
+            self.__textToRender <-- "Looking for game"  + "." * self.__numberOfDots
+            self.textObject.SetText(self.__textToRender)
+            self.__numberOfDots <-- self.__numberOfDots  + 1
+            IF self.__numberOfDots = 4 THEN
+                self.__numberOfDots <-- 0
+            ENDIF
+            self.__timeSinceLastMessageUpdate <-- 0
+        ENDIF
+    ENDSUBROUTINE
+ENDCLASS

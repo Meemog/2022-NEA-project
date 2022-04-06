@@ -1,0 +1,46 @@
+CLASS TimerScene(Scene)
+    SUBROUTINE init(self, windowm, resolution, socket)
+        Inherit from Scene
+        self.timerFinished <-- False
+        self.__font <-- pygame Font object
+
+        textSize <-- size of "Waiting for timer"
+        textLocation <-- centre of screen
+        self.__textObject <-- Text object
+        self._listOfTextObjects <-- [self.__textObject]
+    ENDSUBROUTINE
+
+    SUBROUTINE main(self)
+        Inherit from Scene
+        self.__HandleMessages()
+    ENDSUBROUTINE
+
+    SUBROUTINE __HandleMessages(self)
+        i <-- 0
+        WHILE i < LEN(self.socket.receivedMsgs)
+            IF self.socket.receivedMsgs[i][:10] = "!TIMELEFT:" THEN
+                timeLeft <-- self.socket.receivedMsgs[i][10:]
+
+                self.__UpdateTextObject(timeLeft)
+                IF STRING_TO_INT(timeLeft) = 0 THEN
+                    self.timerFinished <-- True
+                ENDIF
+                self.socket.receivedMsgs.POP(i)
+            ELSE
+                i <-- i + 1
+            ENDIF
+        ENDWHILE
+    ENDSUBROUTINE
+
+    SUBROUTINE __UpdateTextObject(self, newText)
+        textSize <-- size of newText
+        textLocation <-- centre of screen
+        self.__textObject.SetText(newText)
+        self.__textObject.location <-- textLocation
+    ENDSUBROUTINE
+
+    SUBROUTINE _HandleInputs(self)
+        Inherit from Scene
+        self._inputHandler.inputsList <-- []
+    ENDSUBROUTINE
+ENDCLASS

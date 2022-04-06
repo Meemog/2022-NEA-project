@@ -1,0 +1,141 @@
+CLASS StatisticsScreen(Scene)
+    SUBROUTINE init(self, window, resolution, data, socket)
+        # These are here for reference as to what is in data, it has been copied from the generation of the database
+        # Username TEXT PRIMARY KEY, 0
+        # Password BLOB, 1
+        # WordsTyped INTEGER, 2 
+        # TimePlayed INTEGER, 3
+        # Elo INTEGER, 4
+        # HighestElo INTEGER, 5
+        # GamesWon INTEGER, 6
+        # GamesPlayed INTEGER, 7
+        # LongestStreak INTEGER, 8
+        # LargestWinMargin FLOAT, 9
+        # LettersTyped INTEGER, 10
+        # LettersTypedCorrectly INTEGER, 11
+        # SumOfOpponentsELo INTEGER, 12
+        # CurrentWinstreak INTEGER 13
+
+        #Find WPM
+        wordsTyped <-- data[2]
+        timePlayed <-- data[3]
+        #ROUND will round the first argument to the 2nd argument decimal places
+        avgWPM <-- ROUND(gamesWon, gamesPlayed * 100, 2)
+
+        #Just data
+        longestStreak <-- data[8]
+        currentStreak <-- data[13]
+
+        currentELo <-- ROUND(data[4], 2)
+        highestELo <-- ROUND(data[5], 2)
+
+        largestWinMargin <-- STRING_TO_INT(data[9])
+
+        self.__font <-- pygame Font object
+        maxTextHeight <-- height of "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        thingsToRender <-- [avgWPM, gamesPlayed, gamesWon, winrate, longestStreak, currentStreak, currentELo, highestELo, largestWinMargin]
+
+        textBoxTopLeft <-- (140,260)
+        maxWidth <-- maximum width that the text render can be
+        #This works because the font is going to be monospaced
+        charWidth <-- width of letter "a"
+        maxTextHeight <-- ROUND(maxWidth / charWidth, 0)
+
+        text <-- "Average WPM (Words Per Minute):"
+        lenText <-- LEN(text)
+        avgWPM <-- text + formatted data
+
+        text <-- "Games played:"
+        lenText <-- LEN(text)
+        gamesPlayed <-- text + formatted data
+
+        text <-- "Games won:"
+        lenText <-- LEN(text)
+        gamesWon <-- text + formatted data
+
+        text <-- "Winrate (%):"
+        lenText <-- LEN(text)
+        winrate <-- text + formatted data
+
+        text <-- "Longest winstreak:"
+        lenText <-- LEN(text)
+        longestStreak <-- text + formatted data
+
+        text <-- "Current winstreak:"
+        lenText <-- LEN(text)
+        currentStreak <-- text + formatted data
+
+        text <-- "Current ELo:"
+        lenText <-- LEN(text)
+        currentELo <-- text + formatted data
+
+        text <-- "Highest ELo:"
+        lenText <-- LEN(text)
+        highestELo <-- text + formatted data
+
+        text <-- "Largest win margin:"
+        lenText <-- LEN(text)
+        largestWinMargin <-- text + formatted data
+
+        textToRender <-- [avgWPM, gamesPlayed, gamesWon, winrate, longestStreak, currentStreak, currentELo, highestELo, largestWinMargin]
+
+        textX <-- textBoxTopLeft[0]
+        textY <-- textBoxTopLeft[1]
+
+        fill background will colour black
+
+        #Render title text
+        titleFont <-- pygame Font object
+        titleRender <-- pygame Surface object
+        titleSize <-- size of titleRender
+        titleLocation <-- centred x and y = 75
+
+        render titleRender on screen
+
+        FOR i <-- RANGE(LEN(textToRender))
+            textRender <-- render textToRender[i] with self.__font
+            renderLocation <-- (textX, textY + (maxTextHeight + 5) * i)
+            draw textRender on screen
+        ENDFOR
+
+        self.backbuttonPressed <-- False
+        backButtonSize <-- (500,130)
+        backButtonLocation <-- (250,850)
+        backRect <-- pygame Rect object
+        self.__backButton <-- Button object
+    ENDSUBROUTINE
+
+    SUBROUTINE main(self)
+        self._HandleInputs()
+
+        IF self.__backButton.CheckForCollision(mouse location) THEN
+            self.__backButton.SetActive()
+        ELSE
+            self.__backButton.SetInactive()
+        ENDIF
+
+        self._Render()
+    ENDSUBROUTINE
+
+    SUBROUTINE _Render(self)
+        self.__backButton.Render(self._window)
+    ENDSUBROUTINE
+
+    SUBROUTINE _HandleInputs(self)
+        Inherit from Scene
+
+        i <-- 0
+        WHILE i < LEN(self._inputHandler.inputsList)
+            IF self._inputHandler.inputsList[i][:6] = "CLICK:" THEN
+                clickLocation <-- mouse location
+                IF self.__backButton.CheckForCollision(clickLocation) THEN
+                    self.backbuttonPressed <-- True
+                    self.__backButton.clicked <-- True
+                ENDIF
+                self._inputHandler.inputsList.POP(i)
+            ELSE
+                i <-- i + 1
+            ENDIF
+        ENDWHILE
+    ENDSUBROUTINE
+ENDCLASS
